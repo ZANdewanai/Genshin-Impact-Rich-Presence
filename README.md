@@ -10,9 +10,9 @@ all the image assets Belong to Genshin Impact and Mihoyo/Hoyoverse, some taken f
 
 </p>
 
-![Screenshot](https://github.com/Zanzancomms/Genshin-Impact-Rich-Presence/blob/main/Screenshot2.png)
-![Screenshot](https://github.com/Zanzancomms/Genshin-Impact-Rich-Presence/blob/main/screenshot2.png)
-![Screenshot](https://github.com/Zanzancomms/Genshin-Impact-Rich-Presence/blob/main/screenshot3.png)
+![Screenshot](Screenshot2.png)
+![Screenshot](Screenshot2.png)
+![Screenshot](Screenshot3.png)
 
 ## Before Using
 
@@ -37,7 +37,7 @@ press the windows key and type path on the search bar and open edit the system e
 
 should give you something like this 
 
-![Screenshot](screenshot4.png)
+![Screenshot](Screenshot4.png)
 
 press environment variables on the bottom of the first window
 
