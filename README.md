@@ -2,6 +2,8 @@
 
 Only works on english text
 
+also check the tutorial.txt
+
 <p>
 A proof of concept Rich Presence, works most of the time for characters but struggles sometimes when knowing where you are might a bit laggy if you dont have a good pc, also only works well in 1080p displays might fix it if i find a way to do so
 
