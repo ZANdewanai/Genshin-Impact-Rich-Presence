@@ -45,6 +45,8 @@ on system variables scroll until you see Path and while selected press Edit
 
 Press on new and copy paste the installation folder of Tesseract that you installed a bit ago, default should be C:\Program Files\Tesseract-OCR
 
+then press ok and ok and ok
+
 ## Acknowledgement
 
 Thanks to [Kxnrl](https://github.com/Kxnrl) and [parampaa2](https://github.com/parampaa2)  for the idea of rich presence with tesseract
