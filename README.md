@@ -10,9 +10,9 @@ all the image assets Belong to Genshin Impact and Mihoyo/Hoyoverse, some taken f
 
 </p>
 
-![Screenshot](screenshot.png)
-![Screenshot](screenshot2.png)
-![Screenshot](screenshot3.png)
+![Screenshot](https://github.com/Zanzancomms/Genshin-Impact-Rich-Presence/blob/main/Screenshot2.png)
+![Screenshot](https://github.com/Zanzancomms/Genshin-Impact-Rich-Presence/blob/main/screenshot2.png)
+![Screenshot](https://github.com/Zanzancomms/Genshin-Impact-Rich-Presence/blob/main/screenshot3.png)
 
 ## Before Using
 
