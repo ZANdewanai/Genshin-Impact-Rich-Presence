@@ -10,7 +10,7 @@ all the image assets Belong to Genshin Impact and Mihoyo/Hoyoverse, some taken f
 
 </p>
 
-![Screenshot](Screenshot2.png)
+![Screenshot](Screenshot.png)
 ![Screenshot](Screenshot2.png)
 ![Screenshot](Screenshot3.png)
 
