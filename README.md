@@ -51,7 +51,7 @@ then press ok and ok and ok
 
 Thanks to [Kxnrl](https://github.com/Kxnrl) and [parampaa2](https://github.com/parampaa2)  for the idea of rich presence with tesseract
 
-Thanks to [Kataiser] (https://github.com/Kataiser) too for the base code that i used on this rich presence
+Thanks to [Kataiser](https://github.com/Kataiser) too for the base code that i used on this rich presence
 
 ## Known Issues
 
