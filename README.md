@@ -65,3 +65,4 @@ its not accurate at times and reads the names of the map too when you check on i
 
 make a whitelist so it ignores everything else that isnt the string of text i want it to read, and that would permit the tesseract to be used in full screen instead of 2 boxes though might be a bit cpu intensive, will need to see without it reading and putting everything it sees in your screen into the log
 
+at a later date will hide the tracking windows so they dont get on the way for now i need them for debbuging and to know well, where they are
