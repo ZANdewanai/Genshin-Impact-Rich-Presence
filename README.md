@@ -60,3 +60,9 @@ Thanks to [Kataiser](https://github.com/Kataiser) too for the base code that i u
 ## Known Issues
 
 its not accurate at times and reads the names of the map too when you check on it
+
+## ToDo
+
+make a whitelist so it ignores everything else that isnt the string of text i want it to read, and that would permit the tesseract to be used in full screen instead of 2 boxes though might be a bit cpu intensive, will need to see
+
+
