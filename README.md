@@ -59,4 +59,4 @@ Thanks to [Kataiser](https://github.com/Kataiser) too for the base code that i u
 
 ## Known Issues
 
-its not accurate at times
+its not accurate at times and reads the names of the map too when you check on it
