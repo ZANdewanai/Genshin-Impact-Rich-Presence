@@ -1,12 +1,12 @@
 # Genshin Impact Rich Presence
 
-Only works on english text
+Only works on english text and works best when traveling from a place to another instead of teleporting to it since it gives time for the app to read the place title you are in best
 
 also check the tutorial.txt
 
 <p>
 A proof of concept Rich Presence, works most of the time for characters but struggles sometimes when knowing where you are,
-might a bit laggy if you dont have a good pc, also only works well in 1080p displays might fix it if i find a way to do so
+might a bit laggy if you dont have a good pc, also only works well in 1080p fullscreen displays might fix it if i find a way to do so
 
 This Discord Rich Presence doesnt tamper with Genshin Impact in any way aside from taking screenshots from the game and using tesseract to turn the images into text usable for code for the rich presence
 
