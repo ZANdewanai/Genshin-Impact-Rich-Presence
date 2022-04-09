@@ -6,7 +6,7 @@ also check the tutorial.txt
 
 <p>
 A proof of concept Rich Presence, works most of the time for characters but struggles sometimes when knowing where you are,
-might a bit laggy if you dont have a good pc, also only works well in 1080p fullscreen displays might fix it if i find a way to do so
+might be a bit laggy if you dont have a good pc, also only works well in 1080p fullscreen displays might fix it if i find a way to do so
 
 This Discord Rich Presence doesnt tamper with Genshin Impact in any way aside from taking screenshots from the game and using tesseract to turn the images into text usable for code for the rich presence
 
