@@ -12,6 +12,8 @@ This Discord Rich Presence doesnt tamper with Genshin Impact in any way aside fr
 
 all the image assets Belong to Genshin Impact and Mihoyo/Hoyoverse, some taken from the Genshin Impact wiki https://genshin-impact.fandom.com/ and others screenshots from the game by me.
 
+if you want to talk to me about something from this discord rich presence my discord is ZANdewanai#1601 
+
 </p>
 
 ![Screenshot](Screenshot.png)
