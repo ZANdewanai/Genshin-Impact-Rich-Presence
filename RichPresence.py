@@ -67,7 +67,7 @@ def main():
 ## end of rich presence stuff
 
             for line in Player:  
-            
+
 ## this is for the player character     
 
                     if 'Zan¢' in line:  # here you put your name ( example =   if 'YourNameHere¢' in line:  )
@@ -75,6 +75,10 @@ def main():
                         activity['assets']['small_text'] = 'Playing as Zan' # here you change your name display  ( example =  activity['assets']['small_text'] = 'Playing as YourNameHere' )     
 
                     if 'Zan 4' in line: # here you put your name ( example =   if 'YourNameHere 4' in line:  )
+                        activity['assets']['small_image'] = 'aether' # if you are playing as female/male MC change to lumine/aether  ( example = activity['assets']['small_image'] = 'lumine')
+                        activity['assets']['small_text'] = 'Playing as Zan' # here you change your name display  ( example =  activity['assets']['small_text'] = 'Playing as YourNameHere' )   
+
+                    if 'Zan4' in line: # here you put your name ( example =   if 'YourNameHere 4' in line:  )
                         activity['assets']['small_image'] = 'aether' # if you are playing as female/male MC change to lumine/aether  ( example = activity['assets']['small_image'] = 'lumine')
                         activity['assets']['small_text'] = 'Playing as Zan' # here you change your name display  ( example =  activity['assets']['small_text'] = 'Playing as YourNameHere' )   
 
@@ -959,27 +963,27 @@ def main():
                         activity['state'] = "Whispering Woods - Starfell Valley"
                         activity = switch_image_mode(activity, ('whisperingwoods', 'Traveling In Mondstadt'))
                         
-                    if 'fell Lake' in line:
+                    if 'Starfell Lake' in line:
                         activity['details'] = "Traveling In Mondstadt"
                         activity['state'] = "Starfell Lake - Starfell Valley"
                         activity = switch_image_mode(activity, ('starfelllake', 'Traveling In Mondstadt'))
                         
-                    if 'snatch Cliff' in line:
+                    if 'StarSnatch Cliff' in line:
                         activity['details'] = "Traveling In Mondstadt"
                         activity['state'] = "Starsnatch Cliff - Starfell Valley"
                         activity = switch_image_mode(activity, ('starsnatchcliff', 'Traveling In Mondstadt'))
                         
-                    if 'bearer Mountains' in line:
+                    if 'stormbearer Mountains' in line:
                         activity['details'] = "Traveling In Mondstadt"
                         activity['state'] = "Stormbearer Mountains - Starfell Valley"
                         activity = switch_image_mode(activity, ('stormbearermountains', 'Traveling In Mondstadt'))
                         
-                    if 'Point' in line:
+                    if 'Stormbearer Point' in line:
                         activity['details'] = "Traveling In Mondstadt"
                         activity['state'] = "Stormbearer Point - Starfell Valley"
                         activity = switch_image_mode(activity, ('stormbearerpoint', 'Traveling In Mondstadt'))
                         
-                    if 'Thousand' in line:
+                    if 'Thousand Winds Temple' in line:
                         activity['details'] = "Traveling In Mondstadt"
                         activity['state'] = "Thousand Winds Temple - Starfell Valley"
                         activity = switch_image_mode(activity, ('thousandwindstemple', 'Traveling In Mondstadt'))
@@ -992,7 +996,7 @@ def main():
                         activity['state'] = "Falcon Coast - Galesong Hill"
                         activity = switch_image_mode(activity, ('falconcoast', 'Traveling In Mondstadt'))
                  
-                    if 'Reef' in line:
+                    if 'Musk Reef' in line:
                         activity['details'] = "Traveling In Mondstadt"
                         activity['state'] = "Musk Reef - Mondstadt"
                         activity = switch_image_mode(activity, ('muskreef', 'Traveling In Mondstadt'))
@@ -1007,7 +1011,7 @@ def main():
                         activity['state'] = "Cape Oath - Galesong Hill"
                         activity = switch_image_mode(activity, ('capeoath', 'Traveling In Mondstadt'))
                         
-                    if 'aupa' in line:
+                    if 'Daupa Gorge' in line:
                         activity['details'] = "Traveling In Mondstadt"
                         activity['state'] = "Daupa Gorge - Galesong Hill"
                         activity = switch_image_mode(activity, ('daupagorge', 'Traveling In Mondstadt'))
@@ -1019,7 +1023,7 @@ def main():
                         activity['state'] = "Springvale - Windwail Highland"
                         activity = switch_image_mode(activity, ('springvale', 'Traveling In Mondstadt'))
                                                 
-                    if 'Dawn' in line:
+                    if 'Dawn Winery' in line:
                         activity['details'] = "Dawn Winery"
                         activity['state'] = "Dawn Winery - Windwail Highland"
                         activity = switch_image_mode(activity, ('dawnwinery', 'Traveling In Mondstadt'))
@@ -1590,134 +1594,1210 @@ def main():
                         
  #--------------------------------------------------------------------------------------
 
+ #Mailbox
+                                         
+                    if 'Gift Mail Box' in line:
+                        activity['details'] = "Checking the Mailbox"
+                        activity['state'] = "Thats a lot of Primogems"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Checking the Mailbox'))  
+                     
+ #-------------------------------------------------------------------------------------- 
+
+    # Serenitea Pot
+                                                                           
+                    if 'Serenitea' in line:
+                        activity['details'] = "Relaxing in the Serenitea Pot"
+                        activity['state'] = "Serenitea Pot - A Realm for your own"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Relaxing in the Serenitea Pot'))  
+                        
+ #--------------------------------------------------------------------------------------
+                        
+## This is For Domains
+
+    # Domains of Blessing
+    
+    # Mondstadt
+     
+                    if 'Fires of Purification I' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Fires of Purification I - Midsummer Courtyard"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                
+                    if 'Fires of Purification II' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Fires of Purification II - Midsummer Courtyard"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                
+                    if 'Fires of Purification III' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Fires of Purification III - Midsummer Courtyard"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                
+                    if 'V ‘ ‘i' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Fires of Purification IV - Midsummer Courtyard"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                    
+                    if 'Fires of Purification V' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Fires of Purification V - Midsummer Courtyard"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                    
+                    if 'VI fi ]' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Fires of Purification VI - Midsummer Courtyard"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                       
+                    if 'Dance of Steel I' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Dance of Steel I - Valley of Remembrance"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                  
+                    if 'Dance of Steel II' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Dance of Steel II - Valley of Remembrance"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                  
+                    if 'Dance of Steel III' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Dance of Steel III - Valley of Remembrance"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                  
+                    if 'Dance of Steel IV' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Dance of Steel IV - Valley of Remembrance"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                           
+                    if 'Dance of Steel V' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Dance of Steel V - Valley of Remembrance"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                
+                    if 'Unyielding I' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Unyielding I - Ridge Watch"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                           
+                    if 'Unyielding II' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Unyielding II - Ridge Watch"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                           
+                    if 'Unyielding III' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Unyielding III - Ridge Watch"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                           
+                    if 'Unyielding IV' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Unyielding IV - Ridge Watch"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                           
+    
+    # Dragonspine   
+    
+                    if 'Elegaic Rime I' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Elegaic Rime I - Peak of Vindagnyr"
+                        activity = switch_image_mode(activity, ('dragonspine_blessing_domain', 'Clearing a Domain of Blessing')) 
+                        
+                    if 'Elegaic Rime II' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Elegaic Rime II - Peak of Vindagnyr"
+                        activity = switch_image_mode(activity, ('dragonspine_blessing_domain', 'Clearing a Domain of Blessing'))  
+                                                                           
+                    if 'Elegaic Rime III' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Elegaic Rime III - Peak of Vindagnyr"
+                        activity = switch_image_mode(activity, ('dragonspine_blessing_domain', 'Clearing a Domain of Blessing'))  
+                        
+                    if 'Elegaic Rime IV' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Elegaic Rime IV - Peak of Vindagnyr"
+                        activity = switch_image_mode(activity, ('dragonspine_blessing_domain', 'Clearing a Domain of Blessing'))  
+    # Liyue
+                                                                           
+                    if 'Frost I' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Frost I - Hidden Palace of Zhou Formula"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                      
+                    if 'Frost II' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Frost II - Hidden Palace of Zhou Formula"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                      
+                    if 'Frost III' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Frost III - Hidden Palace of Zhou Formula"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                      
+                    if 'Frost IV' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Frost IV - Hidden Palace of Zhou Formula"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                             
+                    if 'Spring I' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Spring I - Domain of Gunyun"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                        
+                    if 'Spring II' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Spring II - Domain of Gunyun"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                        
+                    if 'Spring III' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Spring III - Domain of Gunyun"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                        
+                    if 'Spring IV' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Spring IV - Domain of Gunyun"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                             
+                    if 'Stone Chamber I' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Spring I - Clear Pool and Mountain Cavern"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                               
+                    if 'Stone Chamber II' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Spring II - Clear Pool and Mountain Cavern"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                               
+                    if 'Stone Chamber III' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Spring III - Clear Pool and Mountain Cavern"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                               
+                    if 'Stone Chamber IV' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Spring IV - Clear Pool and Mountain Cavern"
+                        activity = switch_image_mode(activity, ('mondstadt_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                                                   
+                    if 'Machine Nest I' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Machine Nest I - The Lost Valley"
+                        activity = switch_image_mode(activity, ('liyue_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                                                                             
+                    if 'Machine Nest II' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Machine Nest II - The Lost Valley"
+                        activity = switch_image_mode(activity, ('liyue_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                                                                             
+                    if 'Machine Nest III' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Machine Nest III - The Lost Valley"
+                        activity = switch_image_mode(activity, ('liyue_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                                                                             
+                    if 'Machine Nest IV' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Machine Nest IV - The Lost Valley"
+                        activity = switch_image_mode(activity, ('liyue_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                             
+    # Inazuma   
+                                                                             
+                    if 'Autumn Hunt I' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Autumn Hunt I - Momiji-Dyed Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                
+                    if 'Autumn Hunt II' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Autumn Hunt II - Momiji-Dyed Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                
+                    if 'Autumn Hunt III' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Autumn Hunt III - Momiji-Dyed Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                
+                    if 'Autumn Hunt IV' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Autumn Hunt IV - Momiji-Dyed Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                            
+                    if 'Necropolis I' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Necropolis I - Slumbering Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                                                                          
+                    if 'Necropolis II' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Necropolis II - Slumbering Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                            
+                    if 'Necropolis III' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Necropolis III - Slumbering Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                                                                  
+                    if 'Necropolis IV' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Necropolis IV - Slumbering Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                       
+ #--------------------------------------------------------------------------------------
+                        
+    # Domain of Mastery
+    
+    # Mondstadt
+    
+                    if 'Realm of Slumber I' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Realm of Slumber I - Forsaken Rift"
+                        activity = switch_image_mode(activity, ('mondstadt_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                    
+                    if 'Realm of Slumber II' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Realm of Slumber II - Forsaken Rift"
+                        activity = switch_image_mode(activity, ('mondstadt_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                    
+                    if 'Realm of Slumber III' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Realm of Slumber III - Forsaken Rift"
+                        activity = switch_image_mode(activity, ('mondstadt_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                    
+                    if 'Realm of Slumber IV' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Realm of Slumber IV - Forsaken Rift"
+                        activity = switch_image_mode(activity, ('mondstadt_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                
+    # Dragonspine  
+
+    # Liyue  
+    
+                    if 'Circle of Embers I' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Thundering Valley I - Taishan Mansion"
+                        activity = switch_image_mode(activity, ('liyue_mastery_domain', 'Clearing a Domain of Mastery')) 
+             
+                    if 'Circle of Embers II' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Thundering Valley II - Taishan Mansion"
+                        activity = switch_image_mode(activity, ('liyue_mastery_domain', 'Clearing a Domain of Mastery')) 
+             
+                    if 'Circle of Embers III' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Thundering Valley III - Taishan Mansion"
+                        activity = switch_image_mode(activity, ('liyue_mastery_domain', 'Clearing a Domain of Mastery')) 
+             
+                    if 'Circle of Embers IV' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Thundering Valley IV - Taishan Mansion"
+                        activity = switch_image_mode(activity, ('liyue_mastery_domain', 'Clearing a Domain of Mastery')) 
+         
+    # Inazuma                                                                                                                                                                                                                                         
+                    if 'Thundering Valley I' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Thundering Valley I - Violet Court"
+                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                                                                                                                                                                                             
+                    if 'Thundering Valley II' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Thundering Valley II - Violet Court"
+                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                                                                                                                                                                                             
+                    if 'Thundering Valley III' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Thundering Valley III - Violet Court"
+                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                                                                                                                                                                                             
+                    if 'Thundering Valley IV' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Thundering Valley IV - Violet Court"
+                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                                                                                                                       
+                    if 'Taishan Mansion I' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Taishan Mansion I - Violet Court"
+                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                                                                                                                                                                     
+                    if 'Taishan Mansion II' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Taishan Mansion II - Violet Court"
+                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                                                                                                                                                                     
+                    if 'Taishan Mansion III' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Taishan Mansion III - Violet Court"
+                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                                                                                                                                                                     
+                    if 'Taishan Mansion IV' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Taishan Mansion IV - Violet Court"
+                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                                                                                                                                                                                                   
+                    if 'Forsaken Rift I' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Forsaken Rift I - Violet Court"
+                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                                                                                                                                                                                                   
+                    if 'Forsaken Rift II' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Forsaken Rift II - Violet Court"
+                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                                                                                                                                                                                                   
+                    if 'Forsaken Rift III' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Forsaken Rift III - Violet Court"
+                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                                                                                                                                                                                                   
+                    if 'Forsaken Rift IV' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Forsaken Rift IV - Violet Court"
+                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                     
+ #--------------------------------------------------------------------------------------
+
+    # Domain of Forgery
+    
+    # Mondstadt
+                                                                                                                                                                                                                                                                                                           
+                    if 'Ruins of Thirsting Capital I' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Ruins of Thirsting Capital I - Cecilia Garden"
+                        activity = switch_image_mode(activity, ('mondstadt_forgery_domain', 'Clearing a Domain of Forgery')) 
+                                                                                                                                                                                                                                                                                                                                         
+                    if 'Ruins of Thirsting Capital II' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Ruins of Thirsting Capital III - Cecilia Garden"
+                        activity = switch_image_mode(activity, ('mondstadt_forgery_domain', 'Clearing a Domain of Forgery')) 
+                                                                                                                                                                                                                                                                                                                                         
+                    if 'Ruins of Thirsting Capital III' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Ruins of Thirsting Capital III - Cecilia Garden"
+                        activity = switch_image_mode(activity, ('mondstadt_forgery_domain', 'Clearing a Domain of Forgery')) 
+                                                                                                                                                                                                                                                                                                                                         
+                    if 'Ruins of Thirsting Capital IV' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Ruins of Thirsting Capital IV - Cecilia Garden"
+                        activity = switch_image_mode(activity, ('mondstadt_forgery_domain', 'Clearing a Domain of Forgery')) 
+                                      
+              
+    # Dragonspine  
+
+    # Liyue   
+    
+                    if 'Trial Grounds of Thunder I' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Trial Grounds of Thunder IV - Hidden Palace of Lianshan Formula"
+                        activity = switch_image_mode(activity, ('liyue_forgery_domain', 'Clearing a Domain of Forgery')) 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                    if 'Trial Grounds of Thunder II' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Trial Grounds of Thunder II - Hidden Palace of Lianshan Formula"
+                        activity = switch_image_mode(activity, ('liyue_forgery_domain', 'Clearing a Domain of Forgery')) 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                    if 'Trial Grounds of Thunder III' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Trial Grounds of Thunder III - Hidden Palace of Lianshan Formula"
+                        activity = switch_image_mode(activity, ('liyue_forgery_domain', 'Clearing a Domain of Forgery')) 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                    if 'Trial Grounds of Thunder IV' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Trial Grounds of Thunder IV - Hidden Palace of Lianshan Formula"
+                        activity = switch_image_mode(activity, ('liyue_forgery_domain', 'Clearing a Domain of Forgery')) 
+           
+                           
+    # Inazuma                              
+                    if 'Altar of Sands I' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Altar of Sands I - Court of the Flowing Sand"
+                        activity = switch_image_mode(activity, ('inazuma_forgery_domain', 'Clearing a Domain of Forgery')) 
+                                                                                                                                                                                                                                                                                                                                                                
+                    if 'Altar of Sands II' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Altar of Sands II - Court of the Flowing Sand"
+                        activity = switch_image_mode(activity, ('inazuma_forgery_domain', 'Clearing a Domain of Forgery')) 
+                                                                                                                                                                                                                                                                                                                                                                
+                    if 'Altar of Sands III' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Altar of Sands III - Court of the Flowing Sand"
+                        activity = switch_image_mode(activity, ('inazuma_forgery_domain', 'Clearing a Domain of Forgery')) 
+                                                                                                                                                                                                                                                                                                                                                                
+                    if 'Altar of Sands IV' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Altar of Sands IV - Court of the Flowing Sand"
+                        activity = switch_image_mode(activity, ('inazuma_forgery_domain', 'Clearing a Domain of Forgery')) 
+
+  #--------------------------------------------------------------------------------------
+
+    # Trounce Domains
+                      
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                    if 'Duel of the Fiery Death I' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Duel of the Fiery Death I - Narukami Island: Tenshukaku"
+                        activity = switch_image_mode(activity, ('tenshukaku_trounce_domain', 'Clearing a Trounce Domain')) 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+                    if 'Duel of the Fiery Death II' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Duel of the Fiery Death II - Narukami Island: Tenshukaku"
+                        activity = switch_image_mode(activity, ('tenshukaku_trounce_domain', 'Clearing a Trounce Domain')) 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+                    if 'Duel of the Fiery Death III' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Duel of the Fiery Death III - Narukami Island: Tenshukaku"
+                        activity = switch_image_mode(activity, ('tenshukaku_trounce_domain', 'Clearing a Trounce Domain')) 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+                    if 'Duel of the Fiery Death IV' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Duel of the Fiery Death IV - Narukami Island: Tenshukaku"
+                        activity = switch_image_mode(activity, ('tenshukaku_trounce_domain', 'Clearing a Trounce Domain')) 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                    if 'Guardian of Eternity I' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Guardian of Eternity I - End of Oneiric Euthymia"
+                        activity = switch_image_mode(activity, ('euthymia_trounce_domain', 'Clearing a Trounce Domain')) 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                    if 'Guardian of Eternity II' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Guardian of Eternity II - End of Oneiric Euthymia"
+                        activity = switch_image_mode(activity, ('euthymia_trounce_domain', 'Clearing a Trounce Domain')) 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                    if 'Guardian of Eternity III' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Guardian of Eternity III - End of Oneiric Euthymia"
+                        activity = switch_image_mode(activity, ('euthymia_trounce_domain', 'Clearing a Trounce Domain')) 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                    if 'Guardian of Eternity IV' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Guardian of Eternity IV - End of Oneiric Euthymia"
+                        activity = switch_image_mode(activity, ('euthymia_trounce_domain', 'Clearing a Trounce Domain')) 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                    if 'The Golden Shadow I' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "The Golden Shadow I - Enter the Golden House"
+                        activity = switch_image_mode(activity, ('goldenhouse_trounce_domain', 'Clearing a Trounce Domain')) 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+                    if 'The Golden Shadow II' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "The Golden Shadow II - Enter the Golden House"
+                        activity = switch_image_mode(activity, ('goldenhouse_trounce_domain', 'Clearing a Trounce Domain')) 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+                    if 'The Golden Shadow III' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "The Golden Shadow III - Enter the Golden House"
+                        activity = switch_image_mode(activity, ('goldenhouse_trounce_domain', 'Clearing a Trounce Domain')) 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+                    if 'The Golden Shadow IV' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "The Golden Shadow IV - Enter the Golden House"
+                        activity = switch_image_mode(activity, ('goldenhouse_trounce_domain', 'Clearing a Trounce Domain'))
+                        
+                    if 'Earthshaking Dragon I' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Earthshaking Dragon I - Beneath the Dragon-Queller"
+                        activity = switch_image_mode(activity, ('dragon-queller_trounce_domain', 'Clearing a Trounce Domain'))
+                            
+                    if 'Earthshaking Dragon II' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Earthshaking Dragon II - Beneath the Dragon-Queller"
+                        activity = switch_image_mode(activity, ('dragon-queller_trounce_domain', 'Clearing a Trounce Domain'))
+                            
+                    if 'Earthshaking Dragon III' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Earthshaking Dragon III - Beneath the Dragon-Queller"
+                        activity = switch_image_mode(activity, ('dragon-queller_trounce_domain', 'Clearing a Trounce Domain'))
+                            
+                    if 'Earthshaking Dragon IV' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Earthshaking Dragon IV - Beneath the Dragon-Queller"
+                        activity = switch_image_mode(activity, ('dragon-queller_trounce_domain', 'Clearing a Trounce Domain'))
+                            
+                    if 'Memories: Storming Terror I' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Memories: Storming Terror I - Confront Stormterror"
+                        activity = switch_image_mode(activity, ('stormterror_trounce_domain', 'Clearing a Trounce Domain'))
+                            
+                    if 'Memories: Storming Terror II' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Memories: Storming Terror II - Confront Stormterror"
+                        activity = switch_image_mode(activity, ('stormterror_trounce_domain', 'Clearing a Trounce Domain'))
+                            
+                    if 'Memories: Storming Terror III' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Memories: Storming Terror III - Confront Stormterror"
+                        activity = switch_image_mode(activity, ('stormterror_trounce_domain', 'Clearing a Trounce Domain'))
+                            
+                    if 'Memories: Storming Terror IV' in line:
+                        activity['details'] = "Clearing a Trounce Domain"
+                        activity['state'] = "Memories: Storming Terror IV - Confront Stormterror"
+                        activity = switch_image_mode(activity, ('stormterror_trounce_domain', 'Clearing a Trounce Domain'))
+
+  #--------------------------------------------------------------------------------------
+    
     # Weekly Bosses
 
-                    if 'Dvalin' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                    if 'Erstwhile King of the Skies' in line:
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Stormterror Dvalin - Erstwhile King of the Skies"
-                        activity = switch_image_mode(activity, ('dvalin', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('dvalin', 'Fighting a Boss'))  
                         
                     if 'Childe' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Childe - Eleventh of the Fatui Harbringers" 
-                        activity = switch_image_mode(activity, ('childe', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('childe', 'Fighting a Boss'))  
                         
                     if 'Azhdaha' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Azhdaha - Sealed Lord of Vishaps"
-                        activity = switch_image_mode(activity, ('azhdaha', 'Currently Fighting a Boss'))     
+                        activity = switch_image_mode(activity, ('azhdaha', 'Fighting a Boss'))     
                                 
                     if 'Signora' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "La Signora - Eight of the Fatui Harbringers"
-                        activity = switch_image_mode(activity, ('signora', 'Currently Fighting a Boss'))     
+                        activity = switch_image_mode(activity, ('signora', 'Fighting a Boss'))     
                                 
                     if 'Magatsu Mitake Narukami no Mikoto' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Magatsu Mitake Narukami no Mikoto - Raiden no Inazuma tono"
-                        activity = switch_image_mode(activity, ('magatsu_mitake_narukami_no_mikoto', 'Currently Fighting a Boss'))     
+                        activity = switch_image_mode(activity, ('magatsu_mitake_narukami_no_mikoto', 'Fighting a Boss'))     
 
     # Cube Bosses
     
                     if 'Anemo Hypostasis' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Anemo Hypostasis - Beth"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
                             
                     if 'Electro Hypostasis' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Electro Hypostasis - Aleph"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
                             
                     if 'Cryo Hypostasis' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Cryo Hypostasis - Daleth"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
                             
                     if 'Geo Hypostasis' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Geo Hypostasis - Gimel"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
                                                     
                     if 'Pyro Hypostasis' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Pyro Hypostasis - Ayin Bellowing Blaze"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
                                                                          
                     if 'Hydro Hypostasis' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Hydro Hypostasis - He"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
                         
     # Flower Bosses
     
                     if 'Cryo Regisvine' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Cryo Regisvine - Silent Frost Bloom"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
     
                     if 'Pyro Regisvine' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Pyro Regisvine - Flickering Blaze Bloom"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
                         
     # Mechanical Bosses 
     
                     if 'Ruin Serpent' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Ruin Serpent - Excavator: SI/Glp"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
         
                     if 'Perpetual Mechanical Array' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Perpetual Mechanical Array - Perpetual Resonance SI/Ald"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
                         
                     if 'Maguu Kenki' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Maguu Kenki - Ingenious Machine: Marionette Swordmaster"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
                    
     # Doggo Bosses 
 
                     if 'Andrius' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Andrius - Dominator of Wolves"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
                        
                     if 'Golden Wolflord' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Golden Wolflord - Nameless King of the Rift"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
 
     # Birb Bosses 
                         
                     if 'Rhodeia of Loch' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Rhodeia of Loch - Oceanid of Quigce"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
                                            
                     if 'Thunder Manifestation' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Thunder Manifestation - Raging Thunder of Amakuno Peak"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
                    
     # Other Bosses
                                            
                     if 'Coral Defenders' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Coral Defenders - Bathysmal Vishap Herd"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
                    
                                                                          
                     if 'Primo Geovishap' in line:
-                        activity['details'] = "Currently Fighting a Boss"
+                        activity['details'] = "Fighting a Boss"
                         activity['state'] = "Primo Geovishap - Geo Dragon Who Once Raged With the King Long-Slumbering Earthshaker Dragon"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Currently Fighting a Boss'))  
-                   
-                                               
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
 
     
+#--------------------------------------------------------------------------------------   
+
+## This is for Other Interactions
+
+ #Looking at a Tree
+                                                           
+                    if 'Frostbearing Tree' in line:
+                        activity['details'] = "Offering to the Frostbearing Tree"
+                        activity['state'] = "Frostbearing Tree"
+                        activity = switch_image_mode(activity, ('frostbearing_tree', 'Offering to the Frostbearing Tree'))  
+                                                                         
+                    if 'cred Sakura' in line:
+                        activity['details'] = "Offering to the Sacred Sakura"
+                        activity['state'] = "Sacred Sakura Favor"
+                        activity = switch_image_mode(activity, ('sacredsakura', 'Offering to the Sacred Sakura'))  
+                         
+#-------------------------------------------------------------------------------------- 
+
+ #Taking a Break
+                              
+                    if 'World Level' in line:
+                        activity['details'] = "Game is Paused"
+                        activity['state'] = "Looking at Paimon"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Game is Paused'))  
+                        
+#-------------------------------------------------------------------------------------- 
+
+ #Adventure Rank
+ 
+                    if 'Co-Op Mode' in line:
+                        activity['details'] = "Looking at Co-Op Mode"
+                        activity['state'] = "Co-Op Mode"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Looking at Co-Op Mode'))  
+ 
+                    if '2/4' in line:
+                        activity['details'] = "Traveling with other Traveler"
+                        activity['state'] = "Playing in Co-Op Mode 2/4"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Traveling with another Traveler'))  
+ 
+                    if '3/4' in line:
+                        activity['details'] = "Traveling with other Travelers"
+                        activity['state'] = "Playing in Co-Op Mode 3/4"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Traveling with another Traveler'))  
+ 
+                    if '4/4' in line:
+                        activity['details'] = "Traveling with other Travelers"
+                        activity['state'] = "Playing in Co-Op Mode 4/4"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Traveling with another Traveler'))  
+
+#-------------------------------------------------------------------------------------- 
+
+ #Adventure Rank once in a blue moon it will get it but well here it is
+                                                     
+                    if 'Adventure Rank 1' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 1"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 2' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 2"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 3' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 3"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 4' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 4"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 5' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 5"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 6' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 6"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 7' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 7"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 8' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 8"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 9' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 9"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 10' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 10"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 11' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 11"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 12' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 12"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 13' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 13"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 14' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 14"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 15' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 15"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 16' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 16"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 17' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 17"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 18' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 18"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 19' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 19"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 20' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 20"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 21' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 21"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 22' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 22"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 23' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 23"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 24' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 24"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 25' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 25"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 26' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 26"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 27' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 27"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 28' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 28"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 29' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 29"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 30' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 30"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 31' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 31"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 2' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 32"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 33' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 33"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 34' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 34"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 35' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 35"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 36' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 36"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 37' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 37"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 38' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 38"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 39' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 39"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 40' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 40"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 41' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 31"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 42' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 42"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 43' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 43"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 44' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 44"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 45' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 45"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 46' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 36"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 47' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 47"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 48' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 48"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 49' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 49"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 50' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 50"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 51' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 51"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 52' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 52"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 53' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 53"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 54' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 54"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 55' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 55"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 56' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 56"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 57' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 57"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 58' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 58"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 59' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 59"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+                                                     
+                    if 'Adventure Rank 60' in line:
+                        activity['details'] = "Taking a Break"
+                        activity['state'] = "Adventure Rank 60"
+                        activity = switch_image_mode(activity, ('bossplaceholder', 'Taking a Break'))  
+
+#--------------------------------------------------------------------------------------   
+
+ #Spiral Abyss
+
+                    if 'Spiral Abyss' in line:
+                        activity['details'] = "Challenging Yourself in the Spiral Abyss"
+                        activity['state'] = "Spiral Abyss"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging Yourself in the Spiral Abyss'))  
+
+                    elif 'Floor 1 Chamber 1' in line:
+                        activity['details'] = "Challenging Yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 1 Chamber 1"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging Yourself in the Spiral Abyss'))  
+
+                    elif 'Floor 1 Chamber 2' in line:
+                        activity['details'] = "Challenging Yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 1 Chamber 2"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+                        
+                    if 'Floor 1 Chamber 3' in line:
+                        activity['details'] = "Challenging Yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 1 Chamber 3"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 2 Chamber 1' in line:
+                        activity['details'] = "Challenging Yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 2 Chamber 1"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 2 Chamber 2' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 2 Chamber 2"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 2 Chamber 3' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 2 Chamber 3"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 3 Chamber 1' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 3 Chamber 1"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 3 Chamber 2' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 3 Chamber 2"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss')) 
+                        
+                    if 'Floor 3 Chamber 3' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 3 Chamber 3"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss')) 
+                        
+                    if 'Floor 4 Chamber 1' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 4 Chamber 1"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 4 Chamber 2' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 4 Chamber 2"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 4 Chamber 3' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 4 Chamber 3"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 5 Chamber 1' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 5 Chamber 1"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 5 Chamber 2' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 5 Chamber 2"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 5 Chamber 3' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 5 Chamber 3"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 6 Chamber 1' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 6 Chamber 1"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 6 Chamber 2' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 6 Chamber 2"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 6 Chamber 3' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 6 Chamber 3"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 7 Chamber 1' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 7 Chamber 1"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 7 Chamber 2' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 7 Chamber 2"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 7 Chamber 3' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 7 Chamber 3"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 8 Chamber 1' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 8 Chamber 1"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 8 Chamber 2' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 8 Chamber 2"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    elif 'Floor 8 Chamber 3' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 8 Chamber 3"
+                        activity = switch_image_mode(activity, ('spiralabysscorridor', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 9 Chamber 1' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 9 Chamber 1"
+                        activity = switch_image_mode(activity, ('spiralabyss', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 9 Chamber 2' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 9 Chamber 2"
+                        activity = switch_image_mode(activity, ('spiralabyss', 'Challenging yourself in the Spiral Abyss')) 
+                        
+                    if 'Floor 9 Chamber 3' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 9 Chamber 3"
+                        activity = switch_image_mode(activity, ('spiralabyss', 'Challenging yourself in the Spiral Abyss')) 
+                        
+                    if 'Floor 10 Chamber 1' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 10 Chamber 1"
+                        activity = switch_image_mode(activity, ('spiralabyss', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 10 Chamber 2' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 10 Chamber 2"
+                        activity = switch_image_mode(activity, ('spiralabyss', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 10 Chamber 3' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 10 Chamber 3"
+                        activity = switch_image_mode(activity, ('spiralabyss', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 11 Chamber 1' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 11 Chamber 1"
+                        activity = switch_image_mode(activity, ('spiralabyss', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 11 Chamber 2' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 11 Chamber 2"
+                        activity = switch_image_mode(activity, ('spiralabyss', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 11 Chamber 3' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 11 Chamber 3"
+                        activity = switch_image_mode(activity, ('spiralabyss', 'Challenging yourself in the Spiral Abyss'))  
+
+                    if 'Floor 12 Chamber 1' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 12 Chamber 1"
+                        activity = switch_image_mode(activity, ('spiralabyss', 'Challenging yourself in the Spiral Abyss'))  
+
+                    elif 'Floor 12 Chamber 2' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 12 Chamber 2"
+                        activity = switch_image_mode(activity, ('spiralabyss', 'Challenging yourself in the Spiral Abyss'))  
+
+                    elif 'Floor 12 Chamber 3' in line:
+                        activity['details'] = "Challenging yourself in the Spiral Abyss"
+                        activity['state'] = "Floor 12 Chamber 3"
+                        activity = switch_image_mode(activity, ('spiralabyss', 'Challenging yourself in the Spiral Abyss'))  
+
 #--------------------------------------------------------------------------------------
 ##rich presence stuff
 
