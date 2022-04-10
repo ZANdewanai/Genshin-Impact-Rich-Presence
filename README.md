@@ -18,7 +18,8 @@ all the image assets Belong to Genshin Impact and Mihoyo/Hoyoverse, some taken f
 ![Screenshot](Screenshot2.png)
 ![Screenshot](Screenshot3.png)
 
-if you want to talk to me about something from this discord rich presence my discord is ZANdewanai#1601 or use the issues tab on github
+if you want to talk to me about something from this discord rich presence my discord is ZANdewanai#1601 or use the `Discussions` tab on github
+
 ## Before Using
 
 Tesseract is needed to run the image to text algorithm so needs to be installed before trying it
