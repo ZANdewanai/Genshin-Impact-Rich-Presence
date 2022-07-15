@@ -2226,98 +2226,98 @@ def main():
                     if 'Anemo Hypostasis' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Anemo Hypostasis - Beth"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('anemo_hypostasis', 'Fighting a Boss'))  
                             
                     if 'Electro Hypostasis' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Electro Hypostasis - Aleph"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('electro_hypostasis', 'Fighting a Boss'))  
                             
                     if 'Cryo Hypostasis' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Cryo Hypostasis - Daleth"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('cryo_hypostasis', 'Fighting a Boss'))  
                             
                     if 'Geo Hypostasis' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Geo Hypostasis - Gimel"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('geo_hypostasis', 'Fighting a Boss'))  
                                                     
                     if 'Pyro Hypostasis' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Pyro Hypostasis - Ayin Bellowing Blaze"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('pyro_hypostasis', 'Fighting a Boss'))  
                                                                          
                     if 'Hydro Hypostasis' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Hydro Hypostasis - He"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('hydro_hypostasis', 'Fighting a Boss'))  
                         
     # Flower Bosses
     
                     if 'Cryo Regisvine' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Cryo Regisvine - Silent Frost Bloom"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('cryo_regisvine', 'Fighting a Boss'))  
     
                     if 'Pyro Regisvine' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Pyro Regisvine - Flickering Blaze Bloom"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('pyro_regisvine', 'Fighting a Boss'))  
                         
     # Mechanical Bosses 
     
                     if 'Ruin Serpent' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Ruin Serpent - Excavator: SI/Glp"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('ruin_serpent', 'Fighting a Boss'))  
         
                     if 'Perpetual Mechanical Array' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Perpetual Mechanical Array - Perpetual Resonance SI/Ald"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('perpetual_mechanical_array', 'Fighting a Boss'))  
                         
                     if 'Maguu Kenki' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Maguu Kenki - Ingenious Machine: Marionette Swordmaster"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('maguu_kenki', 'Fighting a Boss'))  
                    
     # Doggo Bosses 
 
                     if 'Andrius' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Andrius - Dominator of Wolves"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('andrius', 'Fighting a Boss'))  
                        
                     if 'Golden Wolflord' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Golden Wolflord - Nameless King of the Rift"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('golden_wolflord', 'Fighting a Boss'))  
 
     # Birb Bosses 
                         
                     if 'Rhodeia of Loch' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Rhodeia of Loch - Oceanid of Quigce"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('oceanid', 'Fighting a Boss'))  
                                            
                     if 'Thunder Manifestation' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Thunder Manifestation - Raging Thunder of Amakuno Peak"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('thunder_manifestation', 'Fighting a Boss'))  
                    
     # Other Bosses
                                            
                     if 'Coral Defenders' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Coral Defenders - Bathysmal Vishap Herd"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('bathysmal_vishap_herd', 'Fighting a Boss'))  
                    
                                                                          
                     if 'Primo Geovishap' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Primo Geovishap - Geo Dragon Who Once Raged With the King Long-Slumbering Earthshaker Dragon"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('primo_geovishap', 'Fighting a Boss'))  
 
     
 #--------------------------------------------------------------------------------------   
