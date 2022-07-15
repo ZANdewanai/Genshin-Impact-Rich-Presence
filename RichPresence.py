@@ -1646,16 +1646,6 @@ def main():
                         activity['state'] = "Kunado's Locus - Tsurumi Island"
                         activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
                         
- #--------------------------------------------------------------------------------------
-
- #Mailbox
-                                         
-                    if 'Gift Mail Box' in line:
-                        activity['details'] = "Checking the Mailbox"
-                        activity['state'] = "Mail Mail Mail!"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Checking the Mailbox'))  
-
- #--------------------------------------------------------------------------------------
                         
 ## This is For Domains
 
@@ -2343,10 +2333,17 @@ def main():
                     if 'World Level' in line:
                         activity['details'] = "Game is Paused"
                         activity['state'] = "Looking at Paimon"
-                        activity = switch_image_mode(activity, ('bossplaceholder', 'Game is Paused'))  
+                        activity = switch_image_mode(activity, ('paimon', 'Game is Paused'))  
                         
 #-------------------------------------------------------------------------------------- 
 
+
+ #Mailbox
+                                         
+                    if 'Gift Mail Box' in line:
+                        activity['details'] = "Checking the Mailbox"
+                        activity['state'] = "Mail Mail Mail!"
+                        activity = switch_image_mode(activity, ('mail', 'Checking the Mailbox'))  
 
 #-------------------------------------------------------------------------------------- 
 
