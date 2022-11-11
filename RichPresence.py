@@ -1842,49 +1842,214 @@ def main():
                       
 #--------------------------------------------------------------------------------------
 
-    # Enkanomiya
-                                                                        
-                    if 'Dainichi Mikoshi' in line:
-                        activity['details'] = "Traveling In Enkanomiya"
-                        activity['state'] = "Dainichi Mikoshi - Enkanomiya"
-                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
+    # Sumeru
+    # Lokapala Jungle
+    
+                    if 'Chatrakam' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Chatrakam - Lokapala Jungle"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
                                                                          
-                    if 'Evernight Temple' in line:
-                        activity['details'] = "Traveling In Enkanomiya"
-                        activity['state'] = "Evernight Temple - Tsurumi Island"
-                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
+                    if 'Mawtiyima' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Mawtiyima Forest - Lokapala Jungle"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
                                                                          
-                    if 'The Narrows' in line:
-                        activity['details'] = "Traveling In Enkanomiya"
-                        activity['state'] = "The Narrows - Tsurumi Island"
-                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
+                    if 'Alcazarzaray' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "The Palace of Alcazarzaray - Lokapala Jungle"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                          
+    # Avidya Forest
+    
+                    if 'Chinvat' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Chinvat Ravine - Avidya Forest"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
                                                                          
-                    if 'Bowels' in line:
-                        activity['details'] = "Traveling In Enkanomiya"
-                        activity['state'] = "The Serpent's Bowels - Tsurumi Island"
-                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
+                    if 'Gandharva' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Gandharva Ville - Avidya Forest"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
                                                                          
-                    if 'Heart' in line:
-                        activity['details'] = "Traveling In Enkanomiya"
-                        activity['state'] = "The Serpent's Heart - Tsurumi Island"
-                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
-                                                                          
-                    if 'Yachimatahiko' in line:
-                        activity['details'] = "Traveling In Enkanomiya"
-                        activity['state'] = "Yachimatahiko's Locus - Tsurumi Island"
-                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
-                                                                           
-                    if 'Yachimatahime' in line:
-                        activity['details'] = "Traveling In Enkanomiya"
-                        activity['state'] = "Yachimatahime's Locus - Tsurumi Island"
-                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
-                                                                           
-                    if 'Kunado' in line:
-                        activity['details'] = "Traveling In Enkanomiya"
-                        activity['state'] = "Kunado's Locus - Tsurumi Island"
-                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
+                    if 'Gandha' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Gandha Hill - Avidya Forest"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                                                             
+                    if 'Yazadaha City' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Yazadaha Pool - Avidya Forest"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+    
+    # Ardravi Valley
+    
+                    if 'Devantaka' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Devantaka Mountain - Ardravi Valley"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                         
+                    if 'Ormos' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Port Ormos - Ardravi Valley"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                         
+                    if 'Gandha' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Gandha Hill - Ardravi Valley"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                                                             
+                    if 'Vimara' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Vimara Village - Ardravi Valley"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                               
+    # Ashavan Realm
+    
+                    if 'Apam' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Apam Woods - Ashavan Realm"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                         
+                    if 'Ribat' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Caravan Ribat - Ashavan Realm"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                         
+                    if 'Dhyai' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Pardis Dhyai - Ashavan Realm"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                                                             
+                    if 'Dahri' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Ruins of Dahri - Ashavan Realm"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                                                                                         
+                    if 'Yasna' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Yasna Monument - Ashavan Realm"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                         
+    # Vanarana
+    
+                    if 'Tree of Dreams' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Tree of Dreams - Vanarana"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                         
+                    if 'Araja' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Araja's house - Vanarana"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                         
+                    if 'Arama' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Arama's house - Vanarana"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                                                             
+                    if 'Music-Loving Aranaras' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Music-Loving Aranaras' house - Vanarana"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                                                                                         
+                    if 'Aranakin' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Aranakin's group's house - Vanarana"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
                         
+                    if 'Arapandu' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Arapandu's group's house - Vanarana"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                                                             
+                    if 'Arapacati' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Arapacati's group's house - Vanarana"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                                                                                         
+                    if 'Viparyas' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Viparyas's garden - Vanarana"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))
                         
+    # Lost Nursery
+    
+                    if 'Vanarana' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Old Vanarana - Lost Nursery"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                         
+                                         
+    # Vissudha Field
+    
+                    if 'Ashvattha' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Fane of Ashvattha - Vissudha Field"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                                                                                                                                   
+    # Hypostyle Desert
+    
+                    if 'Sobek' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Sobek Oasis - Hypostyle Desert"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                         
+                    if 'Carouses' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "The Dune of Carouses - Hypostyle Desert"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                         
+                    if 'Elusion' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "The Dune of Elusion - Hypostyle Desert"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                                                             
+                    if 'Magma' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "The Dune of Magma - Hypostyle Desert"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                                                                                         
+                    if 'Deshret' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "The Mausoleum of King Deshret - Hypostyle Desert"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                                                                                                                                                         
+    # Land of Lower Setekh
+    
+                    if 'Aaru' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Aaru Village - Land of Lower Setekh"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                         
+                    if 'Abdju Pit' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Abdju Pit - Land of Lower Setekh"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                         
+                    if 'Abdju Road' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Abdju Road - Land of Lower Setekh"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                                                             
+                    if 'al-Shifa' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Dar al-Shifa - Land of Lower Setekh"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                                                                                                         
+                    if 'Eye of the Sands' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Eye of the Sands - Land of Lower Setekh"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                        
+                                                                                                                                                                                                                                     
+    # Land of Upper Setekh
+    
+                    if 'Valley of Dahri' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Valley of Dahri - Land of Lower Setekh"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+ 
 ## This is For Domains
 
     # Domains of Blessing
@@ -2485,7 +2650,12 @@ def main():
                     if 'Hydro Hypostasis' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Hydro Hypostasis - He"
-                        activity = switch_image_mode(activity, ('hydro_hypostasis', 'Fighting a Boss'))  
+                        activity = switch_image_mode(activity, ('hydro_hypostasis', 'Fighting a Boss'))     
+                        
+                    if 'Dendro Hypostasis' in line:
+                        activity['details'] = "Fighting a Boss"
+                        activity['state'] = "Dendro Hypostasis - He"
+                        activity = switch_image_mode(activity, ('dendro_hypostasis', 'Fighting a Boss'))  
                         
     # Flower Bosses
     
@@ -2499,6 +2669,11 @@ def main():
                         activity['state'] = "Pyro Regisvine - Flickering Blaze Bloom"
                         activity = switch_image_mode(activity, ('pyro_regisvine', 'Fighting a Boss'))  
                         
+                    if 'Electro Regisvine' in line:
+                        activity['details'] = "Fighting a Boss"
+                        activity['state'] = "Electro Regisvine - Giant Sparksurge Calamus"
+                        activity = switch_image_mode(activity, ('electro_regisvine', 'Fighting a Boss'))  
+                        
     # Mechanical Bosses 
     
                     if 'Ruin Serpent' in line:
@@ -2510,6 +2685,16 @@ def main():
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Perpetual Mechanical Array - Perpetual Resonance SI/Ald"
                         activity = switch_image_mode(activity, ('perpetual_mechanical_array', 'Fighting a Boss'))  
+                                   
+                    if 'Aeonblight Drake' in line:
+                        activity['details'] = "Fighting a Boss"
+                        activity['state'] = "Aeonblight Drake - Perpetual Motion GL-Faf"
+                        activity = switch_image_mode(activity, ('aeonblight_Drake', 'Fighting a Boss'))  
+                        
+                    if 'Algorithm of Semi-Intransient Matrix of Overseer Network' in line:
+                        activity['details'] = "Fighting a Boss"
+                        activity['state'] = "Algorithm of Semi-Intransient Matrix of Overseer Network - Tomb Guard of the Desert King"
+                        activity = switch_image_mode(activity, ('Algorithm_of_Semi-Intransient_Matrix_of_Overseer_Network', 'Fighting a Boss'))   
                         
                     if 'Maguu Kenki' in line:
                         activity['details'] = "Fighting a Boss"
