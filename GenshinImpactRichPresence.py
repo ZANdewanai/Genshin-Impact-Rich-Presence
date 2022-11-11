@@ -7,10 +7,10 @@ import os
 # Handle errors while calling os.ulink()
 window = tkinter.Tk()
 window.title("Genshin Impact Rich Presence")
-window.geometry("400x500")
+window.geometry("600x400")
 window.iconbitmap(default='images\\ApplicatonIcon.ico')
 window.resizable(0, 0)
-window.config(bg="black") 
+window.config(bg="White") 
 
 
 

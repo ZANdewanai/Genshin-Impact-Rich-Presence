@@ -7,10 +7,10 @@ import os
 # Handle errors while calling os.ulink()
 window = tkinter.Tk()
 window.title("Genshin Impact Rich Presence 1440p Ver")
-window.geometry("400x500")
+window.geometry("600x400")
 window.iconbitmap(default='images\\ApplicatonIcon.ico')
 window.resizable(0, 0)
-window.config(bg="black") 
+window.config(bg="White") 
 
 
 
@@ -37,8 +37,8 @@ button = tkinter.Button(text="Stop Grabbing Genshin Impact Names (the 2 windows 
 button.pack(pady=10)
 
 button = tkinter.Button(text="to stop the Discord Rich Presence close this application and CMD Window that appeared",
-                       bg="black",
-                       fg="white")      
+                       bg="Black",
+                       fg="White")      
 button.pack(pady=10)
 
 
