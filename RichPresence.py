@@ -952,8 +952,180 @@ def main():
                         activity['assets']['small_image'] = 'shikanoin_heizou'
                         activity['assets']['small_text'] = 'Playing as Shikanoin Heizou'
                         
-#--------------------------------------------------------------------------------------        
-         
+#--------------------------------------------------------------------------------------   
+    # Sumeru Characters     
+    
+                    if 'Candace#' in line:
+                        activity['assets']['small_image'] = 'candace'
+                        activity['assets']['small_text'] = 'Playing as Candace'
+               
+                    if 'Candace«' in line:
+                        activity['assets']['small_image'] = 'candace'
+                        activity['assets']['small_text'] = 'Playing as Candace'
+               
+                    if 'Candace¢' in line:
+                        activity['assets']['small_image'] = 'candace'
+                        activity['assets']['small_text'] = 'Playing as Candace'
+                                       
+                    if 'Candace 4' in line:
+                        activity['assets']['small_image'] = 'candace'
+                        activity['assets']['small_text'] = 'Playing as Candace'
+                        
+                                    
+#--------------------------------------------------------------------------------------   
+
+                    if 'Collei#' in line:
+                        activity['assets']['small_image'] = 'collei'
+                        activity['assets']['small_text'] = 'Playing as Collei'
+               
+                    if 'Collei«' in line:
+                        activity['assets']['small_image'] = 'collei'
+                        activity['assets']['small_text'] = 'Playing as Collei'
+               
+                    if 'Collei¢' in line:
+                        activity['assets']['small_image'] = 'collei'
+                        activity['assets']['small_text'] = 'Playing as Collei'
+                                       
+                    if 'Collei 4' in line:
+                        activity['assets']['small_image'] = 'collei'
+                        activity['assets']['small_text'] = 'Playing as Collei'
+                        
+                                    
+#--------------------------------------------------------------------------------------
+
+                    if 'Dori#' in line:
+                        activity['assets']['small_image'] = 'dori'
+                        activity['assets']['small_text'] = 'Playing as Dori'
+               
+                    if 'Dori«' in line:
+                        activity['assets']['small_image'] = 'dori'
+                        activity['assets']['small_text'] = 'Playing as Dori'
+               
+                    if 'Dori¢' in line:
+                        activity['assets']['small_image'] = 'dori'
+                        activity['assets']['small_text'] = 'Playing as Dori'
+                                       
+                    if 'Dori 4' in line:
+                        activity['assets']['small_image'] = 'dori'
+                        activity['assets']['small_text'] = 'Playing as Dori'
+                        
+                                    
+#--------------------------------------------------------------------------------------
+
+                    if 'Nahida#' in line:
+                        activity['assets']['small_image'] = 'nahida'
+                        activity['assets']['small_text'] = 'Playing as Nahida'
+               
+                    if 'Nahida«' in line:
+                        activity['assets']['small_image'] = 'nahida'
+                        activity['assets']['small_text'] = 'Playing as Nahida'
+               
+                    if 'Nahida¢' in line:
+                        activity['assets']['small_image'] = 'nahida'
+                        activity['assets']['small_text'] = 'Playing as Nahida'
+                                       
+                    if 'Nahida 4' in line:
+                        activity['assets']['small_image'] = 'nahida'
+                        activity['assets']['small_text'] = 'Playing as Nahida'
+                        
+                                    
+#--------------------------------------------------------------------------------------
+
+                    if 'Nilou#' in line:
+                        activity['assets']['small_image'] = 'nilou'
+                        activity['assets']['small_text'] = 'Playing as Nilou'
+               
+                    if 'Nilou«' in line:
+                        activity['assets']['small_image'] = 'nilou'
+                        activity['assets']['small_text'] = 'Playing as Nilou'
+               
+                    if 'Nilou¢' in line:
+                        activity['assets']['small_image'] = 'nilou'
+                        activity['assets']['small_text'] = 'Playing as Nilou'
+                                       
+                    if 'Nilou 4' in line:
+                        activity['assets']['small_image'] = 'nilou'
+                        activity['assets']['small_text'] = 'Playing as Nilou'
+                        
+                                    
+#--------------------------------------------------------------------------------------
+
+                    if 'Tighnari#' in line:
+                        activity['assets']['small_image'] = 'tighnari'
+                        activity['assets']['small_text'] = 'Playing as Tighnari'
+               
+                    if 'Tighnari«' in line:
+                        activity['assets']['small_image'] = 'tighnari'
+                        activity['assets']['small_text'] = 'Playing as Tighnari'
+               
+                    if 'Tighnari¢' in line:
+                        activity['assets']['small_image'] = 'tighnari'
+                        activity['assets']['small_text'] = 'Playing as Tighnari'
+                                       
+                    if 'Tighnari 4' in line:
+                        activity['assets']['small_image'] = 'tighnari'
+                        activity['assets']['small_text'] = 'Playing as Tighnari'
+                        
+                                    
+#--------------------------------------------------------------------------------------
+
+                    if 'Layla#' in line:
+                        activity['assets']['small_image'] = 'layla'
+                        activity['assets']['small_text'] = 'Playing as Layla'
+               
+                    if 'Layla«' in line:
+                        activity['assets']['small_image'] = 'layla'
+                        activity['assets']['small_text'] = 'Playing as Layla'
+               
+                    if 'Layla¢' in line:
+                        activity['assets']['small_image'] = 'layla'
+                        activity['assets']['small_text'] = 'Playing as Layla'
+                                       
+                    if 'Layla 4' in line:
+                        activity['assets']['small_image'] = 'layla'
+                        activity['assets']['small_text'] = 'Playing as Layla'
+                        
+                                    
+#--------------------------------------------------------------------------------------
+
+                    if 'Faruzan#' in line:
+                        activity['assets']['small_image'] = 'faruzan'
+                        activity['assets']['small_text'] = 'Playing as Faruzan'
+               
+                    if 'Faruzan«' in line:
+                        activity['assets']['small_image'] = 'faruzan'
+                        activity['assets']['small_text'] = 'Playing as Faruzan'
+               
+                    if 'Faruzan¢' in line:
+                        activity['assets']['small_image'] = 'faruzan'
+                        activity['assets']['small_text'] = 'Playing as Faruzan'
+                                       
+                    if 'Faruzan 4' in line:
+                        activity['assets']['small_image'] = 'faruzan'
+                        activity['assets']['small_text'] = 'Playing as Faruzan'
+                        
+                                    
+#--------------------------------------------------------------------------------------
+
+                    if 'Wanderer#' in line:
+                        activity['assets']['small_image'] = 'Wanderer'
+                        activity['assets']['small_text'] = 'Playing as Wanderer'
+               
+                    if 'Wanderer«' in line:
+                        activity['assets']['small_image'] = 'Wanderer'
+                        activity['assets']['small_text'] = 'Playing as Wanderer'
+               
+                    if 'Wanderer¢' in line:
+                        activity['assets']['small_image'] = 'Wanderer'
+                        activity['assets']['small_text'] = 'Playing as Wanderer'
+                                       
+                    if 'Wanderer 4' in line:
+                        activity['assets']['small_image'] = 'Wanderer'
+                        activity['assets']['small_text'] = 'Playing as Wanderer'
+                        
+                                    
+#--------------------------------------------------------------------------------------
+
     # Snezhnaya Characters
       
                             
@@ -974,7 +1146,28 @@ def main():
                         activity['assets']['small_text'] = 'Playing as Tartaglia'
                         
 #--------------------------------------------------------------------------------------        
-         
+     
+    # Khaenri'ah Characters
+      
+                            
+                    if 'Dainsleif#' in line:
+                        activity['assets']['small_image'] = 'dainsleif'
+                        activity['assets']['small_text'] = 'Playing as Dainsleif'
+               
+                    if 'Dainsleif«' in line:
+                        activity['assets']['small_image'] = 'dainsleif'
+                        activity['assets']['small_text'] = 'Playing as Dainsleif'
+               
+                    if 'Dainsleif¢' in line:
+                        activity['assets']['small_image'] = 'dainsleif'
+                        activity['assets']['small_text'] = 'Playing as Dainsleif'
+                                       
+                    if 'Dainsleif 4' in line:
+                        activity['assets']['small_image'] = 'dainsleif'
+                        activity['assets']['small_text'] = 'Playing as Dainsleif'
+                        
+#--------------------------------------------------------------------------------------        
+             
     # Collab Characters
       
                             
@@ -1646,6 +1839,51 @@ def main():
                         activity['state'] = "Kunado's Locus - Tsurumi Island"
                         activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
                         
+                      
+#--------------------------------------------------------------------------------------
+
+    # Enkanomiya
+                                                                        
+                    if 'Dainichi Mikoshi' in line:
+                        activity['details'] = "Traveling In Enkanomiya"
+                        activity['state'] = "Dainichi Mikoshi - Enkanomiya"
+                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
+                                                                         
+                    if 'Evernight Temple' in line:
+                        activity['details'] = "Traveling In Enkanomiya"
+                        activity['state'] = "Evernight Temple - Tsurumi Island"
+                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
+                                                                         
+                    if 'The Narrows' in line:
+                        activity['details'] = "Traveling In Enkanomiya"
+                        activity['state'] = "The Narrows - Tsurumi Island"
+                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
+                                                                         
+                    if 'Bowels' in line:
+                        activity['details'] = "Traveling In Enkanomiya"
+                        activity['state'] = "The Serpent's Bowels - Tsurumi Island"
+                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
+                                                                         
+                    if 'Heart' in line:
+                        activity['details'] = "Traveling In Enkanomiya"
+                        activity['state'] = "The Serpent's Heart - Tsurumi Island"
+                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
+                                                                          
+                    if 'Yachimatahiko' in line:
+                        activity['details'] = "Traveling In Enkanomiya"
+                        activity['state'] = "Yachimatahiko's Locus - Tsurumi Island"
+                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
+                                                                           
+                    if 'Yachimatahime' in line:
+                        activity['details'] = "Traveling In Enkanomiya"
+                        activity['state'] = "Yachimatahime's Locus - Tsurumi Island"
+                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
+                                                                           
+                    if 'Kunado' in line:
+                        activity['details'] = "Traveling In Enkanomiya"
+                        activity['state'] = "Kunado's Locus - Tsurumi Island"
+                        activity = switch_image_mode(activity, ('enkanomiya', 'Traveling In Enkanomiya'))  
+                        
                         
 ## This is For Domains
 
@@ -2209,7 +2447,13 @@ def main():
                     if 'Magatsu Mitake Narukami no Mikoto' in line:
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Magatsu Mitake Narukami no Mikoto - Raiden no Inazuma tono"
-                        activity = switch_image_mode(activity, ('magatsu_mitake_narukami_no_mikoto', 'Fighting a Boss'))     
+                        activity = switch_image_mode(activity, ('magatsu_mitake_narukami_no_mikoto', 'Fighting a Boss'))    
+                        
+                    if 'Everlasting Lord of Arcane Wisdom' in line:
+                        activity['details'] = "Fighting a Boss"
+                        activity['state'] = "Everlasting Lord of Arcane Wisdom - Shouki no Kami, the Prodigal"
+                        activity = switch_image_mode(activity, ('shouki', 'Fighting a Boss'))     
+                        
 
     # Cube Bosses
     
