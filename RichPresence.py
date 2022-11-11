@@ -2292,43 +2292,23 @@ def main():
                     if 'Seven Senses I' in line:
                         activity['details'] = "Clearing a Domain of Blessing"
                         activity['state'] = "Seven Senses - Spire of Solitary Enlightenment"
-                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                        activity = switch_image_mode(activity, ('sumeru_blessing_domain', 'Clearing a Domain of Blessing')) 
                                                                                                                                 
                     if 'Seven Senses II' in line:
                         activity['details'] = "Clearing a Domain of Blessing"
-                        activity['state'] = "Autumn Hunt - Momiji-Dyed Court"
-                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                        activity['state'] = "Seven Senses - Spire of Solitary Enlightenment"
+                        activity = switch_image_mode(activity, ('sumeru_blessing_domain', 'Clearing a Domain of Blessing')) 
                                                                                                                                 
-                    if 'Autumn Hunt III' in line:
+                    if 'Seven Senses III' in line:
                         activity['details'] = "Clearing a Domain of Blessing"
-                        activity['state'] = "Autumn Hunt - Momiji-Dyed Court"
-                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                        activity['state'] = "Seven Senses - Spire of Solitary Enlightenment"
+                        activity = switch_image_mode(activity, ('sumeru_blessing_domain', 'Clearing a Domain of Blessing')) 
                                                                                                                                 
-                    if 'Autumn Hunt IV' in line:
+                    if 'Seven Senses IV' in line:
                         activity['details'] = "Clearing a Domain of Blessing"
-                        activity['state'] = "Autumn Hunt -  Momiji-Dyed Court"
-                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
-                                                                                                                                                            
-                    if 'Necropolis I' in line:
-                        activity['details'] = "Clearing a Domain of Blessing"
-                        activity['state'] = "Necropolis - Slumbering Court"
-                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
-                                                                                                                                                                                                          
-                    if 'Necropolis II' in line:
-                        activity['details'] = "Clearing a Domain of Blessing"
-                        activity['state'] = "Necropolis - Slumbering Court"
-                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
-                                                                                                                                                            
-                    if 'Necropolis III' in line:
-                        activity['details'] = "Clearing a Domain of Blessing"
-                        activity['state'] = "Necropolis - Slumbering Court"
-                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
-                                                                                                                                                                                                  
-                    if 'Necropolis IV' in line:
-                        activity['details'] = "Clearing a Domain of Blessing"
-                        activity['state'] = "Necropolis - Slumbering Court"
-                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
-                                                                       
+                        activity['state'] = "Seven Senses - Spire of Solitary Enlightenment"
+                        activity = switch_image_mode(activity, ('sumeru_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                           
  #--------------------------------------------------------------------------------------
                         
     # Domain of Mastery
@@ -2379,7 +2359,7 @@ def main():
                         activity['state'] = "Thundering Valley - Taishan Mansion"
                         activity = switch_image_mode(activity, ('liyue_mastery_domain', 'Clearing a Domain of Mastery')) 
          
-    # Inazuma                                                                                                                                                                                                                                         
+    #Inazuma                                                                                                                                                                                                                                         
                     if 'Thundering Valley I' in line:
                         activity['details'] = "Clearing a Domain of Mastery"
                         activity['state'] = "Thundering Valley - Violet Court"
@@ -2399,22 +2379,22 @@ def main():
                         activity['details'] = "Clearing a Domain of Mastery"
                         activity['state'] = "Thundering Valley - Violet Court"
                         activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
-                                                                                                                                                                                                                                       
+                                                                                                                                        
+                                                                                                                                        
                     if 'Taishan Mansion I' in line:
                         activity['details'] = "Clearing a Domain of Mastery"
                         activity['state'] = "Taishan Mansion - Violet Court"
                         activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
-                                                                                                                                                                                                                                                                                     
+                                            
                     if 'Taishan Mansion II' in line:
                         activity['details'] = "Clearing a Domain of Mastery"
                         activity['state'] = "Taishan Mansion - Violet Court"
                         activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
-                                                                                                                                                                                                                                                                                     
+                                            
                     if 'Taishan Mansion III' in line:
                         activity['details'] = "Clearing a Domain of Mastery"
                         activity['state'] = "Taishan Mansion - Violet Court"
-                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
-                                                                                                                                                                                                                                                                                     
+                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery'))                                                                                                                                                                                  
                     if 'Taishan Mansion IV' in line:
                         activity['details'] = "Clearing a Domain of Mastery"
                         activity['state'] = "Taishan Mansion - Violet Court"
@@ -2439,7 +2419,33 @@ def main():
                         activity['details'] = "Clearing a Domain of Mastery"
                         activity['state'] = "Forsaken Rift - Violet Court"
                         activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
-                                                                                                                     
+                                          activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Taishan Mansion - Violet Court"
+                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery'))
+                      
+    #Sumeru          
+    
+                    if 'Full Moon I' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Full Moon - Steeple of Ignorance"
+                        activity = switch_image_mode(activity, ('sumeru_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                                                                                                                                                                                             
+                    if 'Full Moon II' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Full Moon - Steeple of Ignorance"
+                        activity = switch_image_mode(activity, ('sumeru_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                                                                                                                                                                                             
+                    if 'Full Moon III' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Full Moon - Steeple of Ignorance"
+                        activity = switch_image_mode(activity, ('sumeru_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                                                                                                                                                                                             
+                    if 'Full Moon IV' in line:
+                        activity['details'] = "Clearing a Domain of Mastery"
+                        activity['state'] = "Full Moon - Steeple of Ignorance"
+                        activity = switch_image_mode(activity, ('sumeru_mastery_domain', 'Clearing a Domain of Mastery')) 
+                                                                                                                                        
+                                           
  #--------------------------------------------------------------------------------------
 
     # Domain of Forgery
@@ -2532,6 +2538,29 @@ def main():
                         activity['state'] = "Altar of Sands - Court of the Flowing Sand"
                         activity = switch_image_mode(activity, ('inazuma_forgery_domain', 'Clearing a Domain of Forgery')) 
 
+
+    # Sumeru 
+                                                                                                                                                            
+                    if 'Tainted Clouds I' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Tainted Clouds - Tower of Abject Pride"
+                        activity = switch_image_mode(activity, ('sumeru_forgery_domain', 'Clearing a Domain of Forgery')) 
+                                                                                                                                                                                                          
+                    if 'Tainted Clouds II' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Tainted Clouds - Tower of Abject Pride"
+                        activity = switch_image_mode(activity, ('sumeru_forgery_domain', 'Clearing a Domain of Forgery')) 
+                                                                                                                                                            
+                    if 'Tainted Clouds III' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Tainted Clouds - Tower of Abject Pride"
+                        activity = switch_image_mode(activity, ('sumeru_forgery_domain', 'Clearing a Domain of Forgery')) 
+                                                                                                                                                                                                  
+                    if 'Tainted Clouds IV' in line:
+                        activity['details'] = "Clearing a Domain of Forgery"
+                        activity['state'] = "Tainted Clouds - Tower of Abject Pride"
+                        activity = switch_image_mode(activity, ('sumeru_forgery_domain', 'Clearing a Domain of Forgery')) 
+                            
   #--------------------------------------------------------------------------------------
 
     # Trounce Domains
@@ -2706,7 +2735,7 @@ def main():
                         
                     if 'Dendro Hypostasis' in line:
                         activity['details'] = "Fighting a Boss"
-                        activity['state'] = "Dendro Hypostasis - He"
+                        activity['state'] = "Dendro Hypostasis - Zayin"
                         activity = switch_image_mode(activity, ('dendro_hypostasis', 'Fighting a Boss'))  
                         
     # Flower Bosses
@@ -2776,6 +2805,11 @@ def main():
                         activity['details'] = "Fighting a Boss"
                         activity['state'] = "Thunder Manifestation - Raging Thunder of Amakuno Peak"
                         activity = switch_image_mode(activity, ('thunder_manifestation', 'Fighting a Boss'))  
+                                                                  
+                    if 'Jadeplume Terrorshroom' in line:
+                        activity['details'] = "Fighting a Boss"
+                        activity['state'] = "Jadeplume Terrorshroom - Deepwood Shroomlord"
+                        activity = switch_image_mode(activity, ('bathysmal_vishap_herd', 'Fighting a Boss'))  
                    
     # Other Bosses
                                            
@@ -2790,7 +2824,7 @@ def main():
                         activity['state'] = "Primo Geovishap - Geo Dragon Who Once Raged With the King Long-Slumbering Earthshaker Dragon"
                         activity = switch_image_mode(activity, ('primo_geovishap', 'Fighting a Boss'))  
 
-    
+
 #--------------------------------------------------------------------------------------   
 
 ## This is for Other Interactions
@@ -2833,22 +2867,22 @@ def main():
                     if 'Character Event Wish' in line:
                         activity['details'] = "Wishing to a Star"
                         activity['state'] = "Pulling in Character Event Wish"
-                        activity = switch_image_mode(activity, ('Intertwined_Fate', 'Wishing to a Star'))  
+                        activity = switch_image_mode(activity, ('intertwined_Fate', 'Wishing to a Star'))  
                                          
                     if 'Character Event Wish-2' in line:
                         activity['details'] = "Wishing to a Star"
                         activity['state'] = "Pulling in Character Event Wish-2"
-                        activity = switch_image_mode(activity, ('Intertwined_Fate', 'Wishing to a Star'))  
+                        activity = switch_image_mode(activity, ('intertwined_Fate', 'Wishing to a Star'))  
                                          
                     if 'Standard Wish' in line:
                         activity['details'] = "Wishing to a Star"
                         activity['state'] = "Pulling in Standard Wish"
-                        activity = switch_image_mode(activity, ('Acquaint_Fate', 'Wishing to a Star'))  
+                        activity = switch_image_mode(activity, ('acquaint_Fate', 'Wishing to a Star'))  
                                          
                     if 'Weapon Event Wish' in line:
                         activity['details'] = "Wishing to a Star"
                         activity['state'] = "Pulling in Weapon Event Wish"
-                        activity = switch_image_mode(activity, ('Intertwined_Fate', 'Wishing to a Star'))  
+                        activity = switch_image_mode(activity, ('intertwined_Fate', 'Wishing to a Star'))  
 
 #--------------------------------------------------------------------------------------   
 
