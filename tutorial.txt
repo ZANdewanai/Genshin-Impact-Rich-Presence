@@ -1,4 +1,4 @@
-##tutorial on how to use
+***tutorial on how to use***
 
 first step: open GenshinImpactRichPresence.exe (dont close the cmd console)
 
@@ -10,7 +10,7 @@ to Stop the Rich Presence the cmd and the 2 windows: press Stop Grabbing Genshin
 
 
 
-##tutorial on how to change name of the main character
+***tutorial on how to change name of the main character***
 
 
 

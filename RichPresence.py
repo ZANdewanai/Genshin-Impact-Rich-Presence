@@ -2865,22 +2865,22 @@ def main():
                     if 'Character Event Wish' in line:
                         activity['details'] = "Wishing to a Star"
                         activity['state'] = "Pulling in Character Event Wish"
-                        activity = switch_image_mode(activity, ('intertwined_Fate', 'Wishing to a Star'))  
+                        activity = switch_image_mode(activity, ('intertwined_fate', 'Wishing to a Star'))  
                                          
                     if 'Character Event Wish-2' in line:
                         activity['details'] = "Wishing to a Star"
                         activity['state'] = "Pulling in Character Event Wish-2"
-                        activity = switch_image_mode(activity, ('intertwined_Fate', 'Wishing to a Star'))  
+                        activity = switch_image_mode(activity, ('intertwined_fate', 'Wishing to a Star'))  
                                          
                     if 'Standard Wish' in line:
                         activity['details'] = "Wishing to a Star"
                         activity['state'] = "Pulling in Standard Wish"
-                        activity = switch_image_mode(activity, ('acquaint_Fate', 'Wishing to a Star'))  
+                        activity = switch_image_mode(activity, ('acquaint_fate', 'Wishing to a Star'))  
                                          
                     if 'Weapon Event Wish' in line:
                         activity['details'] = "Wishing to a Star"
                         activity['state'] = "Pulling in Weapon Event Wish"
-                        activity = switch_image_mode(activity, ('intertwined_Fate', 'Wishing to a Star'))  
+                        activity = switch_image_mode(activity, ('intertwined_fate', 'Wishing to a Star'))  
 
 #--------------------------------------------------------------------------------------   
 
