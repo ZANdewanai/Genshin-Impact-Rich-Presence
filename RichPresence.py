@@ -2414,14 +2414,12 @@ def main():
                         activity['details'] = "Clearing a Domain of Mastery"
                         activity['state'] = "Forsaken Rift - Violet Court"
                         activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
-                                                                                                                                                                                                                                                                                                                   
+                                                                                                                        
                     if 'Forsaken Rift IV' in line:
                         activity['details'] = "Clearing a Domain of Mastery"
                         activity['state'] = "Forsaken Rift - Violet Court"
                         activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery')) 
-                                          activity['details'] = "Clearing a Domain of Mastery"
-                        activity['state'] = "Taishan Mansion - Violet Court"
-                        activity = switch_image_mode(activity, ('inazuma_mastery_domain', 'Clearing a Domain of Mastery'))
+                                                                                                                                                                                                         
                       
     #Sumeru          
     
