@@ -1,4 +1,4 @@
-# Genshin Impact Rich Presence - work in progress
+# Genshin Impact Rich Presence - work in progress (Sumeru update in progress)
 
 Only works on english text and works best when traveling from a place to another instead of teleporting to it since it gives time for the app to read the place title you are in best
 
