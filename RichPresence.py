@@ -2057,7 +2057,7 @@ def main():
     
                     if 'Valley of Dahri' in line:
                         activity['details'] = "Traveling In Sumeru"
-                        activity['state'] = "Valley of Dahri - Land of Lower Setekh"
+                        activity['state'] = "Valley of Dahri - Land of Upper Setekh"
                         activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
  
 ## This is For Domains
