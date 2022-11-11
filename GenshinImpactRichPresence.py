@@ -36,7 +36,7 @@ button.pack(pady=10)
 button = tkinter.Button(text="Stop Grabbing Genshin Impact Names (the 2 windows that opened)", command=Stop)
 button.pack(pady=10)
 
-button = tkinter.Button(text="to stop the Discord Rich Presence just close this application ",
+button = tkinter.Button(text="to stop the Discord Rich Presence close this application and CMD Window that appeared",
                        bg="black",
                        fg="white")      
 button.pack(pady=10)

@@ -1854,6 +1854,16 @@ def main():
                         activity['details'] = "Traveling In Sumeru"
                         activity['state'] = "Mawtiyima Forest - Lokapala Jungle"
                         activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                        
+                    if 'Mawriyimiagorest' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Mawtiyima Forest - Lokapala Jungle"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
+                                                    
+                    if 'awtiyimaForest' in line:
+                        activity['details'] = "Traveling In Sumeru"
+                        activity['state'] = "Mawtiyima Forest - Lokapala Jungle"
+                        activity = switch_image_mode(activity, ('sumeru', 'Traveling In Sumeru'))  
                                                                          
                     if 'Alcazarzaray' in line:
                         activity['details'] = "Traveling In Sumeru"
@@ -2243,6 +2253,48 @@ def main():
                         activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
                                                                                                                                 
                     if 'Autumn Hunt II' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Autumn Hunt - Momiji-Dyed Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                
+                    if 'Autumn Hunt III' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Autumn Hunt - Momiji-Dyed Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                
+                    if 'Autumn Hunt IV' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Autumn Hunt -  Momiji-Dyed Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                            
+                    if 'Necropolis I' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Necropolis - Slumbering Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                                                                          
+                    if 'Necropolis II' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Necropolis - Slumbering Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                            
+                    if 'Necropolis III' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Necropolis - Slumbering Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                                                                                  
+                    if 'Necropolis IV' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Necropolis - Slumbering Court"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                       
+    # Sumeru   
+                                                                             
+                    if 'Seven Senses I' in line:
+                        activity['details'] = "Clearing a Domain of Blessing"
+                        activity['state'] = "Seven Senses - Spire of Solitary Enlightenment"
+                        activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
+                                                                                                                                
+                    if 'Seven Senses II' in line:
                         activity['details'] = "Clearing a Domain of Blessing"
                         activity['state'] = "Autumn Hunt - Momiji-Dyed Court"
                         activity = switch_image_mode(activity, ('inazuma_blessing_domain', 'Clearing a Domain of Blessing')) 
@@ -2776,7 +2828,28 @@ def main():
 
 #-------------------------------------------------------------------------------------- 
 
- 
+ #Wish
+                                         
+                    if 'Character Event Wish' in line:
+                        activity['details'] = "Wishing to a Star"
+                        activity['state'] = "Pulling in Character Event Wish"
+                        activity = switch_image_mode(activity, ('Intertwined_Fate', 'Wishing to a Star'))  
+                                         
+                    if 'Character Event Wish-2' in line:
+                        activity['details'] = "Wishing to a Star"
+                        activity['state'] = "Pulling in Character Event Wish-2"
+                        activity = switch_image_mode(activity, ('Intertwined_Fate', 'Wishing to a Star'))  
+                                         
+                    if 'Standard Wish' in line:
+                        activity['details'] = "Wishing to a Star"
+                        activity['state'] = "Pulling in Standard Wish"
+                        activity = switch_image_mode(activity, ('Acquaint_Fate', 'Wishing to a Star'))  
+                                         
+                    if 'Weapon Event Wish' in line:
+                        activity['details'] = "Wishing to a Star"
+                        activity['state'] = "Pulling in Weapon Event Wish"
+                        activity = switch_image_mode(activity, ('Intertwined_Fate', 'Wishing to a Star'))  
+
 #--------------------------------------------------------------------------------------   
 
  #Spiral Abyss

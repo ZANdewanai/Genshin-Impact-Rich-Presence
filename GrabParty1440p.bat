@@ -1,0 +1,1 @@
+pyinstaller -F -w --noconsole --icon="images\GrabPartyIcon.ico" GrabParty1440p.py
