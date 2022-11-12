@@ -69,4 +69,4 @@ make a whitelist so it ignores everything else that isnt the string of text i wa
 
 also uses your drive for storing and deleting a image a lot so might make your pc fans ramp up
 
-at a later date will hide the tracking windows so they dont get on the way for now i need them for debugging and to know well, where they are
+at a later date will hide the tracking windows so they dont get on the way for now i need them for debugging and to know, well, where they are
