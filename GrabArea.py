@@ -1,6 +1,7 @@
 # OCR Screen Scanner
 # By Dornu Inene
 # Libraries that you show have all installed
+from argparse import ArgumentParser
 from typing import Text
 import cv2
 import numpy as np
