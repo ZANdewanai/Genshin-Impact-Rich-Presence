@@ -1,1 +1,0 @@
-pyinstaller -F -w --noconsole --icon="images\GrabAreaIcon.ico" GrabArea1080pUltrawide.py

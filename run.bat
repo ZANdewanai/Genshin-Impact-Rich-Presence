@@ -1,1 +1,0 @@
-pyinstaller --onefile --windowed --noconsole --icon="images\ApplicatonIcon.ico" GenshinImpactRichPresence.py

@@ -1,0 +1,1 @@
+pyinstaller -F -w --noconsole --icon="images\ApplicatonIcon.ico" GenshinImpactRichPresence1440p.py
