@@ -1,4 +1,4 @@
-# Genshin Impact Rich Presence - work in progress (Sumeru update)
+# Genshin Impact Rich Presence - (Proof of concept), refer to [euwbah's version](https://github.com/euwbah/Genshin-Impact-Rich-Presence)  for an implementation of it
 
 Only works on english text and works best when traveling from a place to another instead of teleporting to it since it gives time for the app to read the place title you are in best
 
