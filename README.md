@@ -16,15 +16,8 @@ This Discord Rich Presence doesn't tamper with Genshin Impact game files in any 
 
 ### 1. Download project, install Python, update NVIDIA driver
 
-You will need **Python 3.8 or newer** (latest Python version is recommended). Install from [here](https://www.python.org/downloads/).
+You will need **Python 3.11 newer versions may break the scripts so avoid using too new versions** (latest Python version is recommended). Install from [here](https://www.python.org/downloads/).
 
-📁 [Download the project as zip here](https://github.com/euwbah/Genshin-Impact-Rich-Presence/archive/refs/heads/main.zip).
-
-Or use git:
-
-```bat
-git clone https://github.com/euwbah/Genshin-Impact-Rich-Presence.git
-```
 
 **Check NVIDIA GeForce Experience for updates**. Game Ready graphics driver version >525 is required for this to work well.
 
@@ -46,7 +39,7 @@ If you're running the game in fullscreen with a standard 16:9 aspect ratio, set 
 
 ### 4. Start Discord Rich Presence
 
-**Double click [run.bat](run.bat)** to start Discord Rich Presence for Genshin Impact. You can create an application/desktop shortcut for run.bat to make it easier to start.
+**Double click [StartRichPresence.bat](StartRichPresence.bat)** to start Discord Rich Presence for Genshin Impact. You can create an application/desktop shortcut for run.bat to make it easier to start.
 
 -----
 
@@ -59,29 +52,7 @@ The [data](data/) folder contains `.csv` (comma-separated values) data files tha
 Quite a few locations/points of interests may be missing from the current data, and as new domains/characters/bosses/locations get added, this project requires continuous updates to maintain these records.
 
 The `.csv` data files have a hot-reload feature, so you don't need to restart the Discord RPC program to see effected changes to these files, you can enter them as you play the game and find unmarked locations/missing data.
-
-Once modifying data files, please submit a pull request or issue to this repository :)
-
-If new image assets need to be added, they have to be manually published to the Discord Application which is currently owned by me ([@euwbah](https://github.com/euwbah)). Note that there is a limit of 300 image assets, so keep new images to a minimum: only include game icons, location emblems, world & trounce bosses, character portraits, and one of each domain type (Blessing/Mastery/Forgery) per region.
-
 -----
-
-## Development/debugging
-
-### Project repository setup
-
-You are **Strongly Encouraged™️** to set up the project in a virtual environment. Running `start.bat` automatically does this, so if you're lazy you can just run that first then open this project in VS Code/whatever.
-
-```bat
-py -m venv venv
-.\venv\Scripts\activate.bat
-pip install --upgrade pip
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
-pip install -r requirements.txt
-```
-
-Use an IDE/editor with built-in `venv` (virtual environment) support so that you don't have to activate `venv` manually every time.
-
 ### Debugging: Test if image capture works
 
 Run [test_imagegrab.py](test_imagegrab.py):
@@ -100,6 +71,6 @@ py test_imagegrab.py
 
 Image assets are intellectual property of HoYoverse.
 
-Some images are taken from the [GI fandom wiki](https://genshin-impact.fandom.com/), and [@Zanzancomms](https://github.com/Zanzancomms).
+Some images are taken from the [GI fandom wiki](https://genshin-impact.fandom.com/).
 
-This project is a reimplementation of [@Zanzancomms](https//github.com/Zanzancomms)'s idea.
+This project is a Fork of the Genshin Impact Rich Rresence reimplementation from [@euwba](https//github.com/euwbah)'s fork.
