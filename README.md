@@ -38,6 +38,7 @@ If you're running the game in fullscreen with a standard 16:9 aspect ratio, set 
 - (SPOILER) Set `WANDERER_NAME` to match custom Wanderer's name in lowercase.
 
 ### 4. Start Discord Rich Presence
+**Double click [InstallRichPresense.bat](InstallRichPresense.bat)** to install Discord Rich Presence for Genshin Impact. afterwards it will start the rich presence from this bat too but its only for testing purposes, should use [StartRichPresence.bat](StartRichPresence.bat) instead.
 
 **Double click [StartRichPresence.bat](StartRichPresence.bat)** to start Discord Rich Presence for Genshin Impact. You can create an application/desktop shortcut for run.bat to make it easier to start.
 
