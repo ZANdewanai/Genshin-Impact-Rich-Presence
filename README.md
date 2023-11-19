@@ -43,6 +43,7 @@ If you're running the game in fullscreen with a standard 16:9 aspect ratio, set 
 **Double click [StartRichPresence.bat](StartRichPresence.bat)** to start Discord Rich Presence for Genshin Impact. You can create an application/desktop shortcut for run.bat to make it easier to start.
 
 or use the **[GenshinImpactRichPresenceAPP](GenshinImpactRichPresenceAPP.exe)** executable, it doesnt work alone though, you need all the other files for it to work so keep that in mind.
+
 -----
 
 ## Contribution
