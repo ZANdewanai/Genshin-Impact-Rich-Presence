@@ -1,3 +1,4 @@
+------,HYPOSTASIS,------
 anemo hypostasis,Anemo Hypostasis,boss_anemo_hypostasis
 electro hypostasis,Electro Hypostasis,boss_electro_hypostasis
 cryo hypostasis,Cryo Hypostasis,boss_cryo_hypostasis
@@ -5,20 +6,29 @@ geo hypostasis,Geo Hypostasis,boss_geo_hypostasis
 pyro hypostasis,Pyro Hypostasis,boss_pyro_hypostasis
 hydro hypostasis,Hydro Hypostasis,boss_hydro_hypostasis
 dendro hypostasis,Dendro Hypostasis,boss_dendro_hypostasis
-cryo regisvine,Cryo Regisvine,boss_cryo_regisvine
+------,REGISVINE,------
 pyro regisvine,Pyro Regisvine,boss_pyro_regisvine
 electro regisvine,Electro Regisvine,boss_electro_regisvine
+------,MECHANICAL,------
 ruin serpent,Ruin Serpent,boss_ruin_serpent
 perpetual mechanical,Perpetual Mechanical Array,boss_perpetual_mechanical_array
 aeonblight drake,Aeonblight Drake,boss_aeonblight_drake
-intransient matrix,Algorithm of Semi-Intransient Matrix of Overseer Network,boss_algorithm
-maguu kenki,Maguu Kenki,boss_maguu_kenki
+intransient matrix,Algorithm of Semi-Intransient Matrix of Overseer Network,boss_algorithm_of_semi-intransient_matrix_of_overseer_network
+boss prototype cal breguet,Boss Prototype Cal. Breguete,boss_prototype_cal_breguet
+------,ANIMAL,------
 andrius,Andrius,boss_andrius
 golden wolflord,Golden Wolflord,boss_golden_wolflord
-rhodeia of loch,Rhodeia of Loch,boss_oceanid
-thunder manifestation,Thunder Manifestation,boss_thunder_manifestation
 jadeplume terrorshroom,Jadeplume Terrorshroom,boss_jadeplume_terrorshroom
 coral defenders,Bathysmal Vishap Herd,boss_bathysmal_vishap_herd
 primo geovishap,Primo Geovishap,boss_primo_geovishap
 setekh wenut,Setekh Wenut,boss_setekh_wenut
+millennial pearl seahorse,Millennial Pearl Seahorse,boss_millennial_pearl_seahorse
+boss emperor of fire and iron,Boss Emperor of Fire and Iron,boss_emperor_of_fire_and_iron
+------,ELEMENTAL,------
+rhodeia of loch,Rhodeia of Loch,boss_oceanid
+thunder manifestation,Thunder Manifestation,boss_thunder_manifestation
+hydro tulpa,Hydro Tulpa,boss_hydro_tulpa
+------,PERSON - MECHANICAL PERSON,------
 iniquitous baptist,Iniquitous Baptist,boss_iniquitous_baptist
+maguu kenki,Maguu Kenki,boss_maguu_kenki
+icewind suite,Icewind Suite,boss_icewind_suite

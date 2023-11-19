@@ -1,3 +1,4 @@
+------,------,MONDSTADT,------,------
 brightcrown canyon,Brightcrown Canyon,Brightcrown Mountains,Mondstadt,emblem_mondstadt
 crown canyon,Brightcrown Canyon,Brightcrown Mountains,Mondstadt,emblem_mondstadt
 terrors lair,Stormterror's Lair,Brightcrown Mountains,Mondstadt,emblem_mondstadt
@@ -20,6 +21,7 @@ windwail highland,Windwail Highland,Windwail Highland,Mondstadt,emblem_mondstadt
 dawn winery,Dawn Winery,Windwail Highland,Mondstadt,emblem_mondstadt
 springvale,Springvale,Windwail Highland,Mondstadt,emblem_mondstadt
 wolvendom,Wolvendom,Windwail Highland,Mondstadt,emblem_mondstadt
+------,------,DRAGONSPINE,------,------
 dragonspine,Dragonspine,Dragonspine,Mondstadt,emblem_dragonspine
  ancient,Entombed City - Ancient Palace,Dragonspine,Mondstadt,emblem_dragonspine
  outskirts,Entombed City - Outskirts,Dragonspine,Mondstadt,emblem_dragonspine
@@ -27,6 +29,7 @@ skyfrost nail,Skyfrost Nail,Dragonspine,Mondstadt,emblem_dragonspine
 snowcovered path,Snow-Covered Path,Dragonspine,Mondstadt,emblem_dragonspine
 starglow cavern,Starglow Cavern,Dragonspine,Mondstadt,emblem_dragonspine
 wyrmrest valley,Wyrmrest Valley,Dragonspine,Mondstadt,emblem_dragonspine
+------,------,LYUE,------,------
 bishui plain,Bishui Plain,Bishui Plain,Liyue,emblem_liyue
 dihua marsh,Dihua Marsh,Bishui Plain,Liyue,emblem_liyue
 qingce village,Qingce Village,Bishui Plain,Liyue,emblem_liyue
@@ -56,6 +59,7 @@ sea of clouds,Sea of Clouds,Sea of Clouds,Liyue,emblem_liyue
 guyun stone forest,Guyun Stone Forest,Sea of Clouds,Liyue,emblem_liyue
 liyue harbor,Liyue Harbor,Sea of Clouds,Liyue,emblem_liyue
 mt tianheng,Mt. Tianheng,Sea of Clouds,Liyue,emblem_liyue
+------,------,CHASM,------,------
 the chasm,The Chasm,The Chasm,Liyue,emblem_chasm
 cinnabar cliff,Cinnabar Cliff,The Chasm,Liyue,emblem_chasm
 fuao vale,Fuao Vale,The Chasm,Liyue,emblem_chasm
@@ -69,6 +73,7 @@ adhoc main tunnel,Ad-Hoc Main Tunnel,Chasm (Underground),Liyue,emblem_chasm
 nameless ruins,Nameless Ruins,Chasm (Underground),Liyue,emblem_chasm
 stony halls,Stony Halls,Chasm (Underground),Liyue,emblem_chasm
 the chasm main mining area,The Chasm: Main Mining Area,Chasm (Underground),Liyue,emblem_chasm
+------,------,INAZUMA,------,------
 narukami island,Narukami Island,Narukami Island,Inazuma,emblem_inazuma
 amakane island,Amakane Island,Narukami Island,Inazuma,emblem_inazuma
 araumi,Araumi,Narukami Island,Inazuma,emblem_inazuma
@@ -111,6 +116,7 @@ mt kanna,Mt. Kanna,Tsurumi Island,Inazuma,emblem_inazuma
 oina beach,Oina Beach,Tsurumi Island,Inazuma,emblem_inazuma
 shirikoro peak,Shirikoro Peak,Tsurumi Island,Inazuma,emblem_inazuma
 wakukau shoal,Wakukau Shoal,Tsurumi Island,Inazuma,emblem_inazuma
+------,------,ENKANOMIYA,------,------
 enkanomiya,Enkanomiya,Enkanomiya,Inazuma,emblem_enkanomiya
 dainichi mikoshi,Dainichi Mikoshi,Enkanomiya,Inazuma,emblem_enkanomiya
 evernight temple,Evernight Temple,Enkanomiya,Inazuma,emblem_enkanomiya
@@ -120,16 +126,20 @@ the serpents bowels,The Serpent's Bowels,Enkanomiya,Inazuma,emblem_enkanomiya
 the serpents heart,The Serpent's Heart,Enkanomiya,Inazuma,emblem_enkanomiya
 yachimatahikos locus,Yachimatahiko's Locus,Enkanomiya,Inazuma,emblem_enkanomiya
 yachimatahimes locus,Yachimatahime's Locus,Enkanomiya,Inazuma,emblem_enkanomiya
+------,------,SUMERU,------,------
+------,------,SUMERU - ARDRAVI VALLEY,------,------
 ardravi valley,Ardravi Valley,Ardravi Valley,Sumeru,emblem_sumeru
 devantaka mountain,Devantaka Mountain,Ardravi Valley,Sumeru,emblem_sumeru
 port ormos,Port Ormos,Ardravi Valley,Sumeru,emblem_sumeru
 vimara village,Vimara Village,Ardravi Valley,Sumeru,emblem_sumeru
+------,------,SUMERU - ASHAVAN REALM,------,------
 ashavan realm,Ashavan Realm,Ashavan Realm,Sumeru,emblem_sumeru
 apam woods,Apam Woods,Ashavan Realm,Sumeru,emblem_sumeru
 caravan ribat,Caravan Ribat,Ashavan Realm,Sumeru,emblem_sumeru
 pardis dhyai,Pardis Dhyai,Ashavan Realm,Sumeru,emblem_sumeru
 ruins of dahri,Ruins of Dahri,Ashavan Realm,Sumeru,emblem_sumeru
 yasna monument,Yasna Monument,Ashavan Realm,Sumeru,emblem_sumeru
+------,------,SUMERU - AVIDYA FOREST,------,------
 avidya forest,Avidya Forest,Avidya Forest,Sumeru,emblem_sumeru
 chinvat ravine,Chinvat Ravine,Avidya Forest,Sumeru,emblem_sumeru
 gandha hill,Gandha Hill,Avidya Forest,Sumeru,emblem_sumeru
@@ -139,62 +149,125 @@ grand bazaar,Grand Bazaar - Sumeru City,Avidya Forest,Sumeru,emblem_sumeru
 treasures street,Treasures Street - Sumeru City,Avidya Forest,Sumeru,emblem_sumeru
 akademiya,The Akademiya - Sumeru City,Avidya Forest,Sumeru,emblem_sumeru
 yazadaha pool,Yazadaha Pool,Avidya Forest,Sumeru,emblem_sumeru
+------,------,SUMERU - LOKAPALA JUNGLE,------,------
 lokapaka jungle,Lokapaka Jungle,Lokapala Jungle,Sumeru,emblem_sumeru
 chatrakam cave,Chatrakam Cave,Lokapala Jungle,Sumeru,emblem_sumeru
 mawtiyima forest,Mawtiyima Forest,Lokapala Jungle,Sumeru,emblem_sumeru
 the palace of alcazarzaray,The Palace of Alcazarzaray,Lokapala Jungle,Sumeru,emblem_sumeru
+------,------,SUMERU - LOST NURSERY,------,------
 lost nursery,Lost Nursery,Lost Nursery,Sumeru,emblem_sumeru
 old vanarana,Old Vanarana,Lost Nursery,Sumeru,emblem_sumeru
+------,------,SUMERU - VISSUDHA FIELD,------,------
 vissudha field,Vissudha Field,Vissudha Field,Sumeru,emblem_sumeru
 fane of ashvattha,Fane of Ashvattha,Vissudha Field,Sumeru,emblem_sumeru
-hypostyle desert,Hypostyle Desert,Vissudha Field,Sumeru,emblem_sumeru
-khemenu temple,Khemenu Temple,Hypostyle Desert,Sumeru,emblem_sumeru
-sobek oasis,Sobek Oasis,Hypostyle Desert,Sumeru,emblem_sumeru
-the dune of carouses,The Dune of Carouses,Hypostyle Desert,Sumeru,emblem_sumeru
-the dune of elusion,The Dune of Elusion,Hypostyle Desert,Sumeru,emblem_sumeru
-the dune of magma,The Dune of Magma,Hypostyle Desert,Sumeru,emblem_sumeru
-mausoleum of king,The Mausoleum of King Deshret,Hypostyle Desert,Sumeru,emblem_sumeru
-land of lower setekh,Land of Lower Setekh,Land of Lower Setekh,Sumeru,emblem_sumeru
-aaru village,Aaru Village,Land of Lower Setekh,Sumeru,emblem_sumeru
-abdju pit,Abdju Pit,Land of Lower Setekh,Sumeru,emblem_sumeru
-dar alshifa,Dar al-Shifa,Land of Lower Setekh,Sumeru,emblem_sumeru
-dar al shifa,Dar al-Shifa,Land of Lower Setekh,Sumeru,emblem_sumeru
-khajnisut,Khaj-Nisut,Land of Lower Setekh,Sumeru,emblem_sumeru
-khaj nisut,Khaj-Nisut,Land of Lower Setekh,Sumeru,emblem_sumeru
-eye of the sands,Eye of the Sands, Land of Lower Setekh,Sumeru,emblem_sumeru
-land of upper setekh,Land of Upper Setekh,Land of Lower Setekh,Sumeru,emblem_sumeru
-valley of dahri,Valley of Dahri,Land of Lower Setekh,Sumeru,emblem_sumeru
-desert of hadramaveth,Desert of Hadramaveth,Desert of Hadramaveth,Sumeru,emblem_sumeru
-debris of panjvahe,Debris of Panjvahe,Desert of Hadramaveth,Sumeru,emblem_sumeru
-dunes of steel,Dunes of Steel,Desert of Hadramaveth,Sumeru,emblem_sumeru
-temple of deshret,Gurabad's Ruin - Temple of Deshret,Desert of Hadramaveth,Sumeru,emblem_sumeru
-mt damavand,Mt. Damavand,Desert of Hadramaveth,Sumeru,emblem_sumeru
-bayt al sukr,Bayt Al-Sukr - Mt. Damavand,Desert of Hadramaveth,Sumeru,emblem_sumeru
-bayt alsukr,Bayt Al-Sukr - Mt. Damavand,Desert of Hadramaveth,Sumeru,emblem_sumeru
-bayt al muazzam,Bayt Al-Muazzam - Mt. Damavand,Desert of Hadramaveth,Sumeru,emblem_sumeru
-bayt almuazzam,Bayt Al-Muazzam - Mt. Damavand,Desert of Hadramaveth,Sumeru,emblem_sumeru
-bayt al hayah,Bayt Al-Hayah - Mt. Damavand,Desert of Hadramaveth,Sumeru,emblem_sumeru
-bayt alhayah,Bayt Al-Hayah - Mt. Damavand,Desert of Hadramaveth,Sumeru,emblem_sumeru
-passage of ghouls,Passage of Ghouls,Desert of Hadramaveth,Sumeru,emblem_sumeru
-qusayr alinkhida,Qusayr Al-Inkhida',Desert of Hadramaveth,Sumeru,emblem_sumeru
-qusayr al inkhida,Qusayr Al-Inkhida',Desert of Hadramaveth,Sumeru,emblem_sumeru
-safhe shatranj,Safhe Shatranj,Desert of Hadramaveth,Sumeru,emblem_sumeru
-tanit camps,Tanit Camps,Desert of Hadramaveth,Sumeru,emblem_sumeru
-the sands of alazif,The Sands of Al-Azif,Desert of Hadramaveth,Sumeru,emblem_sumeru
-the sands of three canals,The Sands of Three Canals,Desert of Hadramaveth,Sumeru,emblem_sumeru
-the temples forsaken,The Temples Forsaken - Wadi Al-Majuj,Desert of Hadramaveth,Sumeru,emblem_sumeru
-wadi almajuj,Wadi Al-Majuj,Desert of Hadramaveth,Sumeru,emblem_sumeru
-wadi al majuj,Wadi Al-Majuj,Desert of Hadramaveth,Sumeru,emblem_sumeru
-wounded shin valley,Wounded Shin Valley,Desert of Hadramaveth,Sumeru,emblem_sumeru
-gavireh lajavard,Gavireh Lajavard,Gavireh Lajavard,Sumeru,emblem_sumeru
-gate of zulqarnain,Gate of Zulqarnain,Gavireh Lajavard,Sumeru,emblem_sumeru
-temir mountains,Temir Mountains,Gavireh Lajavard,Sumeru,emblem_sumeru
-tunigi hollow,Tunigi Hollow,Gavireh Lajavard,Sumeru,emblem_sumeru
-realm of farakhkert,Realm of Farakhkert,Realm of Farakhkert,Sumeru,emblem_sumeru
-asipattravana swamp,Asipattravana Swamp,Realm of Farakhkert,Sumeru,emblem_sumeru
-hills of barsom,Hills of Barsom,Realm of Farakhkert,Sumeru,emblem_sumeru
-samudra coast,Samudra Coast,Realm of Farakhkert,Sumeru,emblem_sumeru
-vourukasha oasis,Vourukasha Oasis,Realm of Farakhkert,Sumeru,emblem_sumeru
+------,------,GREAT RED SAND,------,------
+------,------,GREAT RED SAND - DESERT OF HADRAMAVETH,------,------
+desert of hadramaveth,Desert of Hadramaveth,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+temple of deshret,Gurabad's Ruin - Temple of Deshret,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+the temples forsaken,The Temples Forsaken - Wadi Al-Majuj,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+debris of panjvahe,Debris of Panjvahe,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+dunes of steel,Dunes of Steel,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+mt damavand,Mt. Damavand,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+bayt al sukr,Bayt Al-Sukr - Mt. Damavand,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+bayt alsukr,Bayt Al-Sukr - Mt. Damavand,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+bayt al muazzam,Bayt Al-Muazzam - Mt. Damavand,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+bayt almuazzam,Bayt Al-Muazzam - Mt. Damavand,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+bayt al hayah,Bayt Al-Hayah - Mt. Damavand,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+bayt alhayah,Bayt Al-Hayah - Mt. Damavand,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+passage of ghouls,Passage of Ghouls,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+qusayr alinkhida,Qusayr Al-Inkhida',Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+qusayr al inkhida,Qusayr Al-Inkhida',Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+safhe shatranj,Safhe Shatranj,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+tanit camps,Tanit Camps,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+the sands of alazif,The Sands of Al-Azif,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+the sands of three canals,The Sands of Three Canals,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+wadi almajuj,Wadi Al-Majuj,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+wadi al majuj,Wadi Al-Majuj,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+wounded shin valley,Wounded Shin Valley,Desert of Hadramaveth,Great Red Sand,emblem_great_red_sand
+------,------,GREAT RED SAND - HYPOSTYLE DESERT,------,------
+hypostyle desert,Hypostyle Desert,Vissudha Field,Great Red Sand,emblem_great_red_sand
+khemenu temple,Khemenu Temple,Hypostyle Desert,Great Red Sand,emblem_great_red_sand
+sobek oasis,Sobek Oasis,Hypostyle Desert,Great Red Sand,emblem_great_red_sand
+the dune of carouses,The Dune of Carouses,Hypostyle Desert,Great Red Sand,emblem_great_red_sand
+the dune of elusion,The Dune of Elusion,Hypostyle Desert,Great Red Sand,emblem_great_red_sand
+the dune of magma,The Dune of Magma,Hypostyle Desert,Great Red Sand,emblem_great_red_sand
+mausoleum of king,The Mausoleum of King Deshret,Hypostyle Desert,Great Red Sand,emblem_great_red_sand
+------,------,GREAT RED SAND - LAND OF LOWER SETEKH,------,------
+land of lower setekh,Land of Lower Setekh,Land of Lower Setekh,Great Red Sand,emblem_great_red_sand
+aaru village,Aaru Village,Land of Lower Setekh,Great Red Sand,emblem_great_red_sand
+abdju pit,Abdju Pit,Land of Lower Setekh,Great Red Sand,emblem_great_red_sand
+dar alshifa,Dar al-Shifa,Land of Lower Setekh,Great Red Sand,emblem_great_red_sand
+dar al shifa,Dar al-Shifa,Land of Lower Setekh,Great Red Sand,emblem_great_red_sand
+khajnisut,Khaj-Nisut,Land of Lower Setekh,Great Red Sand,emblem_great_red_sand
+khaj nisut,Khaj-Nisut,Land of Lower Setekh,Great Red Sand,emblem_great_red_sand
+eye of the sands,Eye of the Sands, Land of Lower Setekh,Great Red Sand,emblem_great_red_sand
+------,------,GREAT RED SAND - LAND OF UPPER SETEKH,------,------
+land of upper setekh,Land of Upper Setekh,Land of Upper Setekh,Great Red Sand,emblem_great_red_sand
+valley of dahri,Valley of Dahri,Land of Upper Setekh,Great Red Sand,emblem_great_red_sand
+------,------,GIRDLE OF THE SANDS,------,------
+------,------,GIRDLE OF THE SANDS - GAVIREH LAJAVARD,------,------
+gavireh lajavard,Gavireh Lajavard,Gavireh Lajavard,Girdle of the Sands,emblem_girdle_of_the_sands
+gate of zulqarnain,Gate of Zulqarnain,Gavireh Lajavard,Girdle of the Sands,emblem_girdle_of_the_sands
+temir mountains,Temir Mountains,Gavireh Lajavard,Girdle of the Sands,emblem_girdle_of_the_sands
+tunigi hollow,Tunigi Hollow,Gavireh Lajavard,Girdle of the Sands,emblem_girdle_of_the_sands
+------,------,GIRDLE OF THE SANDS - REALM OF FARAKHKERT,------,------
+realm of farakhkert,Realm of Farakhkert,Realm of Farakhkert,Girdle of the Sands,emblem_girdle_of_the_sands
+asipattravana swamp,Asipattravana Swamp,Realm of Farakhkert,Girdle of the Sands,emblem_girdle_of_the_sands
+hills of barsom,Hills of Barsom,Realm of Farakhkert,Girdle of the Sands,emblem_girdle_of_the_sands
+samudra coast,Samudra Coast,Realm of Farakhkert,Girdle of the Sands,emblem_girdle_of_the_sands
+vourukasha oasis,Vourukasha Oasis,Realm of Farakhkert,Girdle of the Sands,emblem_girdle_of_the_sands
+------,------,FONTAINE,------,------
+------,------,FONTAINE - BELLEAU REGION,------,------
+belleau,Belleau Region,Belleau Region,Fontaine,emblem_fontaine
+poisson,Poisson,Belleau Region,Fontaine,emblem_fontaine
+romaritime harbor,Romaritime Harbor,Belleau Region,Fontaine,emblem_fontaine
+west Slopes of Mont Automnequi,West Slopes of Mont Automnequi,Belleau Region,Fontaine,emblem_fontaine
+------,------,FONTAINE - BERYL REGION,------,------
+beryl region,Beryl Region,Beryl Region,Fontaine,emblem_fontaine
+"a lonely place","A Lonely Place",Beryl Region,Fontaine,emblem_fontaine
+"a very bright place","A Very Bright Place",Beryl Region,Fontaine,emblem_fontaine
+"a very warm place","A Lonely Place",Beryl Region,Fontaine,emblem_fontaine
+elton trench,Elton Trench,Beryl Region,Fontaine,emblem_fontaine
+elynas,Elynas,Beryl Region,Fontaine,emblem_fontaine
+merusea village,Merusea Village,Beryl Region,Fontaine,emblem_fontaine
+------,------,FONTAINE - COURT OF FONTAINE REGION,------,------
+region,Court of Fontaine Region,Court of Fontaine Region,Fontaine,emblem_fontaine
+fleuve cendre,Court of Fontaine: Fleuve Cendre,Court of Fontaine Region,Fontaine,emblem_fontaine
+quartier lyonnais,Court of Fontaine: Quartier Lyonnais,Court of Fontaine Region,Fontaine,emblem_fontaine
+quartier narbonnais,Court of Fontaine: Quartier Narbonnais,Court of Fontaine Region,Fontaine,emblem_fontaine
+vasari passage,Court of Fontaine: Vasari Passage,Court of Fontaine Region,Fontaine,emblem_fontaine
+palais mermonia,Court of Fontaine: Palais Mermonia,Court of Fontaine Region,Fontaine,emblem_fontaine
+annapausis,Annapausis,Court of Fontaine Region,Fontaine,emblem_fontaine
+chemin de lespoir,Chemin de L'Espoir,Court of Fontaine Region,Fontaine,emblem_fontaine
+fountain of lucine,Fountain of Lucine,Court of Fontaine Region,Fontaine,emblem_fontaine
+institute of natural philosophy,Institute of Natural Philosophy,Court of Fontaine Region,Fontaine,emblem_fontaine
+marcotte station,Marcotte Station,Court of Fontaine Region,Fontaine,emblem_fontaine
+opera epiclese,Opera Epiclese,Court of Fontaine Region,Fontaine,emblem_fontaine
+salacia plain,Salacia Plain,Court of Fontaine Region,Fontaine,emblem_fontaine
+thalatta submarine canyon,Thalatta Submarine Canyon,Court of Fontaine Region,Fontaine,emblem_fontaine
+------,------,FONTAINE - LIFFEY REGION,------,------
+liffey region,Liffey Region,Liffey Region,Fontaine,emblem_fontaine
+fortress of meropide,fortress of meropide,Liffey Region,Fontaine,emblem_fontaine
+nont esus east,Mont Esus East,Liffey Region,Fontaine,emblem_fontaine
+------,------,FONTAINE - Fontaine Research Institute of Kinetic Energy Engineering Region,------,------
+fontaine research institute of kinetic energy engineering region,fontaine Research Institute of Kinetic Energy Engineering Region,fontaine Research Institute of Kinetic Energy Engineering Region,Fontaine,emblem_fontaine
+central laboratory ruins,Central Laboratory Ruins,fontaine Research Institute of Kinetic Energy Engineering Region,Fontaine,emblem_fontaine
+new fontaine research institute,New Fontaine Research Institute,fontaine Research Institute of Kinetic Energy Engineering Region,Fontaine,emblem_fontaine
+mary ann memorial park,Mary-Ann Memorial Park,fontaine Research Institute of Kinetic Energy Engineering Region,Fontaine,emblem_fontaine
+maryann memorial park,Mary-Ann Memorial Park,fontaine Research Institute of Kinetic Energy Engineering Region,Fontaine,emblem_fontaine
+------,------,FONTAINE - ERINNYES FOREST,------,------
+erinnyes forest,Erinnyes Forest,Erinnyes Forest,Fontaine,emblem_fontaine
+foggy Forest Path,Foggy Forest Path,Erinnyes Forest,Fontaine,emblem_fontaine
+loch urania,Loch Urania,Erinnyes Forest,Fontaine,emblem_fontaine
+lumidouce harbor,Lumidouce Harbor,Erinnyes Forest,Fontaine,emblem_fontaine
+weeping willow of the lake,Weeping Willow of the Lake,Erinnyes Forest,Fontaine,emblem_fontaine
+------,------,FONTAINE - MORTE REGION,------,------
+east slopes of mont automnequi,East Slopes of Mont Automnequi,Morte Region,Fontaine,emblem_fontaine
+fort charybdis ruins,Fort Charybdis Ruins,Morte Region,Fontaine,emblem_fontaine
+genesis of a certain micro universe,Genesis of a Certain Micro-Universe,Morte Region,Fontaine,emblem_fontaine
+genesis of a certain microuniverse,Genesis of a Certain Micro-Universe,Morte Region,Fontaine,emblem_fontaine
+tower of ipsissimus,Tower of Ipsissimus,Morte Region,Fontaine,emblem_fontaine
+------,------,OTHER,------,------
 cats tail,The Cat's Tail,Starfell Valley,Mondstadt,icon_cats_tail
 cat s tail,The Cat's Tail,Starfell Valley,Mondstadt,icon_cats_tail
 prince,The Cat's Tail,Starfell Valley,Mondstadt,icon_cats_tail

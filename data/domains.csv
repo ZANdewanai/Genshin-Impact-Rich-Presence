@@ -1,44 +1,80 @@
+------,------,DOMAINS MONDSTADT,------
+------,------,DOMAIN OF FORGERY - MONDSTADT,------
 city of reflections,Cecilia Garden | City of Reflections,forgery,domain_forgery_mondstadt
 submerged valley,Cecilia Garden | Submerged Valley,forgery,domain_forgery_mondstadt
 ruins of thirsting capital,Cecilia Garden | Ruins of Thirsting Capital ,forgery,domain_forgery_mondstadt
-sunken sands,Court of Flowing Sand | Sunken Sands,forgery,domain_forgery_inazuma
-altar of sands,Court of Flowing Sand | Altar of Sands,forgery,domain_forgery_inazuma
-sand burial,Court of Flowing Sand | Sand Burial,forgery,domain_forgery_inazuma
-thundercloud,Hidden Palace of Lianshan Formula | Thundercloud,forgery,domain_forgery_liyue
-thundering ruins,Hidden Palace of Lianshan Formula | Thundering Ruins,forgery,domain_forgery_liyue
-trial grounds of thunder,Hidden Palace of Lianshan Formula | Trial Grounds of Thunder,forgery,domain_forgery_liyue
-tainted clouds,Tower of Abject Pride | Tainted Clouds,forgery,domain_forgery_sumeru
-obsession,Tower of Abject Pride | Obsession,forgery,domain_forgery_sumeru
-leading karma,Tower of Abject Pride | Leading Karma,forgery,domain_forgery_sumeru
-desert citadel,City Of Gold | Desert Citadel,blessing,domain_blessing_sumeru
-forsaken rampart,Molten Iron Fortress | Forsaken Rampart,blessing,domain_blessing_sumeru
-blessing spring,Domain of Guyun | Spring,blessing,domain_blessing_liyue
+------,------,DOMAIN OF BLESSING - MONDSTADT,------
 fires of purification,Midsummer Courtyard | Fires of Purification,blessing,domain_blessing_mondstadt
 dance of steel,Valley of Remembrance | Dance of Steel,blessing,domain_blessing_mondstadt
-blessing frost,Hidden Palace of Zhou Formula | Frost,blessing,domain_blessing_liyue
-autumn hunt,Momiji-Dyed Court | Autumn Hunt,blessing,domain_blessing_inazuma
-elegaic rime,Peak of Vindagnyr | Elegaic Rime,blessing,domain_forgery_dragonspine
-unyielding,Ridge Watch | Unyielding,blessing,domain_blessing_liyue
-necropolis,Slumbering Court | Necropolis,blessing,domain_blessing_inazuma
-seven senses,Spire of Solitary Enligtenment | Seven Senses,blessing,domain_blessing_sumeru
-machine nest,The Lost Valley | Machine Nest,blessing,domain_blessing_liyue
-stone chamber,Clear Pool and Mountain Cavern | Stone Chamber,blessing,domain_blessing_liyue
+------,------,DOMAIN OF MASTERY - MONDSTADT,------
 frosted altar,Forsaken Rift | Frosted Altar,mastery,domain_mastery_mondstadt
 frozen abyss,Forsaken Rift | Frozen Abyss,mastery,domain_mastery_mondstadt
 realm of slumber,Forsaken Rift | Realm of Slumber,mastery,domain_mastery_mondstadt
-full moon,Steeple of Ignorance | Full Moon,mastery,domain_mastery_sumeru
-witticism,Steeple of Ignorance | Witticism,mastery,domain_mastery_sumeru
-basket of discipline,Steeple of Ignorance | Basket of Discipline,mastery,domain_mastery_sumeru
+------,------,DOMAINS DRAGONSPINE,------
+------,------,DOMAIN OF BLESSING - DRAGONSPINE,------
+elegaic rime,Peak of Vindagnyr | Elegaic Rime,blessing,domain_blessing_dragonspine
+------,------,DOMAINS LYUE,------
+------,------,DOMAIN OF FORGERY - LYUE,------
+thundercloud,Hidden Palace of Lianshan Formula | Thundercloud,forgery,domain_forgery_liyue
+thundering ruins,Hidden Palace of Lianshan Formula | Thundering Ruins,forgery,domain_forgery_liyue
+trial grounds of thunder,Hidden Palace of Lianshan Formula | Trial Grounds of Thunder,forgery,domain_forgery_liyue
+------,------,DOMAIN OF BLESSING - LYUE,------
+blessing spring,Domain of Guyun | Spring,blessing,domain_blessing_liyue
+blessing frost,Hidden Palace of Zhou Formula | Frost,blessing,domain_blessing_liyue
+machine nest,The Lost Valley | Machine Nest,blessing,domain_blessing_liyue
+stone chamber,Clear Pool and Mountain Cavern | Stone Chamber,blessing,domain_blessing_liyue
+unyielding,Ridge Watch | Unyielding,blessing,domain_blessing_liyue
+------,------,DOMAIN OF MASTERY - LYUE,------
 altar of flames,Taishan Mansion | Altar of Flames,mastery,domain_mastery_liyue
 heart of the flames,Taishan Mansion | Heart of the Flames,mastery,domain_mastery_liyue
 circle of embers,Taishan Mansion | Circle of Embers,mastery,domain_mastery_liyue
+------,------,DOMAINS INAZUMA,------
+------,------,DOMAIN OF FORGERY - INAZUMA,------
+sunken sands,Court of Flowing Sand | Sunken Sands,forgery,domain_forgery_inazuma
+altar of sands,Court of Flowing Sand | Altar of Sands,forgery,domain_forgery_inazuma
+sand burial,Court of Flowing Sand | Sand Burial,forgery,domain_forgery_inazuma
+------,------,DOMAIN OF BLESSING - INAZUMA,------
+autumn hunt,Momiji-Dyed Court | Autumn Hunt,blessing,domain_blessing_inazuma
+necropolis,Slumbering Court | Necropolis,blessing,domain_blessing_inazuma
+------,------,DOMAIN OF MASTERY - INAZUMA,------
 reign of violet,Violet Court | Reign of Violet,mastery,domain_mastery_inazuma
 thundering valley,Violet Court | Thundering Valley,mastery,domain_mastery_inazuma
 vineinfested ruins,Violet Court | Vine-Infested Ruins,mastery,domain_mastery_inazuma
-storming terror,Confront Stormterror | Memories: Storming Terror,trounce,boss_dvalin
-earthshaking dragon,Beneath the Dragon-Queller | Memories: Earthshaking Dragon,trounce,boss_azhdaha
-guardian of eternity,End of the Oneiric Euthemia | Memories: Guardian of Eternity,trounce,boss_magatsu_mitake_narukami_no_mikoto
-the golden shadow,Enter the Golden House | Memories: The Golden Shadow,trounce,boss_childe
-lucent altar of the,Joururi Workshop | Memories: Lucent Altar of the Everlasting,trounce,boss_shouki
-duel to the fiery,Narukami Island: Tenshukaku | Duel to the Fiery Death,trounce,boss_signora
-too were once flawless,The Realm of Beginnings | Memories: "They" Too Were Once Flawless,trounce,boss_apep
+------,------,DOMAINS SUMERU,------
+------,------,DOMAIN OF FORGERY - SUMERU,------
+tainted clouds,Tower of Abject Pride | Tainted Clouds,forgery,domain_forgery_sumeru
+obsession,Tower of Abject Pride | Obsession,forgery,domain_forgery_sumeru
+leading karma,Tower of Abject Pride | Leading Karma,forgery,domain_forgery_sumeru
+------,------,DOMAIN OF BLESSING - SUMERU,------
+desert citadel,City Of Gold | Desert Citadel,blessing,domain_blessing_sumeru
+forsaken rampart,Molten Iron Fortress | Forsaken Rampart,blessing,domain_blessing_sumeru
+seven senses,Spire of Solitary Enligtenment | Seven Senses,blessing,domain_blessing_sumeru
+------,------,DOMAIN OF MASTERY - SUMERU,------
+full moon,Steeple of Ignorance | Full Moon,mastery,domain_mastery_sumeru
+witticism,Steeple of Ignorance | Witticism,mastery,domain_mastery_sumeru
+basket of discipline,Steeple of Ignorance | Basket of Discipline,mastery,domain_mastery_sumeru
+------,------,DOMAINS FONTAINE,------
+------,------,DOMAIN OF FORGERY - FONTAINE,------
+robotic ruse,Echoes of the Deep Tides | Robotic Ruse,forgery,domain_forgery_fontaine
+artisanship,Echoes of the Deep Tides | Artisanship,forgery,domain_forgery_fontaine
+curious contraptions,Echoes of the Deep Tides | Curious Contraptions,forgery,domain_forgery_fontaine
+------,------,DOMAIN OF BLESSING - FONTAINE,------
+harmony,Denouement of Sin | Harmony,blessing,domain_blessing_fontaine
+admonishing engraving,Denouement of Sin | Admonishing Engraving,blessing,domain_blessing_fontaine
+chiming recitation,Denouement of Sin | Chiming Recitation,blessing,domain_blessing_fontaine
+------,------,DOMAIN OF MASTERY - FONTAINE,------
+rhyming rhythm,Pale Forgotten Glory | Rhyming Rhythm,mastery,domain_mastery_fontaine
+------,------,TROUNCE DOMAINS,------
+------,------,TROUNCE DOMAIN - MONDSTADT,------
+storming terror,Confront Stormterror | Memories: Storming Terror,trounce,trounce_boss_dvalin
+------,------,TROUNCE DOMAIN - LYUE,------
+earthshaking dragon,Beneath the Dragon-Queller | Memories: Earthshaking Dragon,trounce,trounce_boss_azhdaha
+the golden shadow,Enter the Golden House | Memories: The Golden Shadow,trounce,trounce_boss_childe
+------,------,TROUNCE DOMAIN - INAZUMA,------
+guardian of eternity,End of the Oneiric Euthemia | Memories: Guardian of Eternity,trounce,trounce_boss_magatsu_mitake_narukami_no_mikoto
+duel to the fiery,Narukami Island: Tenshukaku | Duel to the Fiery Death,trounce,trounce_boss_signora
+------,------,TROUNCE DOMAIN - SUMERU,------
+lucent altar of the,Joururi Workshop | Memories: Lucent Altar of the Everlasting,trounce,trounce_boss_shouki
+too were once flawless,The Realm of Beginnings | Memories: "They" Too Were Once Flawless,trounce,trounce_boss_guardian_of_apeps_oasis
+------,------,TROUNCE DOMAIN - FONTAINE,------
+shadow of another world,Shadow of Another World,trounce,trounce_boss_all_devouring_narwhal

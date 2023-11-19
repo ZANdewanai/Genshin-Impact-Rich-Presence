@@ -1,69 +1,83 @@
+------,ANOTHER WORLD,------
 aether,char_aether,Aether
-albedo,char_albedo,Albedo
-alhaitham,char_alhaitham,Alhaitham
 aloy,char_aloy,Aloy
+lumine,char_lumine,Lumine
+------,MONDSTADT,------
+albedo,char_albedo,Albedo
 amber,char_amber,Amber
-itto,char_arataki_itto,Arataki Itto
 barbara,char_barbara,Barbara
-baizhu,char_baizhu,Baizhu
-beidou,char_beidou,Beidou
 bennett,char_bennett,Bennett
-candace,char_candace,Candace
-chongyun,char_chongyun,Chongyun
-collei,char_collei,Collei
-cyno,char_cyno,Cyno
-dehya,char_dehya,Dehya
 diluc,char_diluc,Diluc
 diona,char_diona,Diona
-dori,char_dori,Dori
 eula,char_eula,Eula
-faruzan,char_faruzan,Faruzan
 fischl,char_fischl,Fischl
-ganyu,char_ganyu,Ganyu
-gorou,char_gorou,Gorou
-hu tao,char_hu_tao,Hu Tao
 jean,char_jean,Jean
-kazuha,char_kaedehara_kazuha,Kaedehara Kazuha
 kaeya,char_kaeya,Kaeya
-ayaka,char_kamisato_ayaka,Kamisato Ayaka
-ayato,char_kamisato_ayato,Kamisato Ayato
-kaveh,char_kaveh,Kaveh
-keqing,char_keqing,Keqing
-kirara,char_kirara,Kirara
 klee,char_klee,Klee
-sara,char_kujo_sara,Kujo Sara
-kuki,char_kuki_shinobu,Kuki Shinobu
-layla,char_layla,Layla
 lisa,char_lisa,Lisa
-lumine,char_lumine,Lumine
 mika,char_mika,Mika
 mona,char_mona,Mona
-nahida,char_nahida,Nahida
-nilou,char_nilou,Nilou
-ningguang,char_ningguang,Ningguang
 noelle,char_noelle,Noelle
-qiqi,char_qiqi,Qiqi
-shogun,char_raiden_shogun,Raiden Shogun
 razor,char_razor,Razor
 rosaria,char_rosaria,Rosaria
-kokomi,char_sangonomiya_kokomi,Sangonomiya Kokomi
-sayu,char_sayu,Sayu
-shenhe,char_shenhe,Shenhe
-heizou,char_shikanoin_heizou,Shikanoin Heizou
 sucrose,char_sucrose,Sucrose
-tartaglia,char_tartaglia,Tartaglia
-thoma,char_thoma,Thoma
-tighnari,char_tighnari,Tighnari
 venti,char_venti,Venti
-wanderer,char_wanderer,Wanderer
+------,LYUE,------
+baizhu,char_baizhu,Baizhu
+beidou,char_beidou,Beidou
+chongyun,char_chongyun,Chongyun
+ganyu,char_ganyu,Ganyu
+hu tao,char_hu_tao,Hu Tao
+keqing,char_keqing,Keqing
+ningguang,char_ningguang,Ningguang
+qiqi,char_qiqi,Qiqi
+shenhe,char_shenhe,Shenhe
 xiangling,char_xiangling,Xiangling
 xiao,char_xiao,Xiao
 xingqiu,char_xingqiu,Xingqiu
 xinyan,char_xinyan,Xinyan
-miko,char_yae_miko,Yae Miko
 yanfei,char_yanfei,Yanfei
 yaoyao,char_yaoyao,Yaoyao
 yelan,char_yelan,Yelan
-yoimiya,char_yoimiya,Yoimiya
 yun jin,char_yun_jin,Yun Jin
 zhongli,char_zhongli,Zhongli
+------,INAZUMA,------
+ayaka,char_kamisato_ayaka,Kamisato Ayaka
+ayato,char_kamisato_ayato,Kamisato Ayato
+gorou,char_gorou,Gorou
+heizou,char_shikanoin_heizou,Shikanoin Heizou
+itto,char_arataki_itto,Arataki Itto
+kazuha,char_kaedehara_kazuha,Kaedehara Kazuha
+kirara,char_kirara,Kirara
+kuki,char_kuki_shinobu,Kuki Shinobu
+miko,char_yae_miko,Yae Miko
+sara,char_kujo_sara,Kujo Sara
+shogun,char_raiden_shogun,Raiden Shogun
+kokomi,char_sangonomiya_kokomi,Sangonomiya Kokomi
+sayu,char_sayu,Sayu
+thoma,char_thoma,Thoma
+yoimiya,char_yoimiya,Yoimiya
+------,SUMERU,------
+alhaitham,char_alhaitham,Alhaitham
+candace,char_candace,Candace
+collei,char_collei,Collei
+cyno,char_cyno,Cyno
+dehya,char_dehya,Dehya
+dori,char_dori,Dori
+faruzan,char_faruzan,Faruzan
+kaveh,char_kaveh,Kaveh
+layla,char_layla,Layla
+nahida,char_nahida,Nahida
+nilou,char_nilou,Nilou
+tighnari,char_tighnari,Tighnari
+wanderer,char_wanderer,Wanderer
+------,FONTAINE,------
+charlotte,char_charlotte,Charlotte
+freminet,char_freminet,Freminet
+furina,char_furina,Furina
+lynette,char_lynette,Lynette
+lyney,char_lyney,Lyney
+wriothesley,char_wriothesley,Wriothesley
+neuvillette,char_neuvillette,Neuvillette
+------,SNEZHNAYA,------
+tartaglia,char_tartaglia,Tartaglia
