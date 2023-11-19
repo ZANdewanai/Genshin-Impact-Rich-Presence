@@ -1,4 +1,4 @@
-# Genshin Impact Rich Presence
+# Genshin Impact Rich Presence Fountaine Update
 
 ![Screenshot](images/discRPC%20sample%201.png) ![Screenshot](images/discRPC%20sample%202.png) ![Screenshot](images/discRPC%20sample%203.png)
 
