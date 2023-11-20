@@ -224,17 +224,17 @@ romaritime harbor,Romaritime Harbor,Belleau Region,Fontaine,emblem_fontaine
 west Slopes of Mont Automnequi,West Slopes of Mont Automnequi,Belleau Region,Fontaine,emblem_fontaine
 ------,------,FONTAINE - BERYL REGION,------,------
 beryl region,Beryl Region,Beryl Region,Fontaine,emblem_fontaine
-"a lonely place","A Lonely Place",Beryl Region,Fontaine,emblem_fontaine
-"a very bright place","A Very Bright Place",Beryl Region,Fontaine,emblem_fontaine
-"a very warm place","A Lonely Place",Beryl Region,Fontaine,emblem_fontaine
+lonely place,"A Lonely Place",Beryl Region,Fontaine,emblem_fontaine
+bright place,"A Very Bright Place",Beryl Region,Fontaine,emblem_fontaine
+warm place,"A Lonely Place",Beryl Region,Fontaine,emblem_fontaine
 elton trench,Elton Trench,Beryl Region,Fontaine,emblem_fontaine
 elynas,Elynas,Beryl Region,Fontaine,emblem_fontaine
 merusea village,Merusea Village,Beryl Region,Fontaine,emblem_fontaine
 ------,------,FONTAINE - COURT OF FONTAINE REGION,------,------
-region,Court of Fontaine Region,Court of Fontaine Region,Fontaine,emblem_fontaine
+fontaine,Court of Fontaine Region,Court of Fontaine Region,Fontaine,emblem_fontaine
 fleuve cendre,Court of Fontaine: Fleuve Cendre,Court of Fontaine Region,Fontaine,emblem_fontaine
-quartier lyonnais,Court of Fontaine: Quartier Lyonnais,Court of Fontaine Region,Fontaine,emblem_fontaine
-quartier narbonnais,Court of Fontaine: Quartier Narbonnais,Court of Fontaine Region,Fontaine,emblem_fontaine
+lyonnais,Court of Fontaine: Quartier Lyonnais,Court of Fontaine Region,Fontaine,emblem_fontaine
+narbonnais,Court of Fontaine: Quartier Narbonnais,Court of Fontaine Region,Fontaine,emblem_fontaine
 vasari passage,Court of Fontaine: Vasari Passage,Court of Fontaine Region,Fontaine,emblem_fontaine
 palais mermonia,Court of Fontaine: Palais Mermonia,Court of Fontaine Region,Fontaine,emblem_fontaine
 annapausis,Annapausis,Court of Fontaine Region,Fontaine,emblem_fontaine
@@ -246,15 +246,17 @@ opera epiclese,Opera Epiclese,Court of Fontaine Region,Fontaine,emblem_fontaine
 salacia plain,Salacia Plain,Court of Fontaine Region,Fontaine,emblem_fontaine
 thalatta submarine canyon,Thalatta Submarine Canyon,Court of Fontaine Region,Fontaine,emblem_fontaine
 ------,------,FONTAINE - LIFFEY REGION,------,------
-liffey region,Liffey Region,Liffey Region,Fontaine,emblem_fontaine
+liffey,Liffey Region,Liffey Region,Fontaine,emblem_fontaine
 fortress of meropide,fortress of meropide,Liffey Region,Fontaine,emblem_fontaine
-nont esus east,Mont Esus East,Liffey Region,Fontaine,emblem_fontaine
-------,------,FONTAINE - Fontaine Research Institute of Kinetic Energy Engineering Region,------,------
-fontaine research institute of kinetic energy engineering region,fontaine Research Institute of Kinetic Energy Engineering Region,fontaine Research Institute of Kinetic Energy Engineering Region,Fontaine,emblem_fontaine
+mont esus east,Mont Esus East,Liffey Region,Fontaine,emblem_fontaine
+------,------,FONTAINE - FONTAINE RESEARCH INSTITUTE OF KINETIC ENERGY ENGINEERING REGION,------,------
+research institute of kinetic energy engineering region,fontaine Research Institute of Kinetic Energy Engineering Region,fontaine Research Institute of Kinetic Energy Engineering Region,Fontaine,emblem_fontaine
 central laboratory ruins,Central Laboratory Ruins,fontaine Research Institute of Kinetic Energy Engineering Region,Fontaine,emblem_fontaine
 new fontaine research institute,New Fontaine Research Institute,fontaine Research Institute of Kinetic Energy Engineering Region,Fontaine,emblem_fontaine
 mary ann memorial park,Mary-Ann Memorial Park,fontaine Research Institute of Kinetic Energy Engineering Region,Fontaine,emblem_fontaine
 maryann memorial park,Mary-Ann Memorial Park,fontaine Research Institute of Kinetic Energy Engineering Region,Fontaine,emblem_fontaine
+memorial park,Mary-Ann Memorial Park,fontaine Research Institute of Kinetic Energy Engineering Region,Fontaine,emblem_fontaine
+academic assembly hall,Academic Assembly Hall,fontaine Research Institute of Kinetic Energy Engineering Region,Fontaine,emblem_fontaine
 ------,------,FONTAINE - ERINNYES FOREST,------,------
 erinnyes forest,Erinnyes Forest,Erinnyes Forest,Fontaine,emblem_fontaine
 foggy Forest Path,Foggy Forest Path,Erinnyes Forest,Fontaine,emblem_fontaine

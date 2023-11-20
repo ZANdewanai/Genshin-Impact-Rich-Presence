@@ -106,7 +106,7 @@ NOTE: Scanning domains/party setup/map location will only occur if active
       then assume game is paused. Lower detection rate.
 """
 
-MAP_LOC_COORD = (1926, 124, 2534, 192)
+MAP_LOC_COORD = (1926, 124, 2534, 230)
 
 
 DOMAIN_COORD = (1685, 154, 2490, 267)
