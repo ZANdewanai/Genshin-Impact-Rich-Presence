@@ -159,7 +159,7 @@ for the OCR inference model to figure out how to work while the game is running.
 
 
 ALLOWLIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
-ALLOWLIST2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890 "
+ALLOWLIST2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890- "
 """
 Text characters whitelist to limit OCR results.
 
