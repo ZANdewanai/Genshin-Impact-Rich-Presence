@@ -52,5 +52,5 @@ enemies,Looking at the Enemy Tutorials,In Menus,icon_tutorial
 system,Looking at the System Tutorials,In Menus,icon_tutorial
 advent,Looking at the Adventure Tutorials,In Menus,icon_tutorial
 ------,------,CUTSCENE,------
-start,Currently in a Cutscene,In a Cutscene,icon_cutscene
+auto,Currently in a Cutscene,In a Cutscene,icon_cutscene
 playing,Currently in a Cutscene,In a Cutscene,icon_cutscene
