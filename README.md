@@ -72,7 +72,7 @@ py test_imagegrab.py
 
 ## Credits
 
-Image assets are intellectual property of HoYoverse.
+Image assets are intellectual property of HoYoverse, © All rights reserved by miHoYo
 
 Some images are taken from the [GI fandom wiki](https://genshin-impact.fandom.com/).
 
