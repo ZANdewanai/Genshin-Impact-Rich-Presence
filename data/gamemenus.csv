@@ -1,0 +1,56 @@
+------,------,MENUS,------
+mailbox,Looking at the Mailbox,In Menus,icon_mailbox
+friends,Looking at their Friend List,In Menus,icon_friends
+settings,Looking at the Settings,In Menus,icon_settings
+wish,Wishing Upon a Star,In Menus,icon_wish
+battle pass,Looking at the Battle Pass/Gnostic Hymn,In Menus,icon_battlepass
+shop,Looking at the Shop,In Menus,icon_shop
+achievements,Looking at their Achievements,In Menus,icon_achievements
+dressing room,Changing a Character's Outfit,In Menus,icon_dressing_room
+------,------,ARCHIVE,------
+archive,Browsing through the Archives,In Menus,icon_archive
+living beings,Researching Teyvat's Living Beings,In Menus,icon_archive_living_beings
+equipment,Researching Teyvat's Equipments,In Menus,icon_archive_equipment
+books,Researching Teyvat's Books,In Menus,icon_archive_books
+travel log,Remembering their Travels with the Travel Log,In Menus,icon_archive_travel_log
+geography,Studying Teyvat's Geography,In Menus,icon_archive_geography
+------,------,QUESTS,------
+world,Looking at the World Quests,In Menus,icon_world_quests
+commission,Looking at the Commission Quests,In Menus,icon_commission_quests
+story,Looking at the Story Quests,In Menus,icon_story_quests
+archon,Looking at the Archon Quests,In Menus,icon_archon_quests
+progress,Looking at their Current Quests,In Menus,icon_current_quests
+hangout,Looking at the Hangout Events,In Menus,icon_hangout_event
+------,------,SPYRAL,------
+floor 1,Floor 1 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 2,Floor 2 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 3,Floor 3 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 4,Floor 4 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 5,Floor 5 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 6,Floor 6 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 7,Floor 7 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 8,Floor 8 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 9,Floor 9 - Abyssal Moon Spire,Spyral Abyss,spiral_abyss
+floor 10,Floor 10 - Abyssal Moon Spire,Spyral Abyss,spiral_abyss
+floor 11,Floor 11 - Abyssal Moon Spire,Spyral Abyss,spiral_abyss
+floor 12,Floor 12 - Abyssal Moon Spire,Spyral Abyss,spiral_abyss
+------,------,INVENTORY,------
+weapons,Looking at their Weapons,In Menus,icon_inventory_weapons
+artifacts,Looking at their Artifacts,In Menus,icon_inventory_artifacts
+dev,Looking at their Character Development Items,In Menus,icon_inventory_development
+food,Looking at their Food Stock,In Menus,icon_inventory_food
+materials,Looking at their Materials or Researching them in the archives,In Menus,icon_inventory_materials
+gadget,Looking at their Gadgets,In Menus,icon_inventory_gadgets
+quest,Looking at their Quest Items,In Menus,icon_inventory_quests
+precious,Looking at their Precious Items,In Menus,icon_inventory_precious
+furnishings,Looking at their Furnishings,In Menus,icon_inventory_furnishings
+character archive,Looking at the Character Archive,In Menus,icon_character_archive
+------,------,TUTORIALS,------
+all,Looking at All the Tutorials,In Menus,icon_tutorial
+elements,Looking at the Element Tutorials,In Menus,icon_tutorial
+enemies,Looking at the Enemy Tutorials,In Menus,icon_tutorial
+system,Looking at the System Tutorials,In Menus,icon_tutorial
+advent,Looking at the Adventure Tutorials,In Menus,icon_tutorial
+------,------,CUTSCENE,------
+start,Currently in a Cutscene,In a Cutscene,icon_cutscene
+playing,Currently in a Cutscene,In a Cutscene,icon_cutscene

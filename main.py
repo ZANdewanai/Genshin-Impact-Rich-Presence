@@ -451,10 +451,10 @@ while True:
 
         if inactive_detection_cooldown > 0:
             inactive_detection_cooldown -= 1
-
+            
         # _____________________________________________________________________
         #
-        # CAPTURE PARTY SETUP TEXT
+        # CAPTURE PARTY SETUP/OTHER TEXT
         # _____________________________________________________________________
 
         if (
@@ -529,6 +529,48 @@ while True:
                     current_activity = Activity(ActivityType.DOMAIN, domain)
                     print(
                         f"Detected domain: {current_activity.activity_data.domain_name}"
+                    )
+
+        # _____________________________________________________________________
+        #
+        # CAPTURE GAMEMENU
+        # _____________________________________________________________________
+
+        if (
+            inactive_detection_cooldown == 0
+            or inactive_detection_mode == ActivityType.GAMEMENU
+        ):
+            try:
+                gamemenu_cap = np.array(ImageGrab.grab(bbox=PARTY_SETUP_COORD))
+            except OSError:
+                print(
+                    "OSError: Cannot capture screen. Try running as admin if this issue persists."
+                )
+                time.sleep(1)
+                continue
+
+            gamemenu_results = reader.readtext(gamemenu_cap, allowlist=ALLOWLIST2)
+
+            gamemenu_text = " ".join(
+                [
+                    word.strip()
+                    for word in [r[1] for r in gamemenu_results if r[2] > LOC_CONF_THRESH]
+                ]
+            )
+            if len(gamemenu_text) > 0:
+                gamemenu = DATA.search_gamemenu(gamemenu_text)
+
+                if gamemenu != None and (
+                    current_activity.activity_type != ActivityType.GAMEMENU
+                    or current_activity.activity_data.search_str
+                    != gamemenu.search_str
+                ):
+                    curr_game_paused = False
+                    inactive_detection_cooldown = INACTIVE_COOLDOWN
+                    inactive_detection_mode = ActivityType.GAMEMENU
+                    current_activity = Activity(ActivityType.GAMEMENU, gamemenu)
+                    print(
+                        f"Detected gamemenu: {current_activity.activity_data.gamemenu_name}"
                     )
 
         # _____________________________________________________________________

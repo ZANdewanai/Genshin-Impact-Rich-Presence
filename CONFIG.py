@@ -106,7 +106,7 @@ NOTE: Scanning domains/party setup/map location will only occur if active
       then assume game is paused. Lower detection rate.
 """
 
-MAP_LOC_COORD = (1926, 124, 2534, 230)
+MAP_LOC_COORD = (1926, 0, 2534, 230)
 
 
 DOMAIN_COORD = (1685, 154, 2490, 267)
@@ -116,14 +116,12 @@ Bounding box coordinates for selected domain name.
 (top left X, top left Y, bottom right X, bottom right Y)
 """
 
-PARTY_SETUP_COORD = (148, 30, 376, 95)
+PARTY_SETUP_COORD = (0, 20, 500, 110)
 """
 Bounding box for "Party Setup" text.
 
 (top left X, top left Y, bottom right X, bottom right Y)
 """
-
-
 # ______________________________________________________________#
 #                                                               #
 #                                                               #
@@ -161,6 +159,7 @@ for the OCR inference model to figure out how to work while the game is running.
 
 
 ALLOWLIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
+ALLOWLIST2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890 "
 """
 Text characters whitelist to limit OCR results.
 
@@ -180,7 +179,6 @@ How confident the OCR should be before accepting a location name.
 
 (NOTE: This doesn't need to be too high, as incorrect names will be checked against the database)
 """
-
 INACTIVE_COOLDOWN = 5
 """
 For this many iterations after the last time any non-active activity is detected

@@ -147,6 +147,58 @@ class Location:
         )
 
 
+class GamemenuType(Enum):
+    MENUS = 0
+    CUTSCENE = 1
+    SPYRAL = 2
+
+    """
+    Gamemenu   
+    """
+
+    def from_str(gamemenu_type_str: str) -> GamemenuType:
+        """
+        NOTE: The gamemenu type values in gamemenu.csv must match the strings here.
+        """
+        match gamemenu_type_str.lower():
+            case "in menus":
+                return GamemenuType.MENUS
+            case "in a cutscene":
+                return GamemenuType.CUTSCENE
+            case "spyral abyss":
+                return GamemenuType.SPYRAL
+    def __str__(self) -> str:
+        match self.name:
+            case "MENUS":
+                return "In Menus"
+            case "CUTSCENE":
+                return "In a Cutscene"
+            case "SPYRAL":
+                return "Spyral Abyss"
+
+class Gamemenu:
+    """
+    From gamemenu.csv.
+
+    THe gamemenu type values must match string values in `GamemenuType.from_str`
+    """
+
+    def __init__(self, search_str, gamemenu_name, gamemenu_type, image_key):
+        self.search_str = search_str
+        self.gamemenu_name = gamemenu_name
+        self.gamemenu_type = GamemenuType.from_str(gamemenu_type)
+        self.image_key = image_key
+
+    def __eq__(self, other: Gamemenu) -> bool:
+        if not isinstance(other, Gamemenu):
+            return False
+
+        return (
+            self.search_str == other.search_str
+            and self.gamemenu_name == other.gamemenu_name
+            and self.gamemenu_type == other.gamemenu_type
+            and self.image_key == other.image_key
+        )
 class ActivityType(Enum):
     LOADING = auto()
     """
@@ -182,13 +234,15 @@ class ActivityType(Enum):
     """
     activity_data: 'Boss' object
     """
-
-
+    GAMEMENU = auto()
+    """
+    activity_data: 'Gamemenu' object
+    """
 class Activity:
     def __init__(
         self,
         activity_type: ActivityType,
-        activity_data: Union[Activity, Boss, Character, Domain, Location, None, bool],
+        activity_data: Union[Activity, Boss, Character, Domain, Location, GameMenu, None, bool],
     ):
         self.activity_type = activity_type
         """
@@ -237,6 +291,13 @@ class Activity:
                     "large_image": self.activity_data.image_key,
                     "large_text": str(self.activity_data.domain_type),
                 }
+            case ActivityType.GAMEMENU:
+                return {
+                    "details": self.activity_data.gamemenu_name,
+                    "state": f"{self.activity_data.gamemenu_type}",
+                    "large_image": self.activity_data.image_key,
+                    "large_text": str(self.activity_data.gamemenu_type),
+                }
             case ActivityType.LOCATION:
                 if self.activity_data.subarea == "":
                     state = self.activity_data.country
@@ -266,7 +327,6 @@ class Activity:
                     "large_image": self.activity_data.image_key,
                     "large_text": self.activity_data.boss_name,
                 }
-
     def __eq__(self, other: Activity) -> bool:
         if not isinstance(other, Activity):
             return False
@@ -289,16 +349,19 @@ class Data(PatternMatchingEventHandler):
     characters: list[Character] = []
     domains: list[Domain] = []
     locations: list[Location] = []
+    gamemenus: list[Gamemenu] = []
 
     bosses_shortest_search = 0
     characters_shortest_search = 0
     domains_shortest_search = 0
     locations_shortest_search = 0
+    gamemenus_shortest_search = 0
 
     party_capture_cache = {}
     world_boss_capture_cache = {}
     domain_capture_cache = {}
     location_capture_cache = {}
+    gamemenu_capture_cache = {}
 
     def __init__(self):
         super().__init__(patterns=["*.csv"])  # init PatternMatchingEventHandler
@@ -356,6 +419,17 @@ class Data(PatternMatchingEventHandler):
                 print(f"Loaded locations.csv: {len(self.locations)} locations")
         except Exception as e:
             print(f"Error loading data/locations.csv: {e}")
+
+        try:
+            with open("data/gamemenus.csv", "r") as csvfile:
+                reader = csv.reader(csvfile, delimiter=",", escapechar="\\")
+                self.gamemenus = [Gamemenu(*row) for row in reader]
+                self.gamemenus_shortest_search = min(
+                    [len(gamemenu.search_str) for gamemenu in self.gamemenus]
+                )
+                print(f"Loaded gamemenus.csv: {len(self.gamemenus)} gamemenus")
+        except Exception as e:
+            print(f"Error loading data/gamemenus.csv: {e}")
 
         try:
             with open("data/bosses.csv", "r") as csvfile:
@@ -491,6 +565,37 @@ class Data(PatternMatchingEventHandler):
             )
         return loc
 
+    def search_gamemenu(self, gamemenu_text) -> Optional[Gamemenu]:
+        """
+        Searches for matching gamemenu based on the best match available.
+
+        Has caching to reduce CPU.
+        """
+        if len(gamemenu_text) < self.gamemenus_shortest_search:
+            return None
+
+        if gamemenu_text.lower() in self.gamemenu_capture_cache:
+            return self.gamemenu_capture_cache[gamemenu_text.lower()]
+
+        gamemenu_match = [g for g in self.gamemenus if g.search_str in gamemenu_text.lower()]
+        gamemenu_match.sort(key=lambda g: len(g.search_str), reverse=True)
+
+        gm = None
+
+        if len(gamemenu_match) > 0:
+            gm = gamemenu_match[0]
+
+        self.gamemenu_capture_cache[gamemenu_text.lower()] = gm
+
+        if DEBUG_MODE:
+            if len(gamemenu_match) > 1:
+                print(
+                    f'WARN: Multiple gamemenus matched for "{gamemenu_text}": {[g.gamemenu_name for d in gamemenu_match]}'
+                )
+                print("Picking longest match")
+
+        return gm
+
     def on_modified(self, event: FileModifiedEvent):
         """
         Handler for file modified event.
@@ -580,6 +685,20 @@ class Data(PatternMatchingEventHandler):
                         )
                 except Exception as e:
                     print(f"Error loading data/locations.csv: {e}")
+            case "gamemenus.csv":
+                try:
+                    with open("data/gamemenus.csv", "r") as csvfile:
+                        reader = csv.reader(csvfile, delimiter=",")
+                        temp = [Gamemenu(*row) for row in reader]
+                        self.gamemenus = temp
+                        self.gamemenus_shortest_search = min(
+                            [len(gamemenu.search_str) for gamemenu in self.gamemenus]
+                        )
+                        print(
+                            f"gamemenus.csv modified. Updated gamemenus: {len(self.gamemenus)} gamemenus."
+                        )
+                except Exception as e:
+                    print(f"Error loading data/gamemenus.csv: {e}")
 
 
 if __name__ == "__main__":
