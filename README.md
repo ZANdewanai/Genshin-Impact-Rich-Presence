@@ -76,4 +76,4 @@ Image assets are intellectual property of HoYoverse, © All rights reserved by m
 
 Some images are taken from the [GI fandom wiki](https://genshin-impact.fandom.com/).
 
-This project is a Fork of the Genshin Impact Rich Rresence reimplementation from [@euwba](https//github.com/euwbah)'s fork.
+This project is a Fork of the Genshin Impact Rich Presence reimplementation from [@euwba](https//github.com/euwbah)'s fork.
