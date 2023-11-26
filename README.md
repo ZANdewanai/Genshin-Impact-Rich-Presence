@@ -16,7 +16,7 @@ This Discord Rich Presence doesn't tamper with Genshin Impact game files in any 
 
 ### 1. Download project, install Python, update NVIDIA driver
 
-You will need **Python 3.11 newer versions may break the scripts so avoid using too new versions** (latest Python version is recommended). Install from [here](https://www.python.org/downloads/).
+You will need **Python 3.11 newer versions may break the scripts so avoid using too new versions** Install from [Python 3.11 Download Page](https://www.python.org/downloads/release/python-3111/) , [Python Site](https://www.python.org/downloads/).
 
 
 **Check NVIDIA GeForce Experience for updates**. Game Ready graphics driver version >525 is required for this to work well.
@@ -76,4 +76,4 @@ Image assets are intellectual property of HoYoverse, © All rights reserved by m
 
 Some images are taken from the [GI fandom wiki](https://genshin-impact.fandom.com/).
 
-This project is a Fork of the Genshin Impact Rich Presence reimplementation from [@euwba](https//github.com/euwbah)'s fork.
+This project is a Fork of the Genshin Impact Rich Presence reimplementation from [@euwba](https://github.com/euwbah)'s fork.
