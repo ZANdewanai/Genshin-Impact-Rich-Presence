@@ -2,6 +2,8 @@
 aether,char_aether,Aether
 aloy,char_aloy,Aloy
 lumine,char_lumine,Lumine
+------,KHAENRI'AH,------
+dainsleif,char_dainsleif,Dainsleif
 ------,MONDSTADT,------
 albedo,char_albedo,Albedo
 amber,char_amber,Amber
@@ -26,6 +28,7 @@ venti,char_venti,Venti
 baizhu,char_baizhu,Baizhu
 beidou,char_beidou,Beidou
 chongyun,char_chongyun,Chongyun
+gaming,char_gaming,Gaming
 ganyu,char_ganyu,Ganyu
 hu tao,char_hu_tao,Hu Tao
 keqing,char_keqing,Keqing
@@ -34,6 +37,7 @@ qiqi,char_qiqi,Qiqi
 shenhe,char_shenhe,Shenhe
 xiangling,char_xiangling,Xiangling
 xiao,char_xiao,Xiao
+xianyun,char_xianyun,Xianyun
 xingqiu,char_xingqiu,Xingqiu
 xinyan,char_xinyan,Xinyan
 yanfei,char_yanfei,Yanfei
@@ -73,6 +77,7 @@ tighnari,char_tighnari,Tighnari
 wanderer,char_wanderer,Wanderer
 ------,FONTAINE,------
 charlotte,char_charlotte,Charlotte
+chevreuse,char_chevreuse,Chevreuse
 freminet,char_freminet,Freminet
 furina,char_furina,Furina
 lynette,char_lynette,Lynette

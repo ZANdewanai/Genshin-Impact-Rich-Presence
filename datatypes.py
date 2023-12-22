@@ -258,7 +258,7 @@ class Activity:
         """
         Idle activities are activity states where no active character can be found.
         """
-        return self.activity_type in [ActivityType.PAUSED, ActivityType.PARTY_SETUP]
+        return self.activity_type in [ActivityType.PAUSED, ActivityType.PARTY_SETUP, ActivityType.GAMEMENU]
 
     def to_update_params_dict(self) -> dict:
         """

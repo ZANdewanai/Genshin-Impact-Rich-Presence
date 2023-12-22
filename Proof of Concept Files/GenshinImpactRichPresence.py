@@ -10,7 +10,7 @@ window.title("Genshin Impact Rich Presence")
 window.geometry("600x400")
 window.iconbitmap(default='images\\ApplicatonIcon.ico')
 window.resizable(0, 0)
-window.config(bg="White") 
+window.config(bg="Black") 
 
 
 

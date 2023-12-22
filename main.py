@@ -1,7 +1,7 @@
 """
 ___________________________________________________________________
 
-Genshin Impact Discord Rich Presence v0.1.2
+Genshin Impact Discord Rich Presence v2.5.1
 
 Setup CONFIG.py with the game resolution, username, etc...
 before using.

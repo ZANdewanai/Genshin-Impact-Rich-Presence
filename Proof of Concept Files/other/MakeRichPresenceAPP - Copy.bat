@@ -1,0 +1,1 @@
+pyinstaller -F -w GenshinImpactRichPresenceAPP.py --collect-all customtkinter
