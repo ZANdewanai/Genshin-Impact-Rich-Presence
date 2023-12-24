@@ -42,7 +42,7 @@ If you're running the game in fullscreen with a standard 16:9 aspect ratio, set 
 ### 4. Start Discord Rich Presence
 **Double click [InstallRichPresence.bat](InstallRichPresence.bat)** to install Discord Rich Presence for Genshin Impact. afterwards it will start the rich presence from this bat too but its only for testing purposes, should use [StartRichPresence.bat](StartRichPresence.bat) instead.
 
-**Double click [StartRichPresence.bat](StartRichPresence.bat)** to start Discord Rich Presence for Genshin Impact. You can create an application/desktop shortcut for run.bat to make it easier to start.
+**Double click [StartRichPresence.bat](StartRichPresence.bat)** to start Discord Rich Presence for Genshin Impact. You can create an application/desktop shortcut for **StartRichPresence.bat** to make it easier to start.
 
 or use the **[GenshinImpactRichPresenceAPP](GenshinImpactRichPresenceAPP.exe)** executable, it doesnt work alone though, you need all the other files for it to work so keep that in mind.
 
@@ -54,7 +54,7 @@ or use the **[GenshinImpactRichPresenceAPP](GenshinImpactRichPresenceAPP.exe)** 
 
 The [data](data/) folder contains `.csv` (comma-separated values) data files that requires manual input. More information on how to edit these files can be found in the [data README](data/README.md).
 
-Quite a few locations/points of interests may be missing from the current data, and as new domains/characters/bosses/locations get added, this project requires continuous updates to maintain these records.
+Quite a few locations/points of interests may be missing from the current data(but i often update it whenever there is a new update and pick the game again), and as new domains/characters/bosses/locations get added, this project requires continuous updates to maintain these records.
 
 The `.csv` data files have a hot-reload feature, so you don't need to restart the Discord RPC program to see effected changes to these files, you can enter them as you play the game and find unmarked locations/missing data.
 -----
@@ -76,6 +76,6 @@ py test_imagegrab.py
 
 Image assets are intellectual property of HoYoverse, © All rights reserved by miHoYo
 
-Some images are taken from the [GI fandom wiki](https://genshin-impact.fandom.com/).
+Some images are taken from the [GI fandom wiki](https://genshin-impact.fandom.com/) and upscaled/modified to fit the rich presence.
 
 This project is a Fork of the Genshin Impact Rich Presence reimplementation from [@euwba](https://github.com/euwbah)'s fork.
