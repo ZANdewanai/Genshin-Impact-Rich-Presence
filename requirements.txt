@@ -2,7 +2,7 @@
 
 certifi
 charset-normalizer
-easyocr>=1.7.0
+pytesseract>=0.3.10
 filelock
 idna
 imageio

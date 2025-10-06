@@ -1,0 +1,105 @@
+match,name,region,icon
+------,------,ANOTHER WORLD,------
+aether,Aether,ANOTHER WORLD,character_aether
+aloy,Aloy,Another World,character_aloy
+lumine,Lumine,Another World,character_lumine
+skirk,Skirk,Another World,character_skirk
+------,------,FONTAINE,------
+arlecchino,Arlecchino,Fontaine,character_arlecchino
+charlotte,Charlotte,Fontaine,character_charlotte
+chevreuse,Chevreuse,Fontaine,character_chevreuse
+chiori,Chiori,Fontaine,character_chiori
+clorinde,Clorinde,Fontaine,character_clorinde
+emilie,Emilie,Fontaine,character_emilie
+escoffier,Escoffier,Fontaine,character_escoffier
+freminet,Freminet,Fontaine,character_freminet
+furina,Furina,Fontaine,character_furina
+lynette,Lynette,Fontaine,character_lynette
+lyney,Lyney,Fontaine,character_lyney
+navia,Navia,Fontaine,character_navia
+neuvillette,Neuvillette,Fontaine,character_neuvillette
+sigewinne,Sigewinne,Fontaine,character_sigewinne
+wriothesley,Wriothesley,Fontaine,character_wriothesley
+------,------,INAZUMA,------
+ayaka,Kamisato Ayaka,Inazuma,character_kamisato_ayaka
+ayato,Kamisato Ayato,Inazuma,character_kamisato_ayato
+gorou,Gorou,Inazuma,character_gorou
+heizou,Shikanoin Heizou,Inazuma,character_shikanoin_heizou
+itto,Arataki Itto,Inazuma,character_arataki_itto
+kazuha,Kaedehara Kazuha,Inazuma,character_kaedehara_kazuha
+kirara,Kirara,Inazuma,character_kirara
+kokomi,Sangonomiya Kokomi,Inazuma,character_sangonomiya_kokomi
+kuki,Kuki Shinobu,Inazuma,character_kuki_shinobu
+miko,Yae Miko,Inazuma,character_yae_miko
+mizuki,Yumemizuki Mizuki,Inazuma,character_mizuki
+sara,Kujo Sara,Inazuma,character_kujo_sara
+sayu,Sayu,Inazuma,character_sayu
+shogun,Raiden Shogun,Inazuma,character_raiden_shogun
+thoma,Thoma,Inazuma,character_thoma
+yoimiya,Yoimiya,Inazuma,character_yoimiya
+------,------,KHAENRI'AH,------
+dainsleif,Dainsleif,Khaenri'ah,character_dainsleif
+dehya,Dehya,Khaenri'ah,character_dehya
+------,------,LIYUE,------
+baizhu,Baizhu,Liyue,character_baizhu
+beidou,Beidou,Liyue,character_beidou
+chongyun,Chongyun,Liyue,character_chongyun
+gaming,Gaming,Liyue,character_gaming
+ganyu,Ganyu,Liyue,character_ganyu
+hu tao,Hu Tao,Liyue,character_hu_tao
+keqing,Keqing,Liyue,character_keqing
+lan yan,Lan Yan,Liyue,character_lan_yan
+ningguang,Ningguang,Liyue,character_ningguang
+qiqi,Qiqi,Liyue,character_qiqi
+shenhe,Shenhe,Liyue,character_shenhe
+xiangling,Xiangling,Liyue,character_xiangling
+xianyun,Xianyun,Liyue,character_xianyun
+xiao,Xiao,Liyue,character_xiao
+xingqiu,Xingqiu,Liyue,character_xingqiu
+xinyan,Xinyan,Liyue,character_xinyan
+yanfei,Yanfei,Liyue,character_yanfei
+yaoyao,Yaoyao,Liyue,character_yaoyao
+yelan,Yelan,Liyue,character_yelan
+yun jin,Yun Jin,Liyue,character_yun_jin
+zhongli,Zhongli,Liyue,character_zhongli
+------,------,MONDSTADT,------
+albedo,Albedo,Monstadt,character_albedo
+amber,Amber,Monstadt,character_amber
+barbara,Barbara,Monstadt,character_barbara
+bennett,Bennett,Monstadt,character_bennett
+dahlia,Dahlia,Monstadt,character_dahlia
+diluc,Diluc,Monstadt,character_diluc
+diona,Diona,Monstadt,character_diona
+eula,Eula,Monstadt,character_eula
+fischl,Fischl,Monstadt,character_fischl
+jean,Jean,Monstadt,character_jean
+kaeya,Kaeya,Monstadt,character_kaeya
+klee,Klee,Monstadt,character_klee
+lisa,Lisa,Monstadt,character_lisa
+mika,Mika,Monstadt,character_mika
+mona,Mona,Monstadt,character_mona
+noelle,Noelle,Monstadt,character_noelle
+razor,Razor,Monstadt,character_razor
+rosaria,Rosaria,Monstadt,character_rosaria
+sucrose,Sucrose,Monstadt,character_sucrose
+venti,Venti,Monstadt,character_venti
+------,------,NATLAN,------
+chasca,Chasca,Natlan,character_chasca
+citlali,Citlali,Natlan,character_citlali
+iansan,Iansan,Natlan,character_iansan
+ifa,Ifa,Natlan,character_ifa
+kachina,Kachina,Natlan,character_kachina
+kinich,Kinich,Natlan,character_kinich
+mavuika,Mavuika,Natlan,character_mavuika
+mualani,Mualani,Natlan,character_mualani
+ororon,Ororon,Natlan,character_ororon
+varesa,Varesa,Natlan,character_varesa
+xilonen,Xilonen,Natlan,character_xilonen
+------,------,NOD-KRAI,------
+aino,Aino,Nod-Krai,character_aino
+flins,Flins,Nod-Krai,character_flins
+ineffa,Ineffa,Nod-Krai,character_ineffa
+lauma,Lauma,Nod-Krai,character_lauma
+nefer,Nefer,Nod-Krai,character_nefer
+------,------,SNEZHNAYA,------
+tartaglia,Tartaglia,Snezhnaya,character_tartaglia
