@@ -1209,7 +1209,7 @@ All rights reserved by miHoYo"""
                         self.status_current_character.setText("None")
 
             if 'game_start_time' in data and data['game_start_time']:
-                uptime_seconds = int(time.time()) - data['game_start_time']
+                uptime_seconds = int(time.time() - data['game_start_time'])
                 hours, remainder = divmod(uptime_seconds, 3600)
                 minutes, seconds = divmod(remainder, 60)
                 uptime_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
@@ -1296,11 +1296,22 @@ All rights reserved by miHoYo"""
                 self.image_cache[image_key] = image_path
                 return image_path
             except Exception as e2:
+                # Try boss subfolder if category is Bosses
+                if category == "Bosses":
+                    try:
+                        boss_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/Image Assets/Bosses/World Bosses/{image_key}.png"
+                        urllib.request.urlretrieve(boss_url, image_path)
+                        self.image_cache[image_key] = image_path
+                        return image_path
+                    except Exception as e3:
+                        pass
                 print(f"Failed to download image {image_key}: {e2}")
                 return None
 
     def _update_status_image(self, status_key: str, image_key: str, category: str = "Characters"):
         """Update the image for a status item"""
+        from PyQt5.QtGui import QPixmap, QImage
+
         img_label = getattr(self, f"status_img_{status_key}", None)
         if not img_label:
             return
@@ -1314,7 +1325,6 @@ All rights reserved by miHoYo"""
                     pil_image = pil_image.resize((32, 32), Image.Resampling.LANCZOS)
 
                     # Convert PIL image to QPixmap
-                    from PyQt5.QtGui import QPixmap
                     qimage = QImage(pil_image.tobytes(), pil_image.width, pil_image.height, QImage.Format_RGB888)
                     pixmap = QPixmap.fromImage(qimage)
 
