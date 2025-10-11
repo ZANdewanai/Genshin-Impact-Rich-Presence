@@ -3,6 +3,7 @@
 Interactive Coordinate Calibrator for Genshin Impact Rich Presence.
 
 Creates an overlay with movable/scalable bounding boxes to precisely define OCR regions.
+Uses PyQt5 for GUI (same as main application).
 """
 
 import sys
@@ -13,14 +14,17 @@ import threading
 
 # Check for required dependencies
 try:
-    import tkinter as tk
-    from tkinter import ttk, colorchooser, messagebox
-    TKINTER_AVAILABLE = True
+    from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+                                 QLabel, QPushButton, QTextEdit, QFrame, QSplitter,
+                                 QProgressBar, QCheckBox, QLineEdit, QComboBox, QSizePolicy,
+                                 QGroupBox, QFormLayout, QGridLayout, QMessageBox, QListWidget,
+                                 QStatusBar, QMenuBar, QToolBar, QAction, QColorDialog)
+    from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer, QRect, QSize, QPoint
+    from PyQt5.QtGui import QFont, QPixmap, QIcon, QImage, QPalette, QColor, QPainter, QPen, QBrush
+    PYQT_AVAILABLE = True
 except ImportError:
-    TKINTER_AVAILABLE = False
-    print("❌ tkinter not available. Please install with: pip install tk")
-    print("   On Ubuntu/Debian: sudo apt-get install python3-tk")
-    print("   On Windows: tkinter is usually included with Python")
+    PYQT_AVAILABLE = False
+    print("❌ PyQt5 not available. Please install with: pip install PyQt5")
 
 try:
     import win32gui
@@ -38,378 +42,322 @@ except ImportError:
     print("❌ psutil not available. Please install with: pip install psutil")
 
 # Add the main directory to the path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+script_dir = os.path.dirname(os.path.abspath(__file__))
+dev_resources_dir = os.path.dirname(script_dir)  # DEV_resources
+parent_dir = os.path.dirname(dev_resources_dir)  # Main project directory
+sys.path.insert(0, parent_dir)
+print(f"Script dir: {script_dir}")
+print(f"DEV_resources dir: {dev_resources_dir}")
+print(f"Parent dir: {parent_dir}")
+print(f"CONFIG.py exists: {os.path.exists(os.path.join(parent_dir, 'CONFIG.py'))}")
 
 # Import CONFIG.py directly since there's no core module
-import CONFIG
+try:
+    import CONFIG
+    print("Successfully imported CONFIG")
+except ImportError as e:
+    print(f"Failed to import CONFIG: {e}")
+    # Try importing as a module from file
+    try:
+        import importlib.util
+        config_path = os.path.join(parent_dir, 'CONFIG.py')
+        spec = importlib.util.spec_from_file_location("CONFIG", config_path)
+        CONFIG = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(CONFIG)
+        print("Successfully loaded CONFIG via importlib")
+    except Exception as e2:
+        print(f"Failed to load CONFIG via importlib: {e2}")
+        sys.exit(1)
 
 # Import all variables from CONFIG
 GAME_RESOLUTION = CONFIG.GAME_RESOLUTION
 
-class BoundingBox:
-    """Represents a movable/scalable bounding box."""
+class BoundingBoxWidget(QWidget):
+    """A PyQt5 widget representing a movable/scalable bounding box overlay."""
 
-    def __init__(self, canvas, x1, y1, x2, y2, name, color="red", calibrator=None):
-        self.canvas = canvas
+    def __init__(self, name, x1, y1, x2, y2, color="red", parent=None):
+        super().__init__(parent)
         self.name = name
-        self.color = color
-        self.calibrator = calibrator  # Reference to the main calibrator
-
-        # Create rectangle
-        self.rect = canvas.create_rectangle(x1, y1, x2, y2,
-                                          outline=color, width=2, tags=name)
-
-        # Create label
-        self.label = canvas.create_text((x1 + x2) // 2, y1 - 15,
-                                       text=name, fill=color, font=('Arial', 10, 'bold'))
-
-        # Create resize handles (larger for easier clicking)
-        self.handles = []
-        self.handle_size = 5  # Increased from 3 to 5 for better visibility
-        for i, (px, py) in enumerate([(x1, y1), (x2, y1), (x2, y2), (x1, y2)]):
-            handle = canvas.create_rectangle(px-self.handle_size, py-self.handle_size, px+self.handle_size, py+self.handle_size,
-                                           fill=color, outline='white', width=2)
-            self.handles.append(handle)
-
+        self.color = QColor(color)
         self.selected = False
-        self.drag_data = {"x": 0, "y": 0}
-        self.resize_handle = None
+        self.dragging = False
+        self.resize_handle = -1
+        self.drag_start_pos = QPoint()
 
-        # Bind events
-        canvas.tag_bind(name, "<ButtonPress-1>", self.on_press)
-        canvas.tag_bind(name, "<ButtonRelease-1>", self.on_release)
-        canvas.tag_bind(name, "<B1-Motion>", self.on_drag)
+        # Set up the widget
+        self.setGeometry(x1, y1, x2 - x1, y2 - y1)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setAttribute(Qt.WA_ShowWithoutActivating)
 
-        for handle in self.handles:
-            canvas.tag_bind(handle, "<ButtonPress-1>", self.on_handle_press)
-            canvas.tag_bind(handle, "<ButtonRelease-1>", self.on_handle_release)
-            canvas.tag_bind(handle, "<B1-Motion>", self.on_handle_drag)
+        # Make it semi-transparent
+        self.setWindowOpacity(0.8)
 
-    def on_press(self, event):
-        """Handle box selection."""
-        self.selected = True
-        self.canvas.itemconfig(self.rect, outline='yellow', width=3)
-        self.drag_data["x"] = event.x
-        self.drag_data["y"] = event.y
+    def paintEvent(self, event):
+        """Draw the bounding box."""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
 
-    def on_release(self, event):
-        """Handle box release."""
-        self.selected = False
-        self.canvas.itemconfig(self.rect, outline=self.color, width=2)
+        # Draw rectangle
+        pen = QPen(self.color, 2 if not self.selected else 4)
+        painter.setPen(pen)
+        painter.setBrush(QBrush(QColor(0, 0, 0, 50)))  # Semi-transparent fill
 
-    def on_drag(self, event):
-        """Handle box dragging."""
-        if not self.selected:
-            return
+        rect = self.rect().adjusted(1, 1, -1, -1)
+        painter.drawRect(rect)
 
-        # Calculate delta
-        dx = event.x - self.drag_data["x"]
-        dy = event.y - self.drag_data["y"]
+        # Draw label
+        font = QFont("Arial", 10, QFont.Bold)
+        painter.setFont(font)
+        painter.setPen(QPen(self.color))
+        painter.drawText(5, 15, self.name)
 
-        # Apply snap-to-grid if enabled
-        if self.calibrator and hasattr(self.calibrator, 'snap_to_grid') and self.calibrator.snap_to_grid.get():
-            # Snap the movement delta to grid
-            grid_size = self.calibrator.grid_size
-            dx = round(dx / grid_size) * grid_size
-            dy = round(dy / grid_size) * grid_size
+        # Draw resize handles if selected
+        if self.selected:
+            handle_size = 6
+            painter.setPen(QPen(Qt.white, 1))
+            painter.setBrush(QBrush(self.color))
 
-            # Snap the final position to grid
-            rect_coords = self.canvas.coords(self.rect)
-            new_x = rect_coords[0] + dx
-            new_y = rect_coords[1] + dy
-            new_x = round(new_x / grid_size) * grid_size
-            new_y = round(new_y / grid_size) * grid_size
+            # Corner handles
+            corners = [
+                QPoint(0, 0),
+                QPoint(self.width(), 0),
+                QPoint(self.width(), self.height()),
+                QPoint(0, self.height())
+            ]
 
-            # Calculate snapped delta
-            dx = new_x - rect_coords[0]
-            dy = new_y - rect_coords[1]
+            for corner in corners:
+                handle_rect = QRect(
+                    corner.x() - handle_size//2,
+                    corner.y() - handle_size//2,
+                    handle_size, handle_size
+                )
+                painter.drawRect(handle_rect)
 
-        # Move rectangle
-        self.canvas.move(self.rect, dx, dy)
-        self.canvas.move(self.label, dx, dy)
+    def mousePressEvent(self, event):
+        """Handle mouse press for dragging or resizing."""
+        if event.button() == Qt.LeftButton:
+            # Check if clicking on a resize handle
+            handle_size = 6
+            corners = [
+                QPoint(0, 0),
+                QPoint(self.width(), 0),
+                QPoint(self.width(), self.height()),
+                QPoint(0, self.height())
+            ]
 
-        # Move handles
-        for handle in self.handles:
-            self.canvas.move(handle, dx, dy)
+            for i, corner in enumerate(corners):
+                handle_rect = QRect(
+                    corner.x() - handle_size//2,
+                    corner.y() - handle_size//2,
+                    handle_size, handle_size
+                )
+                if handle_rect.contains(event.pos()):
+                    self.resize_handle = i
+                    self.selected = True
+                    self.update()
+                    return
 
-        # Update drag data
-        self.drag_data["x"] = event.x
-        self.drag_data["y"] = event.y
+            # Start dragging
+            self.dragging = True
+            self.selected = True
+            self.drag_start_pos = event.globalPos() - self.pos()
+            self.update()
 
-    def on_handle_press(self, event):
-        """Handle resize handle press."""
-        # Find which handle was pressed with larger tolerance area
-        tolerance = 8  # Increased tolerance for easier clicking
+    def mouseMoveEvent(self, event):
+        """Handle mouse move for dragging or resizing."""
+        if self.dragging:
+            # Move the widget
+            new_pos = event.globalPos() - self.drag_start_pos
+            self.move(new_pos)
+        elif self.resize_handle >= 0:
+            # Resize the widget
+            new_geom = self.geometry()
 
-        for i, handle in enumerate(self.handles):
-            hx1, hy1, hx2, hy2 = self.canvas.bbox(handle)
-            # Expand the hit area by tolerance amount
-            hx1 -= tolerance
-            hy1 -= tolerance
-            hx2 += tolerance
-            hy2 += tolerance
+            if self.resize_handle == 0:  # Top-left
+                new_geom.setTopLeft(event.globalPos())
+            elif self.resize_handle == 1:  # Top-right
+                new_geom.setTopRight(event.globalPos())
+            elif self.resize_handle == 2:  # Bottom-right
+                new_geom.setBottomRight(event.globalPos())
+            elif self.resize_handle == 3:  # Bottom-left
+                new_geom.setBottomLeft(event.globalPos())
 
-            if hx1 <= event.x <= hx2 and hy1 <= event.y <= hy2:
-                self.resize_handle = i
-                break
+            # Ensure minimum size
+            if new_geom.width() < 20:
+                if self.resize_handle in [0, 3]:
+                    new_geom.setLeft(new_geom.right() - 20)
+                else:
+                    new_geom.setRight(new_geom.left() + 20)
 
-    def on_handle_release(self, event):
-        """Handle resize handle release."""
-        self.resize_handle = None
+            if new_geom.height() < 20:
+                if self.resize_handle in [0, 1]:
+                    new_geom.setTop(new_geom.bottom() - 20)
+                else:
+                    new_geom.setBottom(new_geom.top() + 20)
 
-    def on_handle_drag(self, event):
-        """Handle resize handle dragging."""
-        if self.resize_handle is None:
-            return
+            self.setGeometry(new_geom)
 
-        # Get current rectangle coordinates
-        x1, y1, x2, y2 = self.canvas.coords(self.rect)
-
-        # Update based on which handle is being dragged
-        if self.resize_handle == 0:  # Top-left
-            x1, y1 = event.x, event.y
-        elif self.resize_handle == 1:  # Top-right
-            x2, y1 = event.x, event.y
-        elif self.resize_handle == 2:  # Bottom-right
-            x2, y2 = event.x, event.y
-        elif self.resize_handle == 3:  # Bottom-left
-            x1, y2 = event.x, event.y
-
-        # Apply snap-to-grid if enabled
-        if self.calibrator and hasattr(self.calibrator, 'snap_to_grid') and self.calibrator.snap_to_grid.get():
-            grid_size = self.calibrator.grid_size
-            x1 = round(x1 / grid_size) * grid_size
-            y1 = round(y1 / grid_size) * grid_size
-            x2 = round(x2 / grid_size) * grid_size
-            y2 = round(y2 / grid_size) * grid_size
-
-        # Ensure minimum size
-        if x2 - x1 < 10:
-            if self.resize_handle in [0, 3]:
-                x1 = x2 - 10
-            else:
-                x2 = x1 + 10
-
-        if y2 - y1 < 10:
-            if self.resize_handle in [0, 1]:
-                y1 = y2 - 10
-            else:
-                y2 = y1 + 10
-
-        # Update rectangle
-        self.canvas.coords(self.rect, x1, y1, x2, y2)
-
-        # Update label position
-        self.canvas.coords(self.label, (x1 + x2) // 2, y1 - 15)
-
-        # Update handles positions (don't reassign the handle IDs)
-        self.canvas.coords(self.handles[0], x1-self.handle_size, y1-self.handle_size, x1+self.handle_size, y1+self.handle_size)
-        self.canvas.coords(self.handles[1], x2-self.handle_size, y1-self.handle_size, x2+self.handle_size, y1+self.handle_size)
-        self.canvas.coords(self.handles[2], x2-self.handle_size, y2-self.handle_size, x2+self.handle_size, y2+self.handle_size)
-        self.canvas.coords(self.handles[3], x1-self.handle_size, y2-self.handle_size, x1+self.handle_size, y2+self.handle_size)
+    def mouseReleaseEvent(self, event):
+        """Handle mouse release."""
+        if event.button() == Qt.LeftButton:
+            self.dragging = False
+            self.resize_handle = -1
 
     def get_coords(self):
         """Get current bounding box coordinates."""
-        return self.canvas.coords(self.rect)
+        geom = self.geometry()
+        return (geom.left(), geom.top(), geom.right(), geom.bottom())
 
-    def set_color(self, color):
-        """Change box color."""
-        self.color = color
-        self.canvas.itemconfig(self.rect, outline=color)
-        self.canvas.itemconfig(self.label, fill=color)
-        for handle in self.handles:
-            self.canvas.itemconfig(handle, fill=color)
-
-class CoordinateCalibrator:
-    """Main calibration tool with overlay."""
+class CoordinateCalibrator(QMainWindow):
+    """Main calibration tool with overlay using PyQt5."""
 
     def __init__(self):
-        self.root = tk.Tk()
-        self.root.title("Genshin Impact OCR Coordinate Calibrator")
-        self.root.attributes('-fullscreen', True)
-        self.root.attributes('-alpha', 0.8)  # Semi-transparent
+        super().__init__()
+        self.setWindowTitle("Genshin Impact OCR Coordinate Calibrator")
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setWindowOpacity(0.9)
 
-        # Create main frame
-        self.main_frame = ttk.Frame(self.root)
-        self.main_frame.pack(fill=tk.BOTH, expand=True)
+        # Get screen geometry
+        screen = QApplication.primaryScreen().geometry()
+        self.setGeometry(screen)
 
-        # Create canvas for overlay
-        self.canvas = tk.Canvas(self.main_frame, bg='black', highlightthickness=0)
-        self.canvas.pack(fill=tk.BOTH, expand=True)
+        # Create central widget
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        layout = QVBoxLayout(central_widget)
+
+        # Create overlay widget for bounding boxes
+        self.overlay_widget = QWidget(self)
+        self.overlay_widget.setGeometry(screen)
+        self.overlay_widget.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
+        self.overlay_widget.setAttribute(Qt.WA_TranslucentBackground)
+        self.overlay_widget.setWindowOpacity(0.8)
 
         # Create control panel
         self.create_control_panel()
+        layout.addWidget(self.control_panel)
 
         # Bounding boxes storage
-        self.boxes = {}
+        self.boxes = []
         self.selected_box = None
 
-        # Grid system
-        self.grid_size = 20  # Default grid size
-        self.grid_enabled = tk.BooleanVar(value=True)
-        self.snap_to_grid = tk.BooleanVar(value=True)
-        self.grid_lines = []  # Store grid line IDs
-
         # Use coordinates from CONFIG.py directly (already scaled)
-        self.ocr_regions = {}
+        self.ocr_regions = []
 
         # Add character name regions
         for i, coords in enumerate(CONFIG.NAMES_4P_COORD):
-            self.ocr_regions[f"character_{i+1}"] = {
+            self.ocr_regions.append({
                 "name": f"Character {i+1} Name",
                 "coords": coords,
                 "color": ["red", "blue", "green", "orange"][i]
-            }
+            })
 
         # Add character number regions (individual small boxes)
         for i, coords in enumerate(CONFIG.NUMBER_4P_COORD):
-            self.ocr_regions[f"character_number_{i+1}"] = {
+            self.ocr_regions.append({
                 "name": f"Character {i+1} Number",
                 "coords": coords,
                 "color": "purple"
-            }
+            })
 
         # Add single coordinate regions
-        self.ocr_regions.update({
-            "location": {"name": "Location Text", "coords": CONFIG.LOCATION_COORD, "color": "cyan"},
-            "boss": {"name": "Boss Name", "coords": CONFIG.BOSS_COORD, "color": "magenta"},
-            "domain": {"name": "Domain Name", "coords": CONFIG.DOMAIN_COORD, "color": "yellow"},
-            "map_location": {"name": "Map Location", "coords": CONFIG.MAP_LOC_COORD, "color": "orange"},
-            "activity": {"name": "Activity Region", "coords": CONFIG.ACTIVITY_COORD, "color": "lime"},
-            "game_menu": {"name": "Game Menu", "coords": CONFIG.PARTY_SETUP_COORD, "color": "brown"},
-        })
+        self.ocr_regions.extend([
+            {"name": "Location Text", "coords": CONFIG.LOCATION_COORD, "color": "cyan"},
+            {"name": "Boss Name", "coords": CONFIG.BOSS_COORD, "color": "magenta"},
+            {"name": "Domain Name", "coords": CONFIG.DOMAIN_COORD, "color": "yellow"},
+            {"name": "Map Location", "coords": CONFIG.MAP_LOC_COORD, "color": "orange"},
+            {"name": "Activity Region", "coords": CONFIG.ACTIVITY_COORD, "color": "lime"},
+            {"name": "Game Menu", "coords": CONFIG.PARTY_SETUP_COORD, "color": "brown"},
+        ])
 
-        # Bind events
-        self.canvas.bind("<Button-3>", self.on_right_click)  # Right-click menu
-        self.canvas.bind("<Key>", self.on_key_press)
-        self.canvas.bind("<Configure>", self.on_canvas_resize)  # Handle canvas resize
-        self.canvas.focus_set()
-
-        # Start background screenshot thread
-        self.screenshot_thread = None
-        self.running = False
-        self.start_screenshot_thread()
-
-        # Load existing coordinates
+        # Load existing coordinates and create bounding boxes
         self.load_coordinates()
 
-        # Draw initial grid
-        self.draw_grid()
-
-    def draw_grid(self):
-        """Draw grid lines on the canvas."""
-        # Clear existing grid lines
-        for line_id in self.grid_lines:
-            self.canvas.delete(line_id)
-        self.grid_lines.clear()
-
-        if not self.grid_enabled.get():
-            return
-
-        # Get canvas dimensions
-        canvas_width = self.canvas.winfo_width()
-        canvas_height = self.canvas.winfo_height()
-
-        if canvas_width <= 1 or canvas_height <= 1:  # Canvas not yet drawn
-            return
-
-        # Draw vertical lines
-        for x in range(0, canvas_width, self.grid_size):
-            line_id = self.canvas.create_line(x, 0, x, canvas_height,
-                                           fill='#333333', width=1, dash=(2, 2))
-            self.grid_lines.append(line_id)
-
-        # Draw horizontal lines
-        for y in range(0, canvas_height, self.grid_size):
-            line_id = self.canvas.create_line(0, y, canvas_width, y,
-                                           fill='#333333', width=1, dash=(2, 2))
-            self.grid_lines.append(line_id)
-
-    def snap_to_grid(self, value):
-        """Snap a value to the nearest grid point."""
-        if not self.snap_to_grid.get():
-            return value
-        return round(value / self.grid_size) * self.grid_size
-
-    def toggle_grid(self):
-        """Toggle grid visibility."""
-        self.grid_enabled.set(not self.grid_enabled.get())
-        self.draw_grid()
-        status = "ON" if self.grid_enabled.get() else "OFF"
-        self.status_var.set(f"Grid {status} - Grid Size: {self.grid_size}px")
-
-    def toggle_snap(self):
-        """Toggle snap-to-grid functionality."""
-        self.snap_to_grid.set(not self.snap_to_grid.get())
-        status = "ON" if self.snap_to_grid.get() else "OFF"
-        self.status_var.set(f"Snap-to-Grid {status}")
-
-    def set_grid_size(self, size):
-        """Set grid size."""
-        self.grid_size = size
-        self.draw_grid()
-        self.status_var.set(f"Grid Size: {self.grid_size}px - Grid: {'ON' if self.grid_enabled.get() else 'OFF'}")
+        # Show overlay
+        self.overlay_widget.show()
 
     def create_control_panel(self):
-        """Create the control panel."""
-        control_frame = ttk.Frame(self.main_frame)
-        control_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=10)
+        """Create the control panel using PyQt5."""
+        self.control_panel = QWidget()
+        self.control_panel.setFixedHeight(120)
+        self.control_panel.setStyleSheet("""
+            QWidget {
+                background-color: #2c3e50;
+                border-top: 2px solid #34495e;
+            }
+            QLabel {
+                color: #ecf0f1;
+            }
+            QPushButton {
+                background-color: #27ae60;
+                color: #ffffff;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                margin: 2px;
+            }
+            QPushButton:hover {
+                background-color: #2ecc71;
+            }
+        """)
+
+        layout = QVBoxLayout(self.control_panel)
 
         # Instructions
-        instructions = ttk.Label(control_frame,
-                                text="🎯 Click and drag boxes to position them | 🖱️ Drag corners to resize | 🎨 Right-click to change colors | ⌘ Grid: G=Toggle | S=Snap | 1-4=Size",
-                                font=('Arial', 9))
-        instructions.pack(pady=5)
+        instructions = QLabel("🎯 Click and drag boxes to position them | 🖱️ Drag corners to resize | 🎨 Right-click to change colors")
+        instructions.setFont(QFont("Arial", 9))
+        layout.addWidget(instructions)
 
         # Controls
-        controls_frame = ttk.Frame(control_frame)
-        controls_frame.pack(fill=tk.X)
+        controls_layout = QHBoxLayout()
 
         # Left side controls
-        left_controls = ttk.Frame(controls_frame)
-        left_controls.pack(side=tk.LEFT)
+        left_controls = QWidget()
+        left_layout = QHBoxLayout(left_controls)
 
-        ttk.Button(left_controls, text="📋 Copy Coordinates",
-                  command=self.copy_coordinates).pack(side=tk.LEFT, padx=5)
-        ttk.Button(left_controls, text="💾 Save to File",
-                  command=self.save_coordinates).pack(side=tk.LEFT, padx=5)
-        ttk.Button(left_controls, text="🔄 Reset All",
-                  command=self.reset_boxes).pack(side=tk.LEFT, padx=5)
+        copy_btn = QPushButton("📋 Copy Coordinates")
+        copy_btn.clicked.connect(self.copy_coordinates)
+        left_layout.addWidget(copy_btn)
 
-        # Grid controls (center)
-        grid_controls = ttk.Frame(controls_frame)
-        grid_controls.pack(side=tk.LEFT, expand=True)
+        save_btn = QPushButton("💾 Save to File")
+        save_btn.clicked.connect(self.save_coordinates)
+        left_layout.addWidget(save_btn)
 
-        # Grid size options
-        grid_size_frame = ttk.Frame(grid_controls)
-        grid_size_frame.pack(side=tk.TOP, pady=2)
+        reset_btn = QPushButton("🔄 Reset All")
+        reset_btn.clicked.connect(self.reset_boxes)
+        left_layout.addWidget(reset_btn)
 
-        ttk.Label(grid_size_frame, text="Grid Size:").pack(side=tk.LEFT)
-        for size in [10, 20, 50, 100]:
-            ttk.Button(grid_size_frame, text=f"{size}px",
-                      command=lambda s=size: self.set_grid_size(s),
-                      width=6).pack(side=tk.LEFT, padx=2)
+        controls_layout.addWidget(left_controls)
 
-        # Grid toggle controls
-        grid_toggle_frame = ttk.Frame(grid_controls)
-        grid_toggle_frame.pack(side=tk.TOP, pady=2)
-
-        ttk.Button(grid_toggle_frame, text="👁 Grid",
-                  command=self.toggle_grid).pack(side=tk.LEFT, padx=2)
-        ttk.Button(grid_toggle_frame, text="🔗 Snap",
-                  command=self.toggle_snap).pack(side=tk.LEFT, padx=2)
+        # Center spacer
+        controls_layout.addStretch()
 
         # Right side controls
-        right_controls = ttk.Frame(controls_frame)
-        right_controls.pack(side=tk.RIGHT)
+        right_controls = QWidget()
+        right_layout = QHBoxLayout(right_controls)
 
-        ttk.Button(right_controls, text="❌ Close",
-                  command=self.quit).pack(side=tk.RIGHT, padx=5)
+        close_btn = QPushButton("❌ Close")
+        close_btn.clicked.connect(self.close)
+        right_layout.addWidget(close_btn)
+
+        controls_layout.addWidget(right_controls)
+
+        layout.addLayout(controls_layout)
 
         # Status bar
-        self.status_var = tk.StringVar(value="Ready - Click and drag boxes to position them")
-        status_bar = ttk.Label(control_frame, textvariable=self.status_var, relief=tk.SUNKEN)
-        status_bar.pack(fill=tk.X, pady=2)
+        self.status_label = QLabel("Ready - Click and drag boxes to position them")
+        self.status_label.setStyleSheet("""
+            QLabel {
+                background-color: #34495e;
+                color: #ecf0f1;
+                padding: 5px;
+                border: 1px solid #2c3e50;
+                border-radius: 3px;
+            }
+        """)
+        layout.addWidget(self.status_label)
 
     def start_screenshot_thread(self):
         """Start background thread for continuous screenshots."""
@@ -430,7 +378,7 @@ class CoordinateCalibrator:
 
     def load_coordinates(self):
         """Load existing coordinates and create bounding boxes."""
-        for region_key, region_info in self.ocr_regions.items():
+        for region_info in self.ocr_regions:
             name = region_info["name"]
             coords = region_info["coords"]
             color = region_info["color"]
@@ -439,59 +387,45 @@ class CoordinateCalibrator:
                 if isinstance(coords, (list, tuple)) and len(coords) == 4:
                     # Single bounding box (x1, y1, x2, y2)
                     x1, y1, x2, y2 = coords
-                    box = BoundingBox(self.canvas, x1, y1, x2, y2, region_key, color, self)
-                    self.boxes[region_key] = box
+                    box = BoundingBoxWidget(name, x1, y1, x2, y2, color, self.overlay_widget)
+                    box.show()
+                    self.boxes.append(box)
                 elif isinstance(coords, (list, tuple)) and len(coords) == 2:
                     # Single coordinate point (x, y) - create small box around it
                     x, y = coords
-                    box = BoundingBox(self.canvas, x-15, y-15, x+15, y+15, region_key, color, self)
-                    self.boxes[region_key] = box
-                elif isinstance(coords, list) and len(coords) > 0 and isinstance(coords[0], (list, tuple)):
-                    # Multiple bounding boxes or coordinate points
-                    for i, coord_set in enumerate(coords):
-                        if len(coord_set) == 4:
-                            # Bounding box (x1, y1, x2, y2)
-                            x1, y1, x2, y2 = coord_set
-                            box_name = f"{region_key}_{i}"
-                            box = BoundingBox(self.canvas, x1, y1, x2, y2, box_name, color, self)
-                            self.boxes[box_name] = box
-                        elif len(coord_set) == 2:
-                            # Coordinate point (x, y) - create small box around it
-                            x, y = coord_set
-                            box_name = f"{region_key}_{i}"
-                            box = BoundingBox(self.canvas, x-15, y-15, x+15, y+15, box_name, color, self)
-                            self.boxes[box_name] = box
+                    box = BoundingBoxWidget(name, x-15, y-15, x+15, y+15, color, self.overlay_widget)
+                    box.show()
+                    self.boxes.append(box)
                 else:
-                    print(f"Warning: Unknown coordinate format for {region_key}: {coords} (type: {type(coords)})")
+                    print(f"Warning: Unknown coordinate format for {name}: {coords} (type: {type(coords)})")
                     continue
 
             except Exception as e:
-                print(f"Error loading coordinates for {region_key}: {e} (coords: {coords})")
+                print(f"Error loading coordinates for {name}: {e} (coords: {coords})")
                 continue
 
-        self.status_var.set(f"Loaded {len(self.boxes)} bounding boxes (Resolution: {GAME_RESOLUTION}p)")
+        self.status_label.setText(f"Loaded {len(self.boxes)} bounding boxes (Resolution: {GAME_RESOLUTION}p)")
 
     def reset_boxes(self):
         """Reset all boxes to default positions."""
-        for box in self.boxes.values():
-            self.canvas.delete(box.rect)
-            self.canvas.delete(box.label)
-            for handle in box.handles:
-                self.canvas.delete(handle)
+        # Hide and delete all existing boxes
+        for box in self.boxes:
+            box.hide()
+            box.deleteLater()
 
         self.boxes.clear()
         self.load_coordinates()
-        self.status_var.set("Reset all boxes to default positions")
+        self.status_label.setText("Reset all boxes to default positions")
 
     def copy_coordinates(self):
         """Copy current coordinates to clipboard."""
         coords_dict = {}
 
-        for region_key, box in self.boxes.items():
+        for i, box in enumerate(self.boxes):
             coords = box.get_coords()
             if len(coords) == 4:
-                coords_dict[region_key] = (int(coords[0]), int(coords[1]),
-                                          int(coords[2]), int(coords[3]))
+                coords_dict[box.name] = (int(coords[0]), int(coords[1]),
+                                        int(coords[2]), int(coords[3]))
 
         # Format as Python code
         output = "# Updated OCR Coordinates\n\n"
@@ -503,18 +437,17 @@ class CoordinateCalibrator:
         others = {}
 
         for name, coords in coords_dict.items():
-            if name.startswith('character_') and not name.startswith('character_number_'):
-                # Extract character number from name like "character_1" -> 1
-                char_num = name.split('_')[1]
-                char_names[int(char_num)] = coords
-            elif name.startswith('character_number_'):
-                # Extract character number from name like "character_number_1" -> 1
-                char_num = name.split('_')[2]
-                char_numbers[int(char_num)] = coords
-                # Also store the center point as 2-tuple for export
+            if name.startswith('Character') and 'Name' in name:
+                # Extract character number from name like "Character 1 Name" -> 1
+                char_num = int(name.split()[1])
+                char_names[char_num] = coords
+            elif name.startswith('Character') and 'Number' in name:
+                # Extract character number from name like "Character 1 Number" -> 1
+                char_num = int(name.split()[1])
+                # Store the center point as 2-tuple for export
                 center_x = (coords[0] + coords[2]) // 2
                 center_y = (coords[1] + coords[3]) // 2
-                char_number_points[int(char_num)] = (center_x, center_y)
+                char_number_points[char_num] = (center_x, center_y)
             else:
                 others[name] = coords
 
@@ -533,44 +466,48 @@ class CoordinateCalibrator:
 
         # Handle other regions with proper naming
         for name, coords in sorted(others.items()):
-            if name == "location":
+            if "Location Text" in name:
                 output += f"LOCATION_COORD = {coords}\n"
-            elif name == "boss":
+            elif "Boss Name" in name:
                 output += f"BOSS_COORD = {coords}\n"
-            elif name == "domain":
+            elif "Domain Name" in name:
                 output += f"DOMAIN_COORD = {coords}\n"
-            elif name == "map_location":
+            elif "Map Location" in name:
                 output += f"MAP_LOC_COORD = {coords}\n"
-            elif name == "game_menu":
+            elif "Game Menu" in name:
                 output += f"PARTY_SETUP_COORD = {coords}\n"
+            elif "Activity Region" in name:
+                output += f"ACTIVITY_COORD = {coords}\n"
             else:
-                output += f"{name.upper()}_COORD = {coords}\n"
+                output += f"{name.upper().replace(' ', '_')}_COORD = {coords}\n"
 
         # Copy to clipboard
-        self.root.clipboard_clear()
-        self.root.clipboard_append(output)
+        clipboard = QApplication.clipboard()
+        clipboard.setText(output)
 
-        self.status_var.set(f"Copied {len(coords_dict)} coordinate sets to clipboard")
+        self.status_label.setText(f"Copied {len(coords_dict)} coordinate sets to clipboard")
 
-        # Show preview
-        messagebox.showinfo("Coordinates Copied",
-                          f"Copied coordinates for {len(coords_dict)} regions to clipboard.\n\nPaste into CONFIG.py")
+        # Show message box
+        QMessageBox.information(self, "Coordinates Copied",
+                              f"Copied coordinates for {len(coords_dict)} regions to clipboard.\n\nPaste into CONFIG.py")
 
     def save_coordinates(self):
         """Save coordinates to a file."""
         coords_dict = {}
 
-        for region_key, box in self.boxes.items():
+        for box in self.boxes:
             coords = box.get_coords()
             if len(coords) == 4:
-                coords_dict[region_key] = (int(coords[0]), int(coords[1]),
-                                          int(coords[2]), int(coords[3]))
+                coords_dict[box.name] = (int(coords[0]), int(coords[1]),
+                                        int(coords[2]), int(coords[3]))
 
         filename = "calibrated_coordinates.json"
-        with open(filename, 'w') as f:
-            json.dump(coords_dict, f, indent=2)
-
-        self.status_var.set(f"Saved coordinates to {filename}")
+        try:
+            with open(filename, 'w') as f:
+                json.dump(coords_dict, f, indent=2)
+            self.status_label.setText(f"Saved coordinates to {filename}")
+        except Exception as e:
+            self.status_label.setText(f"Error saving coordinates: {e}")
 
     def on_right_click(self, event):
         """Handle right-click for color selection."""
@@ -644,11 +581,10 @@ def main():
     print("=" * 50)
 
     # Check dependencies
-    if not TKINTER_AVAILABLE:
-        print("❌ Cannot start calibrator: tkinter is not available")
-        print("💡 Install tkinter:")
-        print("   pip install tk")
-        print("   On Ubuntu/Debian: sudo apt-get install python3-tk")
+    if not PYQT_AVAILABLE:
+        print("❌ Cannot start calibrator: PyQt5 is not available")
+        print("💡 Install PyQt5:")
+        print("   pip install PyQt5")
         return
 
     if not PSUTIL_AVAILABLE:
@@ -660,14 +596,10 @@ def main():
     print("📋 Instructions:")
     print("   🎯 Click and drag boxes to move them")
     print("   🖱️  Drag corners to resize boxes")
-    print("   🎨 Right-click boxes to change colors")
-    print("   📋 Press 'C' to copy coordinates")
-    print("   💾 Press 'S' to save to file")
-    print("   🗑️  Press 'Delete' to remove selected box")
-    print("   ❌ Press 'Escape' to exit")
-    print("   👁  Press 'G' to toggle grid visibility")
-    print("   🔗 Press 'Shift+G' to toggle snap-to-grid")
-    print("   📏 Press '1-4' to change grid size (10px, 20px, 50px, 100px)")
+    print("   📋 Click 'Copy Coordinates' to copy to clipboard")
+    print("   💾 Click 'Save to File' to save coordinates")
+    print("   🔄 Click 'Reset All' to reset to defaults")
+    print("   ❌ Click 'Close' to exit")
     print()
     print("🚀 Starting calibrator...")
 
@@ -676,13 +608,16 @@ def main():
         print(f"📏 Coordinates scaled from 1080p base to {GAME_RESOLUTION}p")
         print()
 
+        app = QApplication(sys.argv)
         calibrator = CoordinateCalibrator()
+        calibrator.show()
+
         print("✅ Calibrator started successfully")
         print("🎯 Position the overlay over your Genshin Impact window")
         print("📦 Adjust the bounding boxes to match your OCR regions")
         print()
 
-        calibrator.root.mainloop()
+        sys.exit(app.exec_())
 
     except Exception as e:
         print(f"❌ Error starting calibrator: {e}")

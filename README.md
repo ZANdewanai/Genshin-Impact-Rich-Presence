@@ -1,48 +1,74 @@
-# Genshin Impact Rich Presence Fountaine Update
+# Genshin Impact Rich Presence v2.6
 
-![Screenshot](images/discRPC%20sample%201.png) ![Screenshot](images/discRPC%20sample%202.png) ![Screenshot](images/discRPC%20sample%203.png)
+![Screenshot](resources/assets/Screenshot.png) ![Screenshot](resources/assets/Screenshot2.png) ![Screenshot](resources/assets/Screenshot3.png)
 
 > - Windows only
-> - Game text language must be English.
-> - Works best when traveling from a place to another instead of teleporting to it since it gives time for the app to read the place title you are in best
-> - Supported resolutions: 1920x1080, 2560x1440, 2560x1080 (Ultrawide) fullscreen
-> - Party must have 4 members, works for Single Player mode only (TODO: Alternate party setup support)
+> - Game text language must be English
+> - **Location detection**: Works best when traveling between places (location text appears longer), but teleporting works too with fallback map detection(i.e thinking of traveling to location)
+> - **Automatic resolution detection**: Works with any resolution (720p, 1080p, 1440p, 2160p, ultrawide, etc.)
+> - **Party setup**: Works with any number of characters (1-4) in party, works for Single Player mode only
+> - Now includes a modern GUI interface!
 
-This Discord Rich Presence doesn't tamper with Genshin Impact game files in any way. It works by scanning text in screen captures.
+This Discord Rich Presence doesn't tamper with Genshin Impact game files in any way. It works by scanning text in screen captures using OCR (Optical Character Recognition).
 
 -----
 
-## Setup guide
+## Quick Start
 
-### 1. Download project, install Python, update NVIDIA driver
+### Option 1: GUI Version (Recommended)
+1. Run `python_embedded\python.exe genshin_impact_rich_presence_gui.py`
+2. Click "Start Rich Presence" in the GUI
+3. The application will automatically detect your game and update Discord
 
-You will need **Python 3.11.1 newer versions may break the scripts so avoid using too new versions** Install from [Python 3.11.1 Download Page](https://www.python.org/downloads/release/python-3111/) , [Python Site](https://www.python.org/downloads/).
+### Option 2: Command Line Version
+1. Run `python_embedded\python.exe main.py`
+2. The application will start in console mode
 
+-----
 
-**Check NVIDIA GeForce Experience for updates**. Game Ready graphics driver version >525 is required for this to work well.
+## Setup Guide
 
-### 2. Set game resolution/image capture coordinates
+### 1. System Requirements
 
-Edit these settings in [CONFIG.py](CONFIG.py):
+- **Windows 10/11**
+- **Python 3.11+** (embedded version included in `python_embedded/`)
+- **NVIDIA GPU** recommended (with recent drivers >525 for best OCR performance)
+- **Genshin Impact** with English text language
 
-If you're running the game in fullscreen with a standard 16:9 aspect ratio, set the `GAME_RESOLUTION` variable to your screen resolution (e.g. use `GAME_RESOLUTION = 1080` for 1920x1080, 1080p).
+### 2. Configure Game Settings
 
-🟠 If you're using DLDSR/DLSS/NVIDIA Image Sharpening or any other GPU configuration that performs image upscaling or oversampling (not counting the built-in AMD FSR2 anti-aliasing mode), you'll need to set this to the final output resolution that your screen will display. E.g. 75% resolution with NVIDIA Image Sharpening will still result in an image with the same resolution as your monitor, so you should use the monitor resolution instead of the in-game resolution.
+Edit [CONFIG.py](CONFIG.py) to match your setup:
 
-⚠️ The **`GAME_RESOLUTION` setting only works if you're running the game in fullscreen at a 16:9 aspect ratio.** Otherwise, you'll need to set `GAME_RESOLUTION = 0` and follow [this guide to configure the coordinates manually.](configure%20coordinates.md)
+- Set `USERNAME` to match your Genshin Impact username exactly
+- Set `MC_AETHER = True` if Aether is your main character, `False` if Lumine
+- Set `WANDERER_NAME` to your custom Wanderer name (if applicable)
 
-### 3. Configure settings in [CONFIG.py](CONFIG.py)
+� **Resolution Detection:** The application now automatically detects and scales coordinates for any resolution that's a multiple of 1080p (1920x1080). For ultrawide monitors or non-standard resolutions, set `GAME_RESOLUTION = 0` and follow the coordinate calibration guide in [configure coordinates.md](configure%20coordinates.md)
 
-- Configure `USERNAME` to match your Genshin username (must be exactly the same)
-- Set `MC_AETHER = True` if Aether is MC, `MC_AETHER = False` if Lumine is MC.
-- (SPOILER) Set `WANDERER_NAME` to match custom Wanderer's name in lowercase.
+### 3. GPU Acceleration (Recommended)
 
-### 4. Start Discord Rich Presence
-**Double click [InstallRichPresence.bat](InstallRichPresence.bat)** to install Discord Rich Presence for Genshin Impact. afterwards it will start the rich presence from this bat too but its only for testing purposes, should use [StartRichPresence.bat](StartRichPresence.bat) instead.
+The application uses EasyOCR for text recognition. GPU acceleration significantly improves performance:
 
-**Double click [StartRichPresence.bat](StartRichPresence.bat)** to start Discord Rich Presence for Genshin Impact. You can create an application/desktop shortcut for run.bat to make it easier to start.
+- Set `USE_GPU = True` in CONFIG.py (default)
+- Ensure you have CUDA-compatible NVIDIA drivers
+- The embedded Python includes PyTorch with CUDA support
 
-or use the **[GenshinImpactRichPresenceAPP](GenshinImpactRichPresenceAPP.exe)** executable, it doesnt work alone though, you need all the other files for it to work so keep that in mind.
+### 4. Start the Application
+
+#### GUI Mode (Recommended):
+```bash
+python_embedded\python.exe genshin_impact_rich_presence_gui.py
+```
+
+#### Console Mode:
+```bash
+python_embedded\python.exe main.py
+```
+
+The application will:
+- Connect to Discord
+- Start monitoring Genshin Impact
+- Display your current activity, character, and location on Discord
 
 -----
 
@@ -56,19 +82,71 @@ Quite a few locations/points of interests may be missing from the current data, 
 
 The `.csv` data files have a hot-reload feature, so you don't need to restart the Discord RPC program to see effected changes to these files, you can enter them as you play the game and find unmarked locations/missing data.
 -----
-### Debugging: Test if image capture works
 
-Run [test_imagegrab.py](test_imagegrab.py):
+## Project Structure
 
-```bat
-py test_imagegrab.py
+```
+├── main.py                          # Console version of the application
+├── genshin_impact_rich_presence_gui.py  # GUI version (recommended)
+├── CONFIG.py                        # Configuration file
+├── datatypes.py                     # Data type definitions
+├── ocr_engine.py                    # OCR processing engine
+├── ps_helper.py                     # Process helper utilities
+├── data/                           # Game data files
+│   ├── characters.csv              # Character database
+│   ├── locations.csv               # Location database
+│   ├── domains.csv                 # Domain database
+│   ├── bosses.csv                  # Boss database
+│   ├── gamemenus.csv               # Game menu database
+│   └── README.md                   # Data file documentation
+├── DEV_resources/                  # Development resources
+│   ├── requirements.txt            # Python dependencies
+│   ├── for_debugging/              # Debug utilities
+│   └── docs/                       # Documentation
+├── python_embedded/                # Embedded Python environment
+├── easyocr_cache/                  # OCR model cache
+└── resources/                      # Assets and screenshots
 ```
 
-- Alt+tab to Genshin and leave it running for about 10s. Then, change characters and visit a few places (make sure the location text pops up)
-- Check the terminal to make sure everything works.
-- If you have two monitors, you can enable the capture display windows by setting `SHOW_CHARACTERS = True`, `SHOW_LOC = True` etc... in [test_imagegrab.py](test_imagegrab.py). This way, you can monitor image captures without needing to alt+tab.
+## Troubleshooting
 
-`py main.py` runs the program.
+### Test Image Capture
+
+Run the debugging script to verify OCR functionality:
+
+```bash
+python_embedded\python.exe DEV_resources\for_debugging\test_imagegrab.py
+```
+
+**What to do:**
+- Alt+tab to Genshin Impact and leave it running
+- Change characters and visit different locations
+- Check the terminal output for successful OCR detection
+- Enable capture display windows in the debug script for visual verification
+
+### Common Issues
+
+1. **OCR not detecting text:**
+   - Ensure Genshin Impact is running in English
+   - The application automatically detects your resolution - no manual setup needed
+   - Verify GPU drivers are up to date (recommended for best performance)
+
+2. **GUI not updating:**
+   - Check the GUI log for error messages
+   - Ensure the subprocess is running (check Task Manager)
+   - Verify shared data file permissions
+
+3. **Discord not updating:**
+   - Confirm Discord is running
+   - Check that the Discord app is connected
+   - Verify the application ID in CONFIG.py
+
+### Debug Tools
+
+Located in `DEV_resources/for_debugging/`:
+- `test_imagegrab.py` - Test OCR image capture
+- `capture_ocr_regions.py` - Debug OCR regions
+- `interactive_coordinate_calibrator.py` - Calibrate screen coordinates
 
 ## Credits
 

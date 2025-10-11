@@ -793,6 +793,22 @@ All rights reserved by miHoYo"""
                 self._log("Configuration saved to current directory instead.")
             except Exception as e:
                 self._log(f"Failed to save configuration: {e}")
+        
+        # Also save to shared config file for subprocess
+        shared_config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shared_config.json')
+        try:
+            config_dict = {
+                'USERNAME': self.config.USERNAME,
+                'MC_AETHER': self.config.MC_AETHER,
+                'WANDERER_NAME': self.config.WANDERER_NAME,
+                'GAME_RESOLUTION': self.config.GAME_RESOLUTION,
+                'USE_GPU': self.config.USE_GPU
+            }
+            with open(shared_config_file, 'w') as f:
+                json.dump(config_dict, f, indent=4)
+            self._log("Shared config updated for subprocess.")
+        except Exception as e:
+            self._log(f"Failed to update shared config: {e}")
     
     def _log(self, message: str):
         """Add a message to the log"""
@@ -1282,8 +1298,8 @@ All rights reserved by miHoYo"""
             return image_path
 
         # Download from GitHub
-        try:
-            github_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/Image Assets/{category}/{image_key}.png"
+        try:her
+            github_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/resources/assets/images/{urllib.parse.quote(category)}/{urllib.parse.quote(image_key)}.png"
             urllib.request.urlretrieve(github_url, image_path)
             self.image_cache[image_key] = image_path
             return image_path
@@ -1291,7 +1307,7 @@ All rights reserved by miHoYo"""
             # Try alternative URL patterns
             try:
                 # Some images might be in different subfolders
-                alt_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/Image Assets/{image_key}.png"
+                alt_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/resources/assets/images/{urllib.parse.quote(image_key)}.png"
                 urllib.request.urlretrieve(alt_url, image_path)
                 self.image_cache[image_key] = image_path
                 return image_path
@@ -1299,7 +1315,7 @@ All rights reserved by miHoYo"""
                 # Try boss subfolder if category is Bosses
                 if category == "Bosses":
                     try:
-                        boss_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/Image Assets/Bosses/World Bosses/{image_key}.png"
+                        boss_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/resources/assets/images/Bosses/World Bosses/{urllib.parse.quote(image_key)}.png"
                         urllib.request.urlretrieve(boss_url, image_path)
                         self.image_cache[image_key] = image_path
                         return image_path

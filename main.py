@@ -34,6 +34,20 @@ from PIL import ImageGrab
 from CONFIG import *
 from datatypes import *
 
+# Load shared config from GUI if available
+shared_config_path = os.path.join(script_dir, 'shared_config.json')
+if os.path.exists(shared_config_path):
+    try:
+        with open(shared_config_path, 'r') as f:
+            shared_config = json.load(f)
+            # Update global variables if present in shared config
+            for key in ['USERNAME', 'MC_AETHER', 'WANDERER_NAME', 'GAME_RESOLUTION', 'USE_GPU']:
+                if key in shared_config:
+                    globals()[key] = shared_config[key]
+                    print(f"Updated {key} from shared config: {shared_config[key]}")
+    except Exception as e:
+        print(f"Failed to load shared config: {e}")
+
 # Check environment variables for GPU override (from GUI subprocess)
 cuda_visible_devices = os.getenv('CUDA_VISIBLE_DEVICES')
 pytorch_cuda_alloc_conf = os.getenv('PYTORCH_CUDA_ALLOC_CONF')
