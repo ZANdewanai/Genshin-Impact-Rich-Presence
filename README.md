@@ -32,10 +32,11 @@ This Discord Rich Presence doesn't tamper with Genshin Impact game files in any 
 python_embedded\python.exe genshin_impact_rich_presence_gui.py
 ```
 
-#### Console Mode:
+#### Console Mode (Limited):
 ```bash
 python_embedded\python.exe main.py
 ```
+> **⚠️ Note**: Console mode provides OCR detection and logging but **does not include Discord Rich Presence**. Use the GUI for full functionality including Discord integration.
 
 -----
 
@@ -91,15 +92,17 @@ The application uses EasyOCR for text recognition. GPU acceleration significantl
 - Click "Start Rich Presence" in the GUI
 - Monitor activity in real-time through the GUI
 
-#### Console Mode:
+#### Console Mode (Limited):
 - Run `python_embedded\python.exe main.py`
-- View status in the console window
+- View OCR detection status in the console window
 
-The application will:
-- ✅ Connect to Discord
-- ✅ Start monitoring Genshin Impact
-- ✅ Display your current activity, character, and location on Discord
-- ✅ Show real-time status in the GUI
+**Console mode provides:**
+- ✅ OCR text detection and logging
+- ✅ Character and location recognition
+- ❌ **No Discord Rich Presence** (RPC disabled)
+- ❌ **No GUI interface**
+
+**For full Discord Rich Presence functionality, use GUI mode.**
 
 -----
 
@@ -125,7 +128,7 @@ The `.csv` data files have a hot-reload feature, so you don't need to restart th
 ├── ocr_engine.py                    # 🔍 OCR processing engine
 ├── ps_helper.py                     # 🛠️ Process helper utilities
 ├── shared_config.json               # 🔄 GUI-main communication file
-├── gui_shared_data.json             # 📊 Real-time data sharing
+├── gui_shared_data.json             # 📊 Real-time data sharing (runtime only)
 ├── data/                           # 📊 Game data files
 │   ├── characters.csv              # Character database
 │   ├── locations.csv               # Location database
@@ -134,15 +137,20 @@ The `.csv` data files have a hot-reload feature, so you don't need to restart th
 │   ├── gamemenus.csv               # Game menu database
 │   └── README.md                   # Data file documentation
 ├── DEV_resources/                  # 🛠️ Development resources
-│   ├── requirements.txt            # Python dependencies
+│   ├── configure coordinates.md    # Coordinate configuration guide
 │   ├── for_debugging/              # Debug utilities
 │   └── docs/                       # Documentation
-├── python_embedded/                # 🐍 Embedded Python environment
+├── requirements.txt                # 📦 Python dependencies
+├── python_embedded/                # 🐍 Embedded Python environment (2GB+)
 ├── easyocr_cache/                  # 💾 OCR model cache
 ├── resources/                      # 🎨 Assets and screenshots
 │   ├── assets/                     # Images and icons
 │   └── styles.qss                  # GUI styling
-└── styles.qss                      # Additional GUI styles
+├── styles.qss                      # Additional GUI styles
+├── configure coordinates.md        # Coordinate configuration guide
+├── LICENSE                         # Project license
+├── PATCH_NOTES.md                  # Version history and updates
+└── README.md                       # This file
 ```
 
 ## 🛠️ Troubleshooting
@@ -235,3 +243,21 @@ If issues persist:
 - 📊 **Shared Data System**: Seamless communication between GUI and OCR engine
 
 **Legacy Settings Migration**: User settings previously in CONFIG.py are now configured through the GUI interface for better user experience.
+
+---
+
+## 🛣️ Future Roadmap
+
+### Planned Improvements
+
+- 🔗 **Dynamic Asset Loading**: Replace hardcoded Discord image assets with dynamic links for better maintainability
+- 🌐 **Multi-Language Support**: Extend OCR support beyond English text
+- 📱 **System Tray Integration**: Minimize to system tray for less intrusive monitoring
+- ⚡ **Performance Optimizations**: Further reduce CPU usage and improve detection speed
+- 🔄 **Auto-Updates**: Implement automatic update checking and installation
+- 📊 **Advanced Statistics**: Add detailed usage statistics and performance metrics
+- 🔧 **Plugin System**: Extend functionality through community-created plugins
+
+### Contributing
+
+We welcome contributions! See our [GitHub Issues](https://github.com/ZANdewanai/Genshin-Impact-Rich-Presence/issues) for planned features and bug reports.

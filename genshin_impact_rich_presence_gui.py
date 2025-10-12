@@ -1,5 +1,5 @@
 # ==========================================
-# Genshin Impact Rich Presence GUI v2.6
+# Genshin Impact Rich Presence GUI v3.0 INDEV
 # Advanced GUI wrapper with comprehensive settings - PyQt5 Version
 # ==========================================
 
@@ -69,6 +69,9 @@ from datatypes import ActivityType, Activity, Character, Location
 # ==========================================
 
 class Config:
+    """Configuration class for the GUI"""
+    CONFIG_FILENAME = "gui_config.json"  # Self-contained config file
+
     def __init__(self):
         self.USERNAME = "Player"
         self.MC_AETHER = True
@@ -232,15 +235,16 @@ class Config:
         else:
             print("📍 Using CALCULATED coordinates based on resolution")
     
-    def _get_config_path(self, filename: str = "config.json") -> str:
-        """Get the full path to the config file in AppData"""
-        appdata = os.getenv('APPDATA')
-        config_dir = os.path.join(appdata, 'GenshinImpactRichPresence')
-        os.makedirs(config_dir, exist_ok=True)
-        return os.path.join(config_dir, filename)
+    def _get_config_path(self, filename: str = None) -> str:
+        """Get the full path to the config file in the project directory"""
+        if filename is None:
+            filename = self.CONFIG_FILENAME
+        return os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
     
-    def save_to_file(self, filename: str = "config.json"):
-        """Save current configuration to a JSON file in AppData"""
+    def save_to_file(self, filename: str = None):
+        """Save current configuration to a JSON file in the project directory"""
+        if filename is None:
+            filename = self.CONFIG_FILENAME
         config_path = self._get_config_path(filename)
         config_dict = {
             key: value for key, value in self.__dict__.items() 
@@ -254,8 +258,10 @@ class Config:
             print(f"Error saving config: {e}")
             return False
     
-    def load_from_file(self, filename: str = "config.json"):
-        """Load configuration from a JSON file in AppData"""
+    def load_from_file(self, filename: str = None):
+        """Load configuration from a JSON file in the project directory"""
+        if filename is None:
+            filename = self.CONFIG_FILENAME
         config_path = self._get_config_path(filename)
         if os.path.exists(config_path):
             try:
@@ -302,7 +308,7 @@ class GenshinRichPresenceApp(QMainWindow):
 
         # Initialize configuration
         self.config = Config()
-        self.config.load_from_file()  # This loads from AppData, but we also need current directory
+        self.config.load_from_file()  # Now loads from project directory gui_config.json
         self.config._load_shared_config()  # Load from current directory shared_config.json
 
         # Initialize app state
@@ -354,7 +360,7 @@ class GenshinRichPresenceApp(QMainWindow):
         self.tab_widget = QTabWidget()
 
         # Setup UI
-        self.setWindowTitle("Genshin Impact Rich Presence v2.6")
+        self.setWindowTitle("Genshin Impact Rich Presence v3.0 INDEV")
         self.setGeometry(100, 100, 900, 700)
         self.setWindowIcon(QIcon("images/ApplicatonIcon.ico"))
 
@@ -735,7 +741,7 @@ class GenshinRichPresenceApp(QMainWindow):
         about_layout.addWidget(title_label)
 
         # Info text
-        info_text = """Genshin Impact Rich Presence v2.6
+        info_text = """Genshin Impact Rich Presence v3.0 INDEV
 
 This application displays your current in-game activity on Discord.
 
@@ -747,6 +753,7 @@ Features:
 
 Created by ZANdewanai
 Rewritten by euwbah
+then Rewritten again by ZANdewanai
 
 Image assets are intellectual property of HoYoverse
 All rights reserved by miHoYo"""

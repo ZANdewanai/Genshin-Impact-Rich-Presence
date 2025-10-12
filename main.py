@@ -518,6 +518,9 @@ print("_______________________________________________________________")
 def detect_characters_with_adaptation():
     global current_characters
 
+    # Store previous character data before detection
+    previous_characters = current_characters.copy()
+
     # Detect which slots are occupied
     occupied_slots, confidence_scores = character_region_manager.detect_occupied_slots()
 
@@ -545,6 +548,7 @@ def detect_characters_with_adaptation():
         pass  # Silently handle config read errors
 
     # Update character data for occupied slots
+    characters_updated = False
     for slot_idx, char_idx in enumerate(occupied_slots):
         if char_idx is not None:
             coords = character_region_manager.current_name_positions[char_idx]
@@ -560,16 +564,39 @@ def detect_characters_with_adaptation():
             )
 
             if char_data:
-                if current_characters[char_idx] != char_data:
-                    current_characters[char_idx] = char_data
-                    print(f"✅ Detected character {char_idx + 1}: {char_data.character_display_name}")
+                # Validate that the OCR result is a legitimate character from the database
+                if char_data.image_key != "char_unknown":
+                    # This is a validated character from the database
+                    if current_characters[char_idx] != char_data:
+                        current_characters[char_idx] = char_data
+                        print(f"✅ Detected character {char_idx + 1}: {char_data.character_display_name}")
+                        characters_updated = True
+                else:
+                    # OCR detected text but it doesn't match any known character
+                    if DEBUG_MODE:
+                        print(f"⚠️ OCR detected '{char_data.character_display_name}' in slot {char_idx + 1}, but no database match found")
+                    # Don't update with unknown characters
             else:
-                current_characters[char_idx] = None
+                # Only clear if we had a character before and OCR completely failed
+                if current_characters[char_idx] is not None:
+                    if DEBUG_MODE:
+                        print(f"⚠️ Failed to detect character in slot {char_idx + 1}, keeping previous data")
         else:
-            # Mark empty slots as None
+            # For unoccupied slots, only clear if we don't have a previous character
+            # This preserves character data when in menus/party setup
             char_idx = slot_idx  # Fallback to sequential
-            if char_idx < 4:
-                current_characters[char_idx] = None
+            if char_idx < 4 and current_characters[char_idx] is None:
+                # Only set to None if it wasn't already None
+                pass  # Keep existing data
+
+    # If no characters were successfully detected at all, preserve existing data
+    if not any(current_characters) and any(previous_characters):
+        if DEBUG_MODE:
+            print("🔄 No characters detected, preserving previous character data")
+        current_characters = previous_characters.copy()
+    elif not characters_updated and any(current_characters):
+        if DEBUG_MODE:
+            print("🔄 Character detection completed, data preserved")
 
     # Log adaptation summary
     if DEBUG_MODE and any(c != 0 for c in confidence_scores):
@@ -578,17 +605,27 @@ def detect_characters_with_adaptation():
 
 def search_character_with_custom(text, custom_username, character_images=None):
     """Search for character, checking custom name first, then database"""
-    # First check if text matches custom username
+    # First check if text matches custom username (Traveler)
     if custom_username and text.strip().lower() == custom_username.strip().lower():
         # Create a custom character entry with flexible image key
         from datatypes import Character
 
-        # Use custom image key if provided, otherwise default to traveler
+        # Use custom image key if provided, otherwise default to traveler based on MC_AETHER setting
         if character_images and custom_username in character_images:
             image_key = character_images[custom_username]
         else:
-            # Default to traveler image based on legacy MC_AETHER setting
-            image_key = "char_aether"  # Default fallback
+            # Default to appropriate traveler image based on MC_AETHER setting
+            # Read MC_AETHER from shared config if available, otherwise use CONFIG default
+            mc_aether = True  # Default fallback
+            try:
+                if os.path.exists(shared_config_path):
+                    with open(shared_config_path, 'r') as f:
+                        config_data = json.load(f)
+                        mc_aether = config_data.get('MC_AETHER', True)
+            except Exception:
+                pass  # Use default if config read fails
+
+            image_key = "char_aether" if mc_aether else "char_lumine"
 
         return Character(
             character_display_name=custom_username,
@@ -596,8 +633,19 @@ def search_character_with_custom(text, custom_username, character_images=None):
             search_str=text.lower()
         )
 
-    # Fall back to database lookup
-    return DATA.search_character(text)
+    # Fall back to database lookup for all other characters
+    char_data = DATA.search_character(text)
+    if char_data:
+        return char_data
+
+    # If no database match, create a generic character entry for unmatched names
+    # This maintains backward compatibility for characters not in the database yet
+    from datatypes import Character
+    return Character(
+        character_display_name=text,
+        image_key="char_unknown",  # Use a default unknown icon
+        search_str=text.lower()
+    )
 
 def calculate_keyword_match_score(ocr_words, location_match, region_word):
     """
@@ -1192,7 +1240,7 @@ while True:
         for idx, bri in enumerate(charnumber_brightness)
         if bri < ACTIVE_CHARACTER_THRESH
     ]
-    found_active_character = len(active_character) == 1
+    found_active_character = len(active_character) >= 1  # Allow multiple active indicators
 
     # Debug: Log active character detection results
     if DEBUG_MODE and loop_count % 50 == 0:  # Log every 5 seconds
@@ -1229,6 +1277,38 @@ while True:
         if current_activity.activity_type == ActivityType.LOADING:
             current_active_character = 0
 
+        # Intelligent character redetection when active character detection fails
+        # Only trigger when there's evidence of character changes or after cooldown
+        if loop_count % 15 == 0:  # Reduced frequency - every 15 loops (about 2 seconds)
+            # Check if we have a significant change in brightness patterns that suggests character switching
+            brightness_change_threshold = 50  # Minimum brightness change to suggest character switch
+
+            # Compare current brightness with previous reading (if available)
+            if hasattr(character_region_manager, '_last_brightness_check'):
+                prev_brightness = character_region_manager._last_brightness_check
+                current_brightness = charnumber_brightness
+
+                # Calculate total brightness change across all slots
+                total_brightness_change = sum(abs(current - prev) for current, prev in zip(current_brightness, prev_brightness))
+
+                if total_brightness_change > brightness_change_threshold:
+                    if DEBUG_MODE:
+                        print(f"🔄 Detected significant brightness change ({total_brightness_change}), triggering character redetection")
+                    character_region_manager.needs_redetection = True
+                elif loop_count % 60 == 0:  # Fallback: every 60 loops (about 8-9 seconds) if no changes detected
+                    if DEBUG_MODE:
+                        print("🔄 Periodic character redetection check (fallback)")
+                    character_region_manager.needs_redetection = True
+            else:
+                # First time - store current brightness and trigger initial redetection
+                character_region_manager._last_brightness_check = charnumber_brightness
+                if DEBUG_MODE:
+                    print("🔄 Initial brightness check, triggering character redetection")
+                character_region_manager.needs_redetection = True
+
+            # Update stored brightness for next comparison
+            character_region_manager._last_brightness_check = charnumber_brightness
+
         if loop_count % 8 == 0 and (
             ps_window_thread_instance == None
             or not ps_window_thread_instance.is_alive()
@@ -1256,15 +1336,24 @@ while True:
     # CAPTURE PARTY MEMBERS (ADAPTIVE)
     # _____________________________________________________________________
 
-    if (
-        loop_count % OCR_CHARNAMES_ONE_IN == 0
-        or len([a for a in current_characters if a == None]) > 0
-        or reload_party_flag
-        or character_region_manager.needs_redetection
-    ):
-        reload_party_flag = False
-        character_region_manager.needs_redetection = False
+    # More restrictive character detection conditions to reduce OCR overhead
+    should_detect_characters = False
 
+    if reload_party_flag:
+        should_detect_characters = True
+        reload_party_flag = False
+    elif len([a for a in current_characters if a == None]) > 0:
+        # Only run if we have missing characters AND it's the right timing
+        should_detect_characters = loop_count % OCR_CHARNAMES_ONE_IN == 0
+    elif character_region_manager.needs_redetection:
+        # Only run intelligent redetection at specific intervals
+        should_detect_characters = loop_count % OCR_CHARNAMES_ONE_IN == 0
+        character_region_manager.needs_redetection = False  # Reset immediately after use
+    elif loop_count % OCR_CHARNAMES_ONE_IN == 0:
+        # Normal scheduled character detection (every 10 loops)
+        should_detect_characters = True
+
+    if should_detect_characters:
         # Use adaptive character detection
         detect_characters_with_adaptation()
 
@@ -1859,6 +1948,11 @@ while True:
                     })
                 else:
                     characters_dict.append(None)
+
+            # Debug: Log current_characters before writing
+            if DEBUG_MODE:
+                char_names = [char.character_display_name if char else None for char in current_characters]
+                print(f"🔍 DEBUG: current_characters before JSON write: {char_names}")
 
             data_to_write = {
                 'timestamp': time.time(),

@@ -227,7 +227,7 @@ Lower values = more sensitive detection (more likely to detect characters as act
 Higher values = less sensitive detection (less likely to detect characters as active)
 """
 
-OCR_CHARNAMES_ONE_IN = 30
+OCR_CHARNAMES_ONE_IN = 10
 """Process character name every N loops - FAST DETECTION for responsive character switching"""
 OCR_LOC_ONE_IN = 5
 """Process location every N loops - BALANCED FREQUENCY for responsiveness vs performance"""
