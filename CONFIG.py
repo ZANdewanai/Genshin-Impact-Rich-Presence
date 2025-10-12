@@ -8,41 +8,60 @@ See README.md on how to determine coordinates.
 
 import ps_helper
 
-USERNAME = "ZANdewanai"
+USERNAME = "PlayerName"
 """
-For detecting when MC is being played. 
+LEGACY SETTING - Now configured in GUI
+
+For detecting when the main character (Traveler) is being played.
+
+⚠️  IMPORTANT: This setting is now configured in the GUI application.
+   Changes made here will be overridden by GUI settings.
+   Use the GUI's "Username" field instead.
 """
 
 MC_AETHER = True
 """
-If main character is Aether, set this to True.
-If main character is Lumine, set this to False.
+LEGACY SETTING - Now configured in GUI
+
+Main character gender setting.
+True = Aether (Male), False = Lumine (Female)
+
+⚠️  IMPORTANT: This setting is now configured in the GUI application.
+   Changes made here will be overridden by GUI settings.
+   Use the GUI's "Main Character" dropdown instead.
 """
 
 WANDERER_NAME = "Wanderer"
 """
-For detecting when Wanderer is active. (Spoiler: You can rename wanderer)
+LEGACY SETTING - Now configured in GUI
+
+For detecting when Wanderer is active. (Spoiler: You can rename Wanderer)
+
+⚠️  IMPORTANT: This setting is now configured in the GUI application.
+   Changes made here will be overridden by GUI settings.
+   Use the GUI's "Wanderer Name" field instead.
 """
 
 GAME_RESOLUTION = 1080
 """
-The resolution you're running genshin at (number corresponds to the
+LEGACY SETTING - Now auto-detected
+
+The resolution you're running Genshin at (number corresponds to the
 resolution height in pixels).
 
-NOTE: If you're using DLDSR/DLSS/NVIDIA Image Sharpening or any other
-GPU configuration that performs image upscaling or oversampling
-(not counting the built-in AMD FSR2 anti-aliasing mode),
-you'll need to set this to the final output resolution that your
-screen will display. E.g. 75% resolution with NVIDIA Image Sharpening
-will still result in an image with the same resolution as your monitor,
-so you should use the monitor resolution instead of the in-game resolution.
+⚠️  IMPORTANT: This setting is now automatically detected by the script.
+   The application will detect your Genshin Impact window size dynamically.
+   Manual configuration here is no longer necessary.
 
-This quick setting only works if you're running the game in fullscreen at a 16:9
-aspect ratio. Otherwise, you'll need to set this number to 0 and
-manually set the screen coordinates below.
+NOTE: This setting is rarely needed anymore due to automatic detection.
+Only modify if you encounter coordinate detection issues with specific GPU upscaling
+configurations (DLDSR/DLSS/NVIDIA Image Sharpening, etc.) or non-standard aspect ratios.
 
-Some common resolutions (any other number is supported):
+For most users: Leave this setting unchanged - the script will auto-detect correctly.
+Advanced users only: If using GPU upscaling that changes the final display resolution,
+set this to your monitor's actual resolution, not the game's internal resolution.
 
+Common resolutions (for reference):
 720: 1280x720 (720p)
 1080: 1920x1080 (1080p)
 1440: 2560x1440 (1440p)
