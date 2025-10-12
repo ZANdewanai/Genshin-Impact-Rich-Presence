@@ -73,6 +73,509 @@ print(__doc__)
 # Data contains csv tables, file watcher, and best text match algorithms.
 DATA: Data = Data()
 
+# _____________________________________________________________________
+# ADAPTIVE CHARACTER DETECTION SYSTEM
+# _____________________________________________________________________
+
+class CharacterRegionManager:
+    """Manages dynamic character name and number bounding boxes with paired vertical adaptation"""
+
+    def __init__(self):
+        # Base character positions (from CONFIG.py) - names and numbers must stay paired
+        self.base_name_positions = NAMES_4P_COORD.copy()
+        self.base_number_positions = NUMBER_4P_COORD.copy()
+        self.current_name_positions = self.base_name_positions.copy()
+        self.current_number_positions = self.base_number_positions.copy()
+
+        # Dynamic tracking
+        self.occupied_slots = [True, True, True, True]  # Assume all slots occupied initially
+        self.slot_confidence = [0.0, 0.0, 0.0, 0.0]
+        self.adaptation_history = []
+        self.vertical_shifts = [0, 0, 0, 0]  # Track vertical shift for each slot
+
+        # Movement constraints (vertical only, ±30 pixels max)
+        self.max_vertical_shift = 30
+        self.movement_step = 5
+        self.adaptation_enabled = True
+        self.needs_redetection = False
+
+    def detect_occupied_slots(self):
+        """Determine which character slots are actually occupied with overlap prevention"""
+        occupied = []
+        confidence_scores = []
+        detected_names = set()  # Track detected names to prevent duplicates
+
+        for i, base_coords in enumerate(self.base_name_positions):
+            # Try current position first
+            success, confidence = self._test_slot_detection(i, self.current_name_positions[i])
+
+            if DEBUG_MODE:
+                print(f"🔍 Slot {i} detection: success={success}, confidence={confidence:.3f}")
+
+            if success:
+                # Check for duplicate character names
+                if not self._would_create_duplicate(success, detected_names):
+                    occupied.append(i)
+                    confidence_scores.append(confidence)
+                    detected_names.add(success)  # Add detected name to prevent duplicates
+                    if DEBUG_MODE:
+                        print(f"✅ Slot {i} marked as occupied with '{success}'")
+                else:
+                    # Duplicate detected - mark as empty and try adaptation
+                    occupied.append(None)
+                    confidence_scores.append(0.0)
+                    if DEBUG_MODE:
+                        print(f"❌ Slot {i} rejected as duplicate: '{success}' already detected")
+                    if self.adaptation_enabled:
+                        # Try to find a different position that doesn't create duplicates
+                        adaptive_success, adaptive_confidence, best_coords = self._try_adaptive_positions_with_duplicate_prevention(i, base_coords, detected_names)
+
+                        if adaptive_success:
+                            self.current_name_positions[i] = best_coords
+                            occupied[i] = i  # Update the slot
+                            confidence_scores[i] = adaptive_confidence
+
+                            # Log the adaptation
+                            self.adaptation_history.append({
+                                'slot': i,
+                                'original_coords': base_coords,
+                                'adapted_coords': best_coords,
+                                'timestamp': time.time(),
+                                'reason': 'duplicate_prevention'
+                            })
+            else:
+                # Try adaptive positions (vertical shifts only) if adaptation enabled
+                if self.adaptation_enabled:
+                    adaptive_success, adaptive_confidence, best_coords = self._try_adaptive_positions_with_duplicate_prevention(i, base_coords, detected_names)
+
+                    if adaptive_success:
+                        self.current_name_positions[i] = best_coords
+                        occupied.append(i)
+                        confidence_scores.append(adaptive_confidence)
+
+                        # Log the adaptation
+                        self.adaptation_history.append({
+                            'slot': i,
+                            'original_coords': base_coords,
+                            'adapted_coords': best_coords,
+                            'timestamp': time.time()
+                        })
+                    else:
+                        occupied.append(None)  # Empty slot
+                        confidence_scores.append(0.0)
+                else:
+                    occupied.append(None)  # Empty slot
+                    confidence_scores.append(0.0)
+
+        self.occupied_slots = occupied
+        self.slot_confidence = confidence_scores
+
+        # Update global coordinate variables so GUI gets the adapted coordinates
+        self._update_global_coordinates()
+
+        return occupied, confidence_scores
+
+    def _would_create_duplicate(self, detected_text, detected_names):
+        """Check if detected text would create a duplicate character"""
+        return detected_text in detected_names
+
+    def _try_adaptive_positions_with_duplicate_prevention(self, slot_index, base_coords, detected_names):
+        """Try vertical position shifts with duplicate prevention"""
+        x1, y1, x2, y2 = base_coords
+        width = x2 - x1
+        height = y2 - y1
+
+        best_result = (False, 0.0, base_coords)
+
+        # Calculate slot boundaries to prevent overlap
+        slot_boundaries = self._calculate_slot_boundaries()
+
+        # Try shifting up and down from base position
+        for shift in range(-self.max_vertical_shift, self.max_vertical_shift + 1, self.movement_step):
+            test_y1 = y1 + shift
+            test_y2 = y2 + shift
+
+            # Stay within reasonable bounds (assuming max 2160p resolution)
+            if test_y1 < 0 or test_y2 > 2160:
+                continue
+
+            # Check for overlap with adjacent slots
+            test_coords = (x1, test_y1, x2, test_y2)
+            if self._would_overlap_with_adjacent_slots(slot_index, test_coords, slot_boundaries):
+                continue
+
+            # Test detection at this position
+            temp_success, temp_confidence = self._test_slot_detection(slot_index, test_coords)
+
+            if temp_success:
+                # Check if this would create a duplicate
+                if not self._would_create_duplicate(temp_success, detected_names):
+                    if temp_confidence > best_result[1]:
+                        best_result = (True, temp_confidence, test_coords)
+
+        return best_result
+
+    def _update_global_coordinates(self):
+        """Update global coordinate variables with adapted positions for GUI"""
+        global NAMES_4P_COORD, NUMBER_4P_COORD
+
+        # Update the global coordinate arrays with current adapted positions
+        NAMES_4P_COORD = self.current_name_positions.copy()
+        NUMBER_4P_COORD = self.current_number_positions.copy()
+
+        # Log the coordinate update for debugging
+        if DEBUG_MODE:
+            print("📍 Updated global coordinates for GUI:")
+            print(f"   NAMES_4P_COORD: {NAMES_4P_COORD}")
+            print(f"   NUMBER_4P_COORD: {NUMBER_4P_COORD}")
+
+        # Also update the shared config file that GUI reads
+        self._update_gui_shared_config()
+
+    def _update_gui_shared_config(self):
+        """Update the shared config file that the GUI reads"""
+        try:
+            shared_config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shared_config.json')
+            if os.path.exists(shared_config_file):
+                with open(shared_config_file, 'r') as f:
+                    gui_config = json.load(f)
+            else:
+                gui_config = {}
+
+            # Update coordinate information for GUI
+            gui_config['ADAPTED_NAMES_4P_COORD'] = self.current_name_positions.copy()
+            gui_config['ADAPTED_NUMBER_4P_COORD'] = self.current_number_positions.copy()
+            gui_config['ADAPTATION_ACTIVE'] = True
+            gui_config['ADAPTATION_HISTORY'] = self.adaptation_history.copy()
+            gui_config['OCCUPIED_SLOTS'] = self.occupied_slots.copy()
+
+            with open(shared_config_file, 'w') as f:
+                json.dump(gui_config, f, indent=4)
+
+            if DEBUG_MODE:
+                print("📤 Updated shared config for GUI with adapted coordinates")
+
+        except Exception as e:
+            if DEBUG_MODE:
+                print(f"❌ Error updating shared config: {e}")
+
+    def _test_slot_detection(self, slot_index, coords):
+        """Test if a character slot can be detected at given coordinates"""
+        try:
+            image = ImageGrab.grab(bbox=coords)
+            cap = np.array(image)
+            results = reader.readtext(cap, allowlist=ALLOWLIST)
+
+            # Look for character-like text
+            for result in results:
+                if result[2] > NAME_CONF_THRESH:
+                    text = result[1].strip()
+                    if len(text) > 2 and self._looks_like_character_name(text):
+                        if DEBUG_MODE:
+                            print(f"🔍 Slot {slot_index} OCR: '{text}' (confidence: {result[2]:.3f})")
+                        return text, result[2]  # Return the actual character name text, not True
+
+            # Debug: Log what OCR found but was rejected
+            if DEBUG_MODE and results:
+                rejected_texts = []
+                for result in results:
+                    if result[2] > 0.1:  # Log results with at least 10% confidence
+                        text = result[1].strip()
+                        if len(text) > 1:
+                            rejected_texts.append(f"'{text}'({result[2]:.3f})")
+                if rejected_texts:
+                    print(f"🔍 Slot {slot_index} OCR rejected: {', '.join(rejected_texts)}")
+
+            return False, 0.0
+
+        except Exception as e:
+            if DEBUG_MODE:
+                print(f"🔍 Slot {slot_index} OCR error: {e}")
+            return False, 0.0
+
+    def _try_adaptive_positions(self, slot_index, base_coords):
+        """Try vertical position shifts for a character slot with overlap prevention"""
+        x1, y1, x2, y2 = base_coords
+        width = x2 - x1
+        height = y2 - y1
+
+        best_result = (False, 0.0, base_coords)
+
+        # Calculate slot boundaries to prevent overlap
+        slot_boundaries = self._calculate_slot_boundaries()
+
+        # Try shifting up and down from base position
+        for shift in range(-self.max_vertical_shift, self.max_vertical_shift + 1, self.movement_step):
+            test_y1 = y1 + shift
+            test_y2 = y2 + shift
+
+            # Stay within reasonable bounds (assuming max 2160p resolution)
+            if test_y1 < 0 or test_y2 > 2160:
+                continue
+
+            # Check for overlap with adjacent slots
+            test_coords = (x1, test_y1, x2, test_y2)
+            if self._would_overlap_with_adjacent_slots(slot_index, test_coords, slot_boundaries):
+                continue
+
+            success, confidence = self._test_slot_detection(slot_index, test_coords)
+
+            if success and confidence > best_result[1]:
+                best_result = (True, confidence, test_coords)
+
+        return best_result
+
+    def _calculate_slot_boundaries(self):
+        """Calculate the safe boundaries for each character slot to prevent overlap"""
+        boundaries = []
+
+        for i in range(4):
+            if i == 0:
+                # First slot - only lower boundary
+                upper_bound = -float('inf')
+                lower_bound = self.base_name_positions[1][1] - 10  # 10px buffer from next slot
+            elif i == 3:
+                # Last slot - only upper boundary
+                upper_bound = self.base_name_positions[2][1] + 10  # 10px buffer from previous slot
+                lower_bound = float('inf')
+            else:
+                # Middle slots - both boundaries
+                upper_bound = self.base_name_positions[i-1][1] + 10
+                lower_bound = self.base_name_positions[i+1][1] - 10
+
+            boundaries.append((upper_bound, lower_bound))
+
+        return boundaries
+
+    def _would_overlap_with_adjacent_slots(self, slot_index, test_coords, slot_boundaries):
+        """Check if test coordinates would overlap with adjacent slots"""
+        test_y1, test_y2 = test_coords[1], test_coords[3]
+
+        # Check against adjacent slots only
+        for i in [slot_index - 1, slot_index + 1]:
+            if 0 <= i < 4:
+                upper_bound, lower_bound = slot_boundaries[i]
+
+                # Check if this slot would encroach on adjacent slot's territory
+                if slot_index < i:  # We're checking against a lower slot
+                    if test_y2 > lower_bound:  # Would overlap with lower slot
+                        return True
+                else:  # We're checking against an upper slot
+                    if test_y1 < upper_bound:  # Would overlap with upper slot
+                        return True
+
+        return False
+
+    def _looks_like_character_name(self, text):
+        """Check if text resembles a Genshin character name"""
+        # Simple heuristics - can be expanded
+        if len(text) < 2 or len(text) > 30:
+            return False
+
+        # Should contain letters and possibly spaces or apostrophes
+        import re
+        if not re.match(r"^[A-Za-z\s']+$", text):
+            return False
+
+        # Should not be common UI words
+        ui_words = ['menu', 'party', 'setup', 'exit', 'close', 'ok', 'cancel', 'select', 'change', 'ready', 'waiting', 'use', 'item', 'equip']
+        if text.lower() in ui_words:
+            return False
+
+        return True
+
+    def get_active_coordinates(self):
+        """Get coordinates only for occupied slots"""
+        coords = []
+        for i, occupied in enumerate(self.occupied_slots):
+            if occupied is not None:
+                coords.append(self.current_name_positions[i])
+        return coords
+
+    def get_adaptive_number_coordinates(self):
+        """Get number coordinates that stay paired with adapted name positions"""
+        # Apply the same vertical shifts to number positions as name positions
+        adaptive_coords = []
+        for i in range(4):
+            base_x, base_y = self.base_number_positions[i]
+            # Apply the same vertical shift as the corresponding name position
+            name_coords = self.current_name_positions[i]
+            name_base_coords = self.base_name_positions[i]
+
+            # Calculate vertical shift from name position adaptation
+            name_shift = name_coords[1] - name_base_coords[1]
+            adaptive_y = base_y + name_shift
+
+            adaptive_coords.append((base_x, adaptive_y))
+
+        return adaptive_coords
+
+    def reset_to_base_positions(self):
+        """Reset all positions to original coordinates"""
+        self.current_name_positions = self.base_name_positions.copy()
+        self.current_number_positions = self.base_number_positions.copy()
+        self.occupied_slots = [True, True, True, True]
+        self.slot_confidence = [0.0, 0.0, 0.0, 0.0]
+        self.adaptation_history.clear()
+        print("🔄 Reset character positions to base coordinates")
+
+    def log_status(self):
+        """Log current adaptation status for debugging"""
+        if not DEBUG_MODE:
+            return
+
+        print("🔍 Character Adaptation Status:")
+        occupied_indices = [i for i, slot in enumerate(self.occupied_slots) if slot is not None]
+        print(f"   Occupied slots: {occupied_indices}")
+        print(f"   Confidence scores: {[round(c, 2) for c in self.slot_confidence]}")
+        print(f"   Adaptations made: {len(self.adaptation_history)}")
+
+        if self.adaptation_history:
+            latest = self.adaptation_history[-1]
+            print(f"   Latest adaptation: Slot {latest['slot']} at {time.time() - latest['timestamp']:.1f}s ago")
+
+        # Show current coordinate values for GUI verification
+        print("📍 Current Coordinates (what GUI receives):")
+        print(f"   Name positions: {self.current_name_positions}")
+        print(f"   Number positions: {self.current_number_positions}")
+        print(f"   Base name positions: {self.base_name_positions}")
+        print(f"   Base number positions: {self.base_number_positions}")
+
+        # Show vertical shifts
+        shifts = []
+        for i in range(4):
+            name_shift = self.current_name_positions[i][1] - self.base_name_positions[i][1]
+            number_shift = self.current_number_positions[i][1] - self.base_number_positions[i][1]
+            shifts.append(f"Slot{i}: name={name_shift}px, number={number_shift}px")
+
+        print(f"   Vertical shifts: {shifts}")
+
+# Initialize the character region manager
+character_region_manager = CharacterRegionManager()
+
+def handle_adaptive_character_commands():
+    """Handle manual control commands for the adaptive character system"""
+    import sys
+
+    # Check for command line arguments for manual control
+    if len(sys.argv) > 1:
+        command = sys.argv[1]
+
+        if command == "reset_char_positions":
+            character_region_manager.reset_to_base_positions()
+            print("✅ Character positions reset to base coordinates")
+            sys.exit(0)
+
+        elif command == "log_char_status":
+            character_region_manager.log_status()
+            sys.exit(0)
+
+        elif command == "disable_char_adaptation":
+            character_region_manager.adaptation_enabled = False
+            print("🔒 Character adaptation disabled")
+            sys.exit(0)
+
+        elif command == "enable_char_adaptation":
+            character_region_manager.adaptation_enabled = True
+            print("🔓 Character adaptation enabled")
+            sys.exit(0)
+
+        elif command == "test_char_adaptation":
+            print("🧪 Testing character adaptation system...")
+            occupied_slots, confidence_scores = character_region_manager.detect_occupied_slots()
+            character_region_manager.log_status()
+            print(f"🎯 Test Results: Occupied slots: {occupied_slots}")
+            print(f"📊 Confidence scores: {[round(c, 2) for c in confidence_scores]}")
+            sys.exit(0)
+
+# Handle startup commands
+handle_adaptive_character_commands()
+
+def detect_characters_with_adaptation():
+    """Enhanced character detection with vertical adaptation"""
+    global current_characters
+
+    # Detect which slots are occupied
+    occupied_slots, confidence_scores = character_region_manager.detect_occupied_slots()
+
+    # Get custom character name and image mappings from shared config
+    custom_username = None
+    character_images = {}  # Maps character names to image keys
+    try:
+        shared_config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shared_config.json')
+        if os.path.exists(shared_config_path):
+            with open(shared_config_path, 'r') as f:
+                shared_config = json.load(f)
+                custom_username = shared_config.get('USERNAME')
+
+                # Support flexible character image mapping
+                if 'CHARACTER_IMAGES' in shared_config:
+                    character_images = shared_config['CHARACTER_IMAGES']
+                else:
+                    # Legacy support for MC_AETHER setting
+                    mc_aether = shared_config.get('MC_AETHER', True)
+                    traveler_image = "char_aether" if mc_aether else "char_lumine"
+                    if custom_username:
+                        character_images[custom_username] = traveler_image
+
+    except Exception:
+        pass  # Silently handle config read errors
+
+    # Update character data for occupied slots
+    for slot_idx, char_idx in enumerate(occupied_slots):
+        if char_idx is not None:
+            coords = character_region_manager.current_name_positions[char_idx]
+
+            # Use existing OCR logic with adapted coordinates
+            char_data = capture_and_process_ocr(
+                coords,
+                ALLOWLIST,
+                NAME_CONF_THRESH,
+                ActivityType.LOCATION,  # Placeholder
+                lambda text: search_character_with_custom(text, custom_username, character_images),
+                debug_key=f'CHAR_ADAPT_{char_idx}'
+            )
+
+            if char_data:
+                if current_characters[char_idx] != char_data:
+                    current_characters[char_idx] = char_data
+                    print(f"✅ Detected character {char_idx + 1}: {char_data.character_display_name}")
+            else:
+                current_characters[char_idx] = None
+        else:
+            # Mark empty slots as None
+            char_idx = slot_idx  # Fallback to sequential
+            if char_idx < 4:
+                current_characters[char_idx] = None
+
+    # Log adaptation summary
+    if DEBUG_MODE and any(c != 0 for c in confidence_scores):
+        active_slots = [i for i, c in enumerate(confidence_scores) if c > 0]
+        print(f"🎯 Active character slots detected: {active_slots}")
+
+def search_character_with_custom(text, custom_username, character_images=None):
+    """Search for character, checking custom name first, then database"""
+    # First check if text matches custom username
+    if custom_username and text.strip().lower() == custom_username.strip().lower():
+        # Create a custom character entry with flexible image key
+        from datatypes import Character
+
+        # Use custom image key if provided, otherwise default to traveler
+        if character_images and custom_username in character_images:
+            image_key = character_images[custom_username]
+        else:
+            # Default to traveler image based on legacy MC_AETHER setting
+            image_key = "char_aether"  # Default fallback
+
+        return Character(
+            character_display_name=custom_username,
+            image_key=image_key,
+            search_str=text.lower()
+        )
+
+    # Fall back to database lookup
+    return DATA.search_character(text)
+
 def get_party_info_string():
     """Generate party info string for Discord RPC."""
     party_members = []
@@ -538,6 +1041,21 @@ reader = ocr_engine.Reader(["en"], gpu=USE_GPU)
 print("OCR started.")
 print("_______________________________________________________________")
 
+# Print adaptive system status
+print("🎯 Character Adaptive OCR System Status:")
+print(f"   Adaptation enabled: {character_region_manager.adaptation_enabled}")
+print(f"   Max vertical shift: {character_region_manager.max_vertical_shift}px")
+print(f"   Movement step: {character_region_manager.movement_step}px")
+print(f"   Base coordinates: {character_region_manager.base_name_positions}")
+print("✅ Adaptive character detection system initialized!")
+print("💡 Use command line arguments to control the system:")
+print("   python main.py reset_char_positions")
+print("   python main.py log_char_status")
+print("   python main.py disable_char_adaptation")
+print("   python main.py enable_char_adaptation")
+print("   python main.py test_char_adaptation")
+print("_______________________________________________________________")
+
 pause_ocr = False
 """
 Set to true when genshin is minimized.
@@ -588,13 +1106,15 @@ while True:
         continue
 
     try:
+        # Use adaptive number coordinates that stay paired with name positions
+        adaptive_number_coords = character_region_manager.get_adaptive_number_coordinates()
         charnumber_cap = [
             ImageGrab.grab(
                 bbox=(
-                    NUMBER_4P_COORD[i][0],
-                    NUMBER_4P_COORD[i][1],
-                    NUMBER_4P_COORD[i][0] + 1,
-                    NUMBER_4P_COORD[i][1] + 1,
+                    adaptive_number_coords[i][0],
+                    adaptive_number_coords[i][1],
+                    adaptive_number_coords[i][0] + 1,
+                    adaptive_number_coords[i][1] + 1,
                 )
             ).getpixel((0, 0))
             for i in range(4)
@@ -607,12 +1127,23 @@ while True:
         continue
 
     charnumber_brightness = [sum(rgb) for rgb in charnumber_cap]
+
+    # Debug: Log brightness values to see what's happening
+    if DEBUG_MODE and loop_count % 50 == 0:  # Log every 5 seconds
+        print(f"🔍 Active Character Debug - Brightness: {charnumber_brightness}")
+        print(f"🔍 Active Character Debug - Threshold: {ACTIVE_CHARACTER_THRESH}")
+        print(f"🔍 Active Character Debug - Adaptive Coords: {character_region_manager.get_adaptive_number_coordinates()}")
+
     active_character = [
         idx
         for idx, bri in enumerate(charnumber_brightness)
         if bri < ACTIVE_CHARACTER_THRESH
     ]
     found_active_character = len(active_character) == 1
+
+    # Debug: Log active character detection results
+    if DEBUG_MODE and loop_count % 50 == 0:  # Log every 5 seconds
+        print(f"🔍 Active Character Detection: found={found_active_character}, candidates={active_character}")
 
     # Dynamic sleep timing based on game state for better CPU efficiency
     if not found_active_character:
@@ -669,31 +1200,24 @@ while True:
 
     # _____________________________________________________________________
     #
-    # CAPTURE PARTY MEMBERS
+    # CAPTURE PARTY MEMBERS (ADAPTIVE)
     # _____________________________________________________________________
 
     if (
         loop_count % OCR_CHARNAMES_ONE_IN == 0
         or len([a for a in current_characters if a == None]) > 0
         or reload_party_flag
+        or character_region_manager.needs_redetection
     ):
         reload_party_flag = False
+        character_region_manager.needs_redetection = False
 
-        for character_index in range(4):
-            char_data = capture_and_process_ocr(
-                NAMES_4P_COORD[character_index],
-                ALLOWLIST,
-                NAME_CONF_THRESH,
-                ActivityType.LOCATION,  # Placeholder, not used for characters
-                lambda text: DATA.search_character(text),
-                debug_key='CHARNAME'
-            )
-            if char_data and (current_characters[character_index] == None or char_data != current_characters[character_index]):
-                current_characters[character_index] = char_data
-                char_log = f"Detected character {character_index + 1}: {char_data.character_display_name}"
-                if char_log != _last_character_logs[character_index]:
-                    print(char_log)
-                    _last_character_logs[character_index] = char_log
+        # Use adaptive character detection
+        detect_characters_with_adaptation()
+
+        # Log adaptation status periodically for debugging
+        if loop_count % 300 == 0:  # Every 5 minutes
+            character_region_manager.log_status()
 
         # _____________________________________________________________________
         #
@@ -1051,7 +1575,14 @@ while True:
                 'current_characters': characters_dict,
                 'current_active_character': current_active_character,
                 'game_start_time': game_start_time,
-                'pause_ocr': pause_ocr
+                'pause_ocr': pause_ocr,
+                # Include adapted coordinates in the frequently updated file
+                'adapted_coordinates': {
+                    'ADAPTED_NAMES_4P_COORD': character_region_manager.current_name_positions.copy(),
+                    'ADAPTED_NUMBER_4P_COORD': character_region_manager.current_number_positions.copy(),
+                    'ADAPTATION_ACTIVE': character_region_manager.adaptation_enabled,
+                    'OCCUPIED_SLOTS': character_region_manager.occupied_slots.copy()
+                }
             }
             with open(shared_file, 'w') as f:
                 json.dump(data_to_write, f)

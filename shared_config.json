@@ -1,0 +1,124 @@
+{
+    "USERNAME": "Minecraft",
+    "MC_AETHER": true,
+    "WANDERER_NAME": "Wanderer",
+    "GAME_RESOLUTION": 1080,
+    "USE_GPU": true,
+    "ADAPTED_NAMES_4P_COORD": [
+        [
+            1624,
+            250,
+            1774,
+            306
+        ],
+        [
+            1624,
+            334,
+            1774,
+            390
+        ],
+        [
+            1624,
+            441,
+            1774,
+            498
+        ],
+        [
+            1624,
+            529,
+            1774,
+            585
+        ]
+    ],
+    "ADAPTED_NUMBER_4P_COORD": [
+        [
+            1863,
+            267
+        ],
+        [
+            1863,
+            361
+        ],
+        [
+            1863,
+            458
+        ],
+        [
+            1863,
+            551
+        ]
+    ],
+    "ADAPTATION_ACTIVE": true,
+    "ADAPTATION_HISTORY": [
+        {
+            "slot": 0,
+            "original_coords": [
+                1624,
+                240,
+                1774,
+                296
+            ],
+            "adapted_coords": [
+                1624,
+                235,
+                1774,
+                291
+            ],
+            "timestamp": 1760221492.1234202
+        },
+        {
+            "slot": 0,
+            "original_coords": [
+                1624,
+                240,
+                1774,
+                296
+            ],
+            "adapted_coords": [
+                1624,
+                250,
+                1774,
+                306
+            ],
+            "timestamp": 1760221497.89456
+        },
+        {
+            "slot": 2,
+            "original_coords": [
+                1624,
+                431,
+                1774,
+                488
+            ],
+            "adapted_coords": [
+                1624,
+                441,
+                1774,
+                498
+            ],
+            "timestamp": 1760221500.2742255
+        },
+        {
+            "slot": 2,
+            "original_coords": [
+                1624,
+                431,
+                1774,
+                488
+            ],
+            "adapted_coords": [
+                1624,
+                441,
+                1774,
+                498
+            ],
+            "timestamp": 1760221506.7758853
+        }
+    ],
+    "OCCUPIED_SLOTS": [
+        0,
+        1,
+        2,
+        3
+    ]
+}

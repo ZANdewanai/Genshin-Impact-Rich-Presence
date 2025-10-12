@@ -90,94 +90,147 @@ class Config:
         self.INACTIVE_COOLDOWN = 60
         self.ALLOWLIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' -"
         
-        # Update coordinates based on resolution
-        self.update_coordinates()
+        # Update coordinates based on resolution - defer until GUI is initialized
+        # self.update_coordinates()  # Moved to after shared_data_file is set
     
-    def update_coordinates(self):
-        """Update screen coordinates based on resolution
-        
-        This method calculates UI element positions for any resolution that's a multiple of 1080p.
-        The coordinates are scaled proportionally based on the height difference from 1080p.
+    def update_coordinates(self, shared_data_file=None):
+        """Update screen coordinates based on resolution or use adapted coordinates from main.py
+
+        This method first tries to load adapted coordinates from gui_shared_data.json.
+        If no adapted coordinates are found, it falls back to calculating coordinates based on resolution.
         """
+        # Try to load adapted coordinates from shared data file first
+        adapted_coords = None
+
+        if shared_data_file and os.path.exists(shared_data_file):
+            try:
+                with open(shared_data_file, 'r') as f:
+                    shared_data = json.load(f)
+
+                # Check if adapted coordinates are available
+                if 'adapted_coordinates' in shared_data:
+                    adapted_coords = shared_data['adapted_coordinates']
+                    if 'ADAPTED_NAMES_4P_COORD' in adapted_coords and 'ADAPTED_NUMBER_4P_COORD' in adapted_coords:
+                        print(f"📍 Using adapted coordinates from shared data file")
+                    else:
+                        print(f"📍 No adapted coordinates found in shared data file, using calculated coordinates")
+                else:
+                    print(f"📍 No adapted coordinates section in shared data file, using calculated coordinates")
+            except Exception as e:
+                print(f"📍 Error loading shared data file: {e}, using calculated coordinates")
+
         # Base resolution (1080p)
         BASE_HEIGHT = 1080
-        
         scale = self.GAME_RESOLUTION / BASE_HEIGHT
-        
-        # Define base coordinates for 1080p
-        if self.GAME_RESOLUTION == 1080:
-            # 1080p coordinates (base)
-            self.CHARACTER_NUMBER_COORDINATES = [
-                (2484, 356),   # Char 1
-                (2484, 481),   # Char 2
-                (2484, 610),   # Char 3
-                (2484, 735),   # Char 4
-            ]
 
-            self.CHARACTER_NAME_COORDINATES = [
-                (2166, 320, 2365, 395),  # Char 1
-                (2166, 445, 2365, 520),  # Char 2
-                (2166, 575, 2365, 650),  # Char 3
-                (2166, 705, 2365, 780),  # Char 4
-            ]
+        if adapted_coords:
+            # Use adapted coordinates from main.py
+            self.CHARACTER_NAME_COORDINATES = adapted_coords['ADAPTED_NAMES_4P_COORD']
+            self.CHARACTER_NUMBER_COORDINATES = adapted_coords['ADAPTED_NUMBER_4P_COORD']
 
-            self.BOSS_COORDINATES = (943, 6, 1614, 66)
-            self.LOCATION_COORDINATES = (702, 240, 1838, 345)
-            
+            # For other coordinates, still use calculated values since they're not adapted
+            # Define base coordinates for 1080p
+            if self.GAME_RESOLUTION == 1080:
+                self.BOSS_COORDINATES = (943, 6, 1614, 66)
+                self.LOCATION_COORDINATES = (702, 240, 1838, 345)
+            else:
+                # Scale other coordinates for different resolutions
+                self.BOSS_COORDINATES = (
+                    int(943 * scale),   # x1
+                    int(6 * scale),     # y1
+                    int(1614 * scale),  # x2
+                    int(66 * scale)     # y2
+                )
+                self.LOCATION_COORDINATES = (
+                    int(702 * scale),    # x1
+                    int(240 * scale),    # y1
+                    int(1838 * scale),   # x2
+                    int(345 * scale)     # y2
+                )
         else:
-            # For other resolutions, scale from 1080p coordinates
-            # Character number coordinates (for active character detection)
-            self.CHARACTER_NUMBER_COORDINATES = [
-                (int(2484 * scale), int(356 * scale)),  # Char 1
-                (int(2484 * scale), int(610 * scale)),  # Char 3
-                (int(2484 * scale), int(735 * scale)),  # Char 4
-            ]
-            
-            # Character name coordinates
-            self.CHARACTER_NAME_COORDINATES = [
-                (
-                    int(2166 * scale),  # x1
-                    int(320 * scale),   # y1
-                    int(2365 * scale),  # x2
-                    int(395 * scale)    # y2
-                ),
-                (
-                    int(2166 * scale),
-                    int(445 * scale),
-                    int(2365 * scale),
-                    int(520 * scale)
-                ),
-                (
-                    int(2166 * scale),
-                    int(575 * scale),
-                    int(2365 * scale),
-                    int(650 * scale)
-                ),
-                (
-                    int(2166 * scale),
-                    int(705 * scale),
-                    int(2365 * scale),
-                    int(780 * scale)
-                ),
-            ]
+            # Use original calculated coordinates
+            # Define base coordinates for 1080p
+            if self.GAME_RESOLUTION == 1080:
+                # 1080p coordinates (base)
+                self.CHARACTER_NUMBER_COORDINATES = [
+                    (2484, 356),   # Char 1
+                    (2484, 481),   # Char 2
+                    (2484, 610),   # Char 3
+                    (2484, 735),   # Char 4
+                ]
 
-            # Other UI element coordinates
-            self.BOSS_COORDINATES = (
-                int(943 * scale),   # x1
-                int(6 * scale),     # y1
-                int(1614 * scale),  # x2
-                int(66 * scale)     # y2
-            )
+                self.CHARACTER_NAME_COORDINATES = [
+                    (2166, 320, 2365, 395),  # Char 1
+                    (2166, 445, 2365, 520),  # Char 2
+                    (2166, 575, 2365, 650),  # Char 3
+                    (2166, 705, 2365, 780),  # Char 4
+                ]
 
-            self.LOCATION_COORDINATES = (
-                int(702 * scale),    # x1
-                int(240 * scale),    # y1
-                int(1838 * scale),   # x2
-                int(345 * scale)     # y2
-            )
-        
+                self.BOSS_COORDINATES = (943, 6, 1614, 66)
+                self.LOCATION_COORDINATES = (702, 240, 1838, 345)
+
+            else:
+                # For other resolutions, scale from 1080p coordinates
+                # Character number coordinates (for active character detection)
+                self.CHARACTER_NUMBER_COORDINATES = [
+                    (int(2484 * scale), int(356 * scale)),  # Char 1
+                    (int(2484 * scale), int(610 * scale)),  # Char 3
+                    (int(2484 * scale), int(735 * scale)),  # Char 4
+                ]
+
+                # Character name coordinates
+                self.CHARACTER_NAME_COORDINATES = [
+                    (
+                        int(2166 * scale),  # x1
+                        int(320 * scale),   # y1
+                        int(2365 * scale),  # x2
+                        int(395 * scale)    # y2
+                    ),
+                    (
+                        int(2166 * scale),
+                        int(445 * scale),
+                        int(2365 * scale),
+                        int(520 * scale)
+                    ),
+                    (
+                        int(2166 * scale),
+                        int(575 * scale),
+                        int(2365 * scale),
+                        int(650 * scale)
+                    ),
+                    (
+                        int(2166 * scale),
+                        int(705 * scale),
+                        int(2365 * scale),
+                        int(780 * scale)
+                    ),
+                ]
+
+                # Other UI element coordinates
+                self.BOSS_COORDINATES = (
+                    int(943 * scale),   # x1
+                    int(6 * scale),     # y1
+                    int(1614 * scale),  # x2
+                    int(66 * scale)     # y2
+                )
+
+                self.LOCATION_COORDINATES = (
+                    int(702 * scale),    # x1
+                    int(240 * scale),    # y1
+                    int(1838 * scale),   # x2
+                    int(345 * scale)     # y2
+                )
+
         # Log the current resolution and scale factor
         print(f"Resolution set to: {self.GAME_RESOLUTION}p (Scale factor: {scale:.2f})")
+
+        # Log coordinate source
+        if adapted_coords:
+            print("📍 Using ADAPTED coordinates from main.py:")
+            print(f"   Character names: {self.CHARACTER_NAME_COORDINATES}")
+            print(f"   Character numbers: {self.CHARACTER_NUMBER_COORDINATES}")
+        else:
+            print("📍 Using CALCULATED coordinates based on resolution")
     
     def _get_config_path(self, filename: str = "config.json") -> str:
         """Get the full path to the config file in AppData"""
@@ -217,6 +270,23 @@ class Config:
                 print(f"Error loading config: {e}")
         return False
 
+    def _load_shared_config(self):
+        """Load configuration from current directory shared_config.json (used by main.py)"""
+        shared_config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shared_config.json')
+        if os.path.exists(shared_config_path):
+            try:
+                with open(shared_config_path, 'r') as f:
+                    shared_config = json.load(f)
+                    # Update config with shared config values (these take precedence)
+                    for key in ['USERNAME', 'MC_AETHER', 'WANDERER_NAME', 'GAME_RESOLUTION', 'USE_GPU']:
+                        if key in shared_config:
+                            setattr(self, key, shared_config[key])
+                            print(f"Loaded {key} from shared config: {shared_config[key]}")
+                return True
+            except Exception as e:
+                print(f"Error loading shared config: {e}")
+        return False
+
 # ==========================================
 # Main Application
 # ==========================================
@@ -232,7 +302,8 @@ class GenshinRichPresenceApp(QMainWindow):
 
         # Initialize configuration
         self.config = Config()
-        self.config.load_from_file()  # This will try to load from AppData
+        self.config.load_from_file()  # This loads from AppData, but we also need current directory
+        self.config._load_shared_config()  # Load from current directory shared_config.json
 
         # Initialize app state
         self.running = False
@@ -265,112 +336,255 @@ class GenshinRichPresenceApp(QMainWindow):
         # Image cache for downloaded images
         self.image_cache = {}
 
+        # Start a timer to periodically check for coordinate updates
+        self.coordinate_update_timer = QTimer()
+        self.coordinate_update_timer.timeout.connect(self._check_for_coordinate_updates)
+        self.coordinate_update_timer.start(5000)  # Check every 5 seconds
+
+        # Now that shared_data_file is set, update coordinates
+        self.config.update_coordinates(self.shared_data_file)
+
+        # Create tab widgets first
+        self.main_tab = QWidget()
+        self.config_tab = QWidget()
+        self.roaster_tab = QWidget()
+        self.about_tab = QWidget()
+
+        # Create tab widget
+        self.tab_widget = QTabWidget()
+
         # Setup UI
         self.setWindowTitle("Genshin Impact Rich Presence v2.6")
         self.setGeometry(100, 100, 900, 700)
         self.setWindowIcon(QIcon("images/ApplicatonIcon.ico"))
 
-        # Set dark theme
+        # Create main layout and central widget
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        main_content_layout = QVBoxLayout(self.central_widget)
+
+        # Clean minimalist dark theme styling
         self.setStyleSheet("""
             QMainWindow {
-                background-color: #2c3e50;
+                background: #2f3136;
             }
+
             QTabWidget::pane {
-                border: 1px solid #34495e;
-                background-color: #34495e;
+                border: 1px solid #202225;
+                background: #36393f;
+                border-radius: 6px;
+                margin: 0px;
             }
+
             QTabBar::tab {
-                background-color: #34495e;
-                color: #ecf0f1;
-                padding: 10px;
-                border: 1px solid #34495e;
+                background: #2f3136;
+                color: #b9bbbe;
+                border: 1px solid #202225;
+                border-bottom: none;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+                padding: 10px 16px;
+                margin-right: 2px;
+                font-size: 12px;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             }
+
             QTabBar::tab:selected {
-                background-color: #3498db;
+                background: #36393f;
                 color: #ffffff;
+                border-color: #ffffff;
             }
+
+            QTabBar::tab:hover:!selected {
+                background: #40444b;
+                color: #dcddde;
+            }
+
+            QFrame {
+                background: #36393f;
+                border: 1px solid #202225;
+                border-radius: 4px;
+            }
+
             QLabel {
-                color: #ecf0f1;
+                color: #dcddde;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             }
+
+            QLineEdit {
+                background: #202225;
+                color: #dcddde;
+                border: 1px solid #202225;
+                border-radius: 3px;
+                padding: 6px 10px;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-size: 12px;
+                selection-background-color: #ffffff;
+            }
+
+            QLineEdit:focus {
+                border-color: #ffffff;
+                background: #2f3136;
+            }
+
+            QLineEdit:hover {
+                border-color: #40444b;
+            }
+
+            QComboBox {
+                background: #202225;
+                color: #dcddde;
+                border: 1px solid #202225;
+                border-radius: 3px;
+                padding: 6px 10px;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-size: 12px;
+                selection-background-color: #ffffff;
+            }
+
+            QComboBox:hover {
+                border-color: #40444b;
+            }
+
+            QComboBox:focus {
+                border-color: #ffffff;
+            }
+
+            QComboBox::drop-down {
+                border: none;
+                width: 16px;
+                margin-right: 6px;
+            }
+
+            QComboBox::down-arrow {
+                image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xIDFMNiA2TDEwIDEiIHN0cm9rZT0iI2I5YmJiZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+);
+                width: 12px;
+                height: 8px;
+            }
+
+            QComboBox QAbstractItemView {
+                background: #2f3136;
+                color: #dcddde;
+                selection-background: #ffffff;
+                border: 1px solid #202225;
+                border-radius: 3px;
+                outline: none;
+            }
+
             QPushButton {
-                background-color: #27ae60;
+                background: #4f5660;
                 color: #ffffff;
                 border: none;
-                padding: 10px 20px;
-                border-radius: 5px;
+                border-radius: 3px;
+                padding: 8px 16px;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-size: 12px;
+                font-weight: 500;
             }
+
             QPushButton:hover {
-                background-color: #2ecc71;
+                background: #5d6b7a;
             }
+
             QPushButton:pressed {
-                background-color: #229954;
+                background: #3e4449;
             }
+
+            QCheckBox {
+                color: #b9bbbe;
+                spacing: 6px;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-size: 12px;
+            }
+
+            QCheckBox::indicator {
+                width: 16px;
+                height: 16px;
+                border: 1px solid #202225;
+                border-radius: 2px;
+                background: #2f3136;
+            }
+
+            QCheckBox::indicator:checked {
+                background: #4f5660;
+                border-color: #4f5660;
+                image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIgM1Y0LjVMNS41OCA5SDdMMTAgMkw5IDFMNiA2LjVMNSA1LjVMNyAySDJWM1oiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg==);
+            }
+
+            QCheckBox::indicator:hover {
+                border-color: #40444b;
+            }
+
             QTextEdit {
-                background-color: #34495e;
-                color: #ecf0f1;
-                border: 1px solid #34495e;
+                background: #202225;
+                color: #dcddde;
+                border: 1px solid #202225;
+                border-radius: 3px;
+                padding: 10px;
+                font-family: 'Consolas', 'Courier New', monospace;
+                font-size: 11px;
+                selection-background-color: #ffffff;
+            }
+
+            QTextEdit:focus {
+                border-color: #ffffff;
+            }
+
+            /* Scrollbar styling */
+            QScrollBar:vertical {
+                border: 1px solid #202225;
+                background: #2f3136;
+                width: 12px;
+                border-radius: 6px;
+            }
+
+            QScrollBar::handle:vertical {
+                background: #4f5660;
+                border-radius: 5px;
+                min-height: 18px;
+            }
+
+            QScrollBar::handle:vertical:hover {
+                background: #5d6b7a;
+            }
+
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                border: none;
+                background: none;
+            }
+
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+                background: none;
             }
         """)
-
-        # Create central widget and layout
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        main_layout = QHBoxLayout(central_widget)
+        # Create main content area with sidebar and tab widget
+        main_content = QWidget()
+        main_content_layout_inner = QHBoxLayout(main_content)
 
         # Create sidebar
         self._create_sidebar()
-        main_layout.addWidget(self.sidebar_widget, 0)
-        main_layout.addLayout(self._create_main_content(), 1)
 
-        # Check dependencies on startup (removed)
+        # Add sidebar and tab widget to main layout
+        main_content_layout_inner.addWidget(self.sidebar_widget, 0)
+        main_content_layout_inner.addWidget(self.tab_widget, 1)
 
-        # Start RPC thread - GUI will handle Discord updates using subprocess data
-        self._start_rpc_thread()
+        # Add stretch to push everything to the top
+        main_content_layout_inner.setStretchFactor(self.sidebar_widget, 0)
+        main_content_layout_inner.setStretchFactor(self.tab_widget, 1)
 
-    def _create_main_content(self):
-        """Create the main content area with tabs"""
-        main_content_layout = QVBoxLayout()
+        main_content_layout.addWidget(main_content)
 
-        # Create tab widget
-        self.tab_widget = QTabWidget()
-        self.tab_widget.setStyleSheet("""
-            QTabWidget::pane {
-                border: 1px solid #34495e;
-                background-color: #34495e;
-            }
-            QTabBar::tab {
-                background-color: #34495e;
-                color: #ecf0f1;
-                padding: 10px;
-                border: 1px solid #34495e;
-                margin-right: 2px;
-            }
-            QTabBar::tab:selected {
-                background-color: #3498db;
-                color: #ffffff;
-            }
-            QTabBar::tab:hover {
-                background-color: #2980b9;
-            }
-        """)
-
-        # Create tabs
-        self.main_tab = QWidget()
-        self.config_tab = QWidget()
-        self.about_tab = QWidget()
-
-        self.tab_widget.addTab(self.main_tab, "Main")
-        self.tab_widget.addTab(self.config_tab, "Configuration")
-        self.tab_widget.addTab(self.about_tab, "About")
-
-        main_content_layout.addWidget(self.tab_widget)
-
-        # Setup tab contents
+        # Setup tab contents and add tabs to tab widget
         self._setup_main_tab()
         self._setup_config_tab()
+        self._setup_roaster_tab()
         self._setup_about_tab()
 
-        return main_content_layout
+        # Add tabs to tab widget
+        self.tab_widget.addTab(self.main_tab, "Main")
+        self.tab_widget.addTab(self.config_tab, "Configuration")
+        self.tab_widget.addTab(self.roaster_tab, "Character Roster")
+        self.tab_widget.addTab(self.about_tab, "About")
 
     # Remove text-based mode code as PyQt5 is available
     # def _run_text_based_mode(self): ... (removed)
@@ -386,8 +600,8 @@ class GenshinRichPresenceApp(QMainWindow):
         self.sidebar_widget.setFixedWidth(180)
         self.sidebar_widget.setStyleSheet("""
             QWidget {
-                background-color: #34495e;
-                border-right: 2px solid #2c3e50;
+                background: #2f3136;
+                border-right: 1px solid #202225;
             }
         """)
 
@@ -396,7 +610,7 @@ class GenshinRichPresenceApp(QMainWindow):
         # Logo and title
         logo_label = QLabel("Genshin Impact\nRich Presence")
         logo_label.setFont(QFont("Arial", 16, QFont.Bold))
-        logo_label.setStyleSheet("color: #ecf0f1; padding: 10px;")
+        logo_label.setStyleSheet("color: #ffffff; padding: 10px;")
         logo_label.setAlignment(Qt.AlignCenter)
         sidebar_layout.addWidget(logo_label)
 
@@ -408,18 +622,18 @@ class GenshinRichPresenceApp(QMainWindow):
         self.start_button.setFont(QFont("Arial", 10, QFont.Bold))
         self.start_button.setStyleSheet("""
             QPushButton {
-                background-color: #27ae60;
+                background: #4f5660;
                 color: #ffffff;
                 border: none;
-                padding: 15px;
-                border-radius: 8px;
+                padding: 12px 16px;
+                border-radius: 4px;
                 margin: 5px;
             }
             QPushButton:hover {
-                background-color: #2ecc71;
+                background: #5d6b7a;
             }
             QPushButton:pressed {
-                background-color: #229954;
+                background: #3e4449;
             }
         """)
         self.start_button.clicked.connect(self.toggle_rpc)
@@ -428,14 +642,14 @@ class GenshinRichPresenceApp(QMainWindow):
         # Status indicator
         self.status_label = QLabel("Status: Stopped")
         self.status_label.setFont(QFont("Arial", 9, QFont.Bold))
-        self.status_label.setStyleSheet("color: #e74c3c; padding: 5px; margin: 5px;")
+        self.status_label.setStyleSheet("color: #b9bbbe; padding: 5px; margin: 5px;")
         self.status_label.setAlignment(Qt.AlignCenter)
         sidebar_layout.addWidget(self.status_label)
 
         # Current activity
         self.activity_label = QLabel("Activity: Not running")
         self.activity_label.setFont(QFont("Arial", 8))
-        self.activity_label.setStyleSheet("color: #bdc3c7; padding: 5px; margin: 5px;")
+        self.activity_label.setStyleSheet("color: #b9bbbe; padding: 5px; margin: 5px;")
         self.activity_label.setWordWrap(True)
         self.activity_label.setAlignment(Qt.AlignCenter)
         sidebar_layout.addWidget(self.activity_label)
@@ -446,7 +660,7 @@ class GenshinRichPresenceApp(QMainWindow):
         # Version info
         version_label = QLabel("v2.6")
         version_label.setFont(QFont("Arial", 10))
-        version_label.setStyleSheet("color: #7f8c8d; padding: 10px;")
+        version_label.setStyleSheet("color: #b9bbbe; padding: 10px;")
         version_label.setAlignment(Qt.AlignCenter)
         sidebar_layout.addWidget(version_label)
     
@@ -457,7 +671,7 @@ class GenshinRichPresenceApp(QMainWindow):
         # Title
         title_label = QLabel("Genshin Impact Rich Presence")
         title_label.setFont(QFont("Arial", 18, QFont.Bold))
-        title_label.setStyleSheet("color: #ecf0f1; padding: 10px; margin: 10px;")
+        title_label.setStyleSheet("color: #ffffff; padding: 10px; margin: 10px;")
         main_layout.addWidget(title_label)
 
         # Status frame
@@ -465,9 +679,9 @@ class GenshinRichPresenceApp(QMainWindow):
         status_frame.setFrameStyle(QFrame.Box)
         status_frame.setStyleSheet("""
             QFrame {
-                background-color: #34495e;
-                border: 1px solid #2c3e50;
-                border-radius: 8px;
+                background: #36393f;
+                border: 1px solid #202225;
+                border-radius: 6px;
                 margin: 10px;
             }
         """)
@@ -486,19 +700,19 @@ class GenshinRichPresenceApp(QMainWindow):
             # Image placeholder (will be updated dynamically)
             img_label = QLabel("")
             img_label.setFixedSize(32, 32)
-            img_label.setStyleSheet("border: 1px solid #2c3e50; background-color: #2c3e50;")
+            img_label.setStyleSheet("border: 1px solid #202225; background: #2f3136;")
             status_layout.addWidget(img_label, i, 0)
 
             # Label
             lbl = QLabel(label)
             lbl.setFont(QFont("Arial", 10, QFont.Bold))
-            lbl.setStyleSheet("color: #ecf0f1;")
+            lbl.setStyleSheet("color: #b9bbbe;")
             status_layout.addWidget(lbl, i, 1)
 
             # Value
             value_label = QLabel(value)
             value_label.setFont(QFont("Arial", 9))
-            value_label.setStyleSheet("color: #bdc3c7; padding-left: 10px;")
+            value_label.setStyleSheet("color: #b9bbbe; padding-left: 10px;")
             status_layout.addWidget(value_label, i, 2)
 
             # Store references for updating
@@ -510,17 +724,17 @@ class GenshinRichPresenceApp(QMainWindow):
 
         log_label = QLabel("Activity Log:")
         log_label.setFont(QFont("Arial", 12, QFont.Bold))
-        log_label.setStyleSheet("color: #ecf0f1; padding: 5px; margin: 10px 10px 5px 10px;")
+        log_label.setStyleSheet("color: #ffffff; padding: 5px; margin: 10px 10px 5px 10px;")
         main_layout.addWidget(log_label)
 
         self.log_text = QTextEdit()
         self.log_text.setMaximumHeight(150)
         self.log_text.setStyleSheet("""
             QTextEdit {
-                background-color: #34495e;
-                color: #ecf0f1;
-                border: 1px solid #2c3e50;
-                border-radius: 5px;
+                background: #202225;
+                color: #dcddde;
+                border: 1px solid #202225;
+                border-radius: 4px;
                 padding: 10px;
                 margin: 5px 10px 10px 10px;
             }
@@ -537,7 +751,7 @@ class GenshinRichPresenceApp(QMainWindow):
         # Title
         title_label = QLabel("Configuration")
         title_label.setFont(QFont("Arial", 18, QFont.Bold))
-        title_label.setStyleSheet("color: #ecf0f1; padding: 10px; margin: 10px;")
+        title_label.setStyleSheet("color: #ffffff; padding: 10px; margin: 10px;")
         config_layout.addWidget(title_label)
 
         # Create main config frame
@@ -545,9 +759,9 @@ class GenshinRichPresenceApp(QMainWindow):
         config_frame.setFrameStyle(QFrame.Box)
         config_frame.setStyleSheet("""
             QFrame {
-                background-color: #34495e;
-                border: 1px solid #2c3e50;
-                border-radius: 8px;
+                background: #36393f;
+                border: 1px solid #202225;
+                border-radius: 6px;
                 margin: 10px;
             }
         """)
@@ -557,9 +771,9 @@ class GenshinRichPresenceApp(QMainWindow):
         user_frame = QFrame()
         user_frame.setStyleSheet("""
             QFrame {
-                background-color: #2c3e50;
-                border: 1px solid #34495e;
-                border-radius: 5px;
+                background: #2f3136;
+                border: 1px solid #202225;
+                border-radius: 4px;
                 margin: 5px;
             }
         """)
@@ -567,24 +781,28 @@ class GenshinRichPresenceApp(QMainWindow):
 
         user_label = QLabel("User Settings")
         user_label.setFont(QFont("Arial", 14, QFont.Bold))
-        user_label.setStyleSheet("color: #ecf0f1; padding: 10px;")
+        user_label.setStyleSheet("color: #ffffff; padding: 10px;")
         user_layout.addWidget(user_label)
 
         # Username
         username_layout = QHBoxLayout()
         username_label = QLabel("Username:")
         username_label.setFont(QFont("Arial", 10))
-        username_label.setStyleSheet("color: #ecf0f1; padding: 5px;")
+        username_label.setStyleSheet("color: #b9bbbe; padding: 5px;")
         username_layout.addWidget(username_label)
 
         self.username_entry = QLineEdit(self.config.USERNAME)
         self.username_entry.setStyleSheet("""
             QLineEdit {
-                background-color: #34495e;
-                color: #ecf0f1;
-                border: 1px solid #2c3e50;
+                background: #202225;
+                color: #dcddde;
+                border: 1px solid #202225;
                 border-radius: 3px;
-                padding: 5px;
+                padding: 6px 10px;
+            }
+            QLineEdit:focus {
+                border-color: #ffffff;
+                background: #2f3136;
             }
         """)
         username_layout.addWidget(self.username_entry)
@@ -594,7 +812,7 @@ class GenshinRichPresenceApp(QMainWindow):
         mc_layout = QHBoxLayout()
         mc_label = QLabel("Main Character:")
         mc_label.setFont(QFont("Arial", 10))
-        mc_label.setStyleSheet("color: #ecf0f1; padding: 5px;")
+        mc_label.setStyleSheet("color: #b9bbbe; padding: 5px;")
         mc_layout.addWidget(mc_label)
 
         self.mc_combo = QComboBox()
@@ -602,11 +820,30 @@ class GenshinRichPresenceApp(QMainWindow):
         self.mc_combo.setCurrentText("Aether (Male)" if self.config.MC_AETHER else "Lumine (Female)")
         self.mc_combo.setStyleSheet("""
             QComboBox {
-                background-color: #34495e;
-                color: #ecf0f1;
-                border: 1px solid #2c3e50;
+                background: #202225;
+                color: #dcddde;
+                border: 1px solid #202225;
                 border-radius: 3px;
-                padding: 5px;
+                padding: 6px 10px;
+            }
+            QComboBox:hover {
+                border-color: #40444b;
+            }
+            QComboBox:focus {
+                border-color: #ffffff;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 16px;
+                margin-right: 6px;
+            }
+            QComboBox QAbstractItemView {
+                background: #2f3136;
+                color: #dcddde;
+                selection-background: #ffffff;
+                border: 1px solid #202225;
+                border-radius: 3px;
+                outline: none;
             }
         """)
         mc_layout.addWidget(self.mc_combo)
@@ -616,17 +853,21 @@ class GenshinRichPresenceApp(QMainWindow):
         wanderer_layout = QHBoxLayout()
         wanderer_label = QLabel("Wanderer Name:")
         wanderer_label.setFont(QFont("Arial", 10))
-        wanderer_label.setStyleSheet("color: #ecf0f1; padding: 5px;")
+        wanderer_label.setStyleSheet("color: #b9bbbe; padding: 5px;")
         wanderer_layout.addWidget(wanderer_label)
 
         self.wanderer_entry = QLineEdit(self.config.WANDERER_NAME)
         self.wanderer_entry.setStyleSheet("""
             QLineEdit {
-                background-color: #34495e;
-                color: #ecf0f1;
-                border: 1px solid #2c3e50;
+                background: #202225;
+                color: #dcddde;
+                border: 1px solid #202225;
                 border-radius: 3px;
-                padding: 5px;
+                padding: 6px 10px;
+            }
+            QLineEdit:focus {
+                border-color: #ffffff;
+                background: #2f3136;
             }
         """)
         wanderer_layout.addWidget(self.wanderer_entry)
@@ -638,9 +879,9 @@ class GenshinRichPresenceApp(QMainWindow):
         perf_frame = QFrame()
         perf_frame.setStyleSheet("""
             QFrame {
-                background-color: #2c3e50;
-                border: 1px solid #34495e;
-                border-radius: 5px;
+                background: #2f3136;
+                border: 1px solid #202225;
+                border-radius: 4px;
                 margin: 5px;
             }
         """)
@@ -648,7 +889,7 @@ class GenshinRichPresenceApp(QMainWindow):
 
         perf_label = QLabel("Performance Settings")
         perf_label.setFont(QFont("Arial", 14, QFont.Bold))
-        perf_label.setStyleSheet("color: #ecf0f1; padding: 10px;")
+        perf_label.setStyleSheet("color: #ffffff; padding: 10px;")
         perf_layout.addWidget(perf_label)
 
         # GPU acceleration toggle
@@ -657,17 +898,25 @@ class GenshinRichPresenceApp(QMainWindow):
         self.gpu_checkbox.setFont(QFont("Arial", 10))
         self.gpu_checkbox.setStyleSheet("""
             QCheckBox {
-                color: #ecf0f1;
-                spacing: 8px;
-                padding: 5px;
+                color: #b9bbbe;
+                spacing: 6px;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-size: 12px;
             }
             QCheckBox::indicator {
-                width: 15px;
-                height: 15px;
+                width: 16px;
+                height: 16px;
+                border: 1px solid #202225;
+                border-radius: 2px;
+                background: #2f3136;
             }
             QCheckBox::indicator:checked {
-                background-color: #27ae60;
-                border: 1px solid #27ae60;
+                background: #4f5660;
+                border-color: #4f5660;
+                image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIgM1Y0LjVMNS41OCA5SDdMMTAgMkw5IDFMNiA2LjVMNSA1LjVMNyAySDJWM1oiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg==);
+            }
+            QCheckBox::indicator:hover {
+                border-color: #40444b;
             }
         """)
         perf_layout.addWidget(self.gpu_checkbox)
@@ -677,26 +926,192 @@ class GenshinRichPresenceApp(QMainWindow):
 
         config_layout.addWidget(config_frame)
 
+        # Status label for save feedback
+        self.config_status_label = QLabel("")
+        self.config_status_label.setFont(QFont("Arial", 10, QFont.Bold))
+        self.config_status_label.setStyleSheet("""
+            QLabel {
+                color: #ffffff;
+                padding: 5px;
+                margin: 5px 10px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid #ffffff;
+                border-radius: 3px;
+            }
+        """)
+        self.config_status_label.setAlignment(Qt.AlignCenter)
+        self.config_status_label.setVisible(False)
+        config_layout.addWidget(self.config_status_label)
+
         # Save button
         save_button = QPushButton("Save Settings")
         save_button.setFont(QFont("Arial", 12, QFont.Bold))
         save_button.setStyleSheet("""
             QPushButton {
-                background-color: #27ae60;
+                background: #4f5660;
                 color: #ffffff;
                 border: none;
-                padding: 15px 30px;
-                border-radius: 8px;
-                margin: 10px;
+                border-radius: 4px;
+                padding: 10px 20px;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-size: 12px;
+                font-weight: 500;
             }
             QPushButton:hover {
-                background-color: #2ecc71;
+                background: #5d6b7a;
             }
         """)
         save_button.clicked.connect(self._save_config)
         config_layout.addWidget(save_button)
 
         config_layout.addStretch()
+    
+    def _setup_roaster_tab(self):
+        """Setup the roaster tab for character image management"""
+        roaster_layout = QVBoxLayout(self.roaster_tab)
+
+        # Title
+        title_label = QLabel("Character Roster")
+        title_label.setFont(QFont("Arial", 18, QFont.Bold))
+        title_label.setStyleSheet("color: #ffffff; padding: 10px; margin: 10px;")
+        roaster_layout.addWidget(title_label)
+
+        # Create main roaster frame
+        roaster_frame = QFrame()
+        roaster_frame.setFrameStyle(QFrame.Box)
+        roaster_frame.setStyleSheet("""
+            QFrame {
+                background: #36393f;
+                border: 1px solid #202225;
+                border-radius: 6px;
+                margin: 10px;
+            }
+        """)
+        roaster_main_layout = QVBoxLayout(roaster_frame)
+
+        # Load current character images from shared config
+        character_images = {}
+        try:
+            shared_config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shared_config.json')
+            if os.path.exists(shared_config_path):
+                with open(shared_config_path, 'r') as f:
+                    shared_config = json.load(f)
+                    character_images = shared_config.get('CHARACTER_IMAGES', {})
+        except Exception:
+            pass  # Silently handle config read errors
+
+        # Character image mapping widget
+        self.character_images_widget = QWidget()
+        self.character_images_widget.setStyleSheet("""
+            QWidget {
+                background: #2f3136;
+                border: 1px solid #202225;
+                border-radius: 4px;
+                padding: 10px;
+            }
+        """)
+        char_images_layout = QVBoxLayout(self.character_images_widget)
+
+        # Instructions
+        instructions = QLabel("Configure custom image keys for Genshin characters.\nUse this for alternate skins, Fatui versions, or other variants.\nTraveler gender is configured in 'Main Character' above.")
+        instructions.setFont(QFont("Arial", 9))
+        instructions.setStyleSheet("color: #b9bbbe; padding: 5px;")
+        instructions.setWordWrap(True)
+        char_images_layout.addWidget(instructions)
+
+        # Character image entries
+        self.char_image_entries = {}
+
+        # Common characters that users might want to customize
+        # These are actual characters from the Genshin roster that can have variants
+        common_characters = ["Aether", "Lumine", "Wanderer", "Diluc", "Kaeya", "Amber"]
+
+        for char_name in common_characters:
+            char_layout = QHBoxLayout()
+
+            char_label = QLabel(f"{char_name}:")
+            char_label.setFont(QFont("Arial", 9))
+            char_label.setStyleSheet("color: #b9bbbe; padding: 3px; min-width: 80px;")
+            char_layout.addWidget(char_label)
+
+            char_entry = QLineEdit(character_images.get(char_name, ""))
+            char_entry.setPlaceholderText("e.g., char_traveler_fatui")
+            char_entry.setStyleSheet("""
+                QLineEdit {
+                    background: #202225;
+                    color: #dcddde;
+                    border: 1px solid #202225;
+                    border-radius: 3px;
+                    padding: 6px 10px;
+                }
+            """)
+            char_layout.addWidget(char_entry)
+
+            self.char_image_entries[char_name] = char_entry
+            char_images_layout.addLayout(char_layout)
+
+        # Add stretch and button to add more characters
+        char_images_layout.addStretch()
+
+        add_char_btn = QPushButton("Add Character")
+        add_char_btn.setFont(QFont("Arial", 8))
+        add_char_btn.setStyleSheet("""
+            QPushButton {
+                background: #4f5660;
+                color: #ffffff;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 3px;
+                margin: 5px;
+            }
+            QPushButton:hover {
+                background: #5d6b7a;
+            }
+        """)
+        add_char_btn.clicked.connect(self._add_character_image_entry)
+        char_images_layout.addWidget(add_char_btn)
+
+        roaster_main_layout.addWidget(self.character_images_widget)
+
+        roaster_layout.addWidget(roaster_frame)
+
+        # Status label for save feedback
+        self.roaster_status_label = QLabel("")
+        self.roaster_status_label.setFont(QFont("Arial", 10, QFont.Bold))
+        self.roaster_status_label.setStyleSheet("""
+            QLabel {
+                color: #ffffff;
+                padding: 5px;
+                margin: 5px 10px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid #ffffff;
+                border-radius: 3px;
+            }
+        """)
+        self.roaster_status_label.setAlignment(Qt.AlignCenter)
+        self.roaster_status_label.setVisible(False)
+        roaster_layout.addWidget(self.roaster_status_label)
+
+        # Save button
+        save_button = QPushButton("Save Character Settings")
+        save_button.setFont(QFont("Arial", 12, QFont.Bold))
+        save_button.setStyleSheet("""
+            QPushButton {
+                background: #4f5660;
+                color: #ffffff;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 4px;
+                margin: 10px;
+            }
+            QPushButton:hover {
+                background: #5d6b7a;
+            }
+        """)
+        save_button.clicked.connect(self._save_roaster_config)
+        roaster_layout.addWidget(save_button)
+
+        roaster_layout.addStretch()
     
     def _setup_about_tab(self):
         """Setup the about tab"""
@@ -705,7 +1120,7 @@ class GenshinRichPresenceApp(QMainWindow):
         # Title
         title_label = QLabel("About Genshin Impact Rich Presence")
         title_label.setFont(QFont("Arial", 18, QFont.Bold))
-        title_label.setStyleSheet("color: #ecf0f1; padding: 10px; margin: 10px;")
+        title_label.setStyleSheet("color: #ffffff; padding: 10px; margin: 10px;")
         about_layout.addWidget(title_label)
 
         # Info text
@@ -729,44 +1144,18 @@ All rights reserved by miHoYo"""
         info_label.setFont(QFont("Arial", 10))
         info_label.setStyleSheet("""
             QLabel {
-                color: #ecf0f1;
+                color: #dcddde;
                 padding: 15px;
                 margin: 10px;
-                background-color: #2c3e50;
-                border: 1px solid #34495e;
-                border-radius: 8px;
+                background: #2f3136;
+                border: 1px solid #202225;
+                border-radius: 6px;
             }
         """)
         info_label.setWordWrap(True)
         about_layout.addWidget(info_label)
 
         about_layout.addStretch()
-    
-    def _on_resolution_change(self, value):
-        """Handle resolution change in the UI"""
-        if value == "Custom":
-            # Show custom resolution dialog using PyQt5
-            from PyQt5.QtWidgets import QInputDialog
-            res_str, ok = QInputDialog.getText(
-                self,
-                "Custom Resolution",
-                "Enter custom resolution height (e.g., 1080):",
-                text="1080"
-            )
-            if ok and res_str:
-                try:
-                    res = int(res_str)
-                    if res > 0:
-                        self.config.GAME_RESOLUTION = res
-                        # Update UI if we had a resolution selector
-                        print(f"Resolution set to: {res}p")
-                except (ValueError, TypeError):
-                    print("Invalid resolution value")
-        else:
-            self.config.GAME_RESOLUTION = int(value)
-
-        # Update coordinates based on new resolution
-        self.config.update_coordinates()
     
     def _save_config(self):
         """Save configuration from UI to config object"""
@@ -775,10 +1164,22 @@ All rights reserved by miHoYo"""
         self.config.WANDERER_NAME = self.wanderer_entry.text()
         self.config.USE_GPU = self.gpu_checkbox.isChecked()
 
+        # Collect character image mappings
+        character_images = {}
+        for char_name, entry in self.char_image_entries.items():
+            image_key = entry.text().strip()
+            if image_key:  # Only include non-empty entries
+                character_images[char_name] = image_key
+
+        # Show saving status
+        self._show_config_status("💾 Saving settings...", "#f39c12", True)
+
         # Save to file
         if self.config.save_to_file():
+            self._show_config_status("✅ Settings saved successfully!", "#2ecc71", True)
             self._log("Configuration saved successfully!")
         else:
+            self._show_config_status("❌ Error: Could not save configuration. Check permissions.", "#e74c3c", True)
             self._log("Error: Could not save configuration. Check permissions.")
             # Try to save to current directory as fallback
             try:
@@ -790,8 +1191,10 @@ All rights reserved by miHoYo"""
                         'GAME_RESOLUTION': self.config.GAME_RESOLUTION,
                         'USE_GPU': self.config.USE_GPU
                     }, f, indent=4)
+                self._show_config_status("✅ Settings saved to current directory!", "#2ecc71", True)
                 self._log("Configuration saved to current directory instead.")
             except Exception as e:
+                self._show_config_status(f"❌ Failed to save: {str(e)}", "#e74c3c", True)
                 self._log(f"Failed to save configuration: {e}")
         
         # Also save to shared config file for subprocess
@@ -804,11 +1207,42 @@ All rights reserved by miHoYo"""
                 'GAME_RESOLUTION': self.config.GAME_RESOLUTION,
                 'USE_GPU': self.config.USE_GPU
             }
+
+            # Add character images if any
+            if character_images:
+                config_dict['CHARACTER_IMAGES'] = character_images
+
             with open(shared_config_file, 'w') as f:
                 json.dump(config_dict, f, indent=4)
             self._log("Shared config updated for subprocess.")
         except Exception as e:
+            self._show_config_status(f"⚠️ Warning: Could not update shared config: {str(e)}", "#f39c12", True)
             self._log(f"Failed to update shared config: {e}")
+    
+    def _show_config_status(self, message: str, color: str, temporary: bool = True):
+        """Show a temporary status message in the configuration tab"""
+        if hasattr(self, 'config_status_label'):
+            self.config_status_label.setText(message)
+            self.config_status_label.setStyleSheet(f"""
+                QLabel {{
+                    color: {color};
+                    padding: 5px;
+                    margin: 5px 10px;
+                    background-color: rgba({color[1:]}, 0.1);
+                    border: 1px solid {color};
+                    border-radius: 3px;
+                }}
+            """)
+            self.config_status_label.setVisible(True)
+
+            if temporary:
+                # Hide the message after 3 seconds
+                QTimer.singleShot(3000, lambda: self._hide_config_status())
+
+    def _hide_config_status(self):
+        """Hide the configuration status label"""
+        if hasattr(self, 'config_status_label'):
+            self.config_status_label.setVisible(False)
     
     def _log(self, message: str):
         """Add a message to the log"""
@@ -859,6 +1293,7 @@ All rights reserved by miHoYo"""
                 current_params = None
                 if hasattr(self, 'latest_rpc_data') and self.latest_rpc_data:
                     current_params = self.latest_rpc_data
+                    self._log(f"🔄 RPC thread got data: {current_params.get('details', 'Unknown')}")
 
                 # Update RPC if we have new params and they're different
                 if current_params and current_params != previous_update:
@@ -923,33 +1358,7 @@ All rights reserved by miHoYo"""
         else:
             return "Unknown"
 
-    def _update_activity_display(self, activity: Activity):
-        """Update the activity display in the UI using main module state"""
-        activity_text = self._get_activity_text(activity)
 
-        # Update activity text in sidebar
-        self.activity_label.setText(f"Activity: {activity_text}")
-
-        # Update status display fields using main module state
-        if hasattr(main, 'current_active_character') and 1 <= main.current_active_character <= 4:
-            char = main.current_characters[main.current_active_character - 1]
-            if char is not None:
-                # Update character display
-                setattr(self, f"status_current_character", QLabel(char.character_display_name))
-                # Update image if available
-                self._update_status_image("current_character", char.image_key, "Characters")
-            else:
-                setattr(self, f"status_current_character", QLabel("None"))
-        
-        if hasattr(main, 'game_start_time') and main.game_start_time:
-            uptime_seconds = int(time.time()) - main.game_start_time
-            hours, remainder = divmod(uptime_seconds, 3600)
-            minutes, seconds = divmod(remainder, 60)
-            uptime_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-            self.status_uptime.setText(uptime_str)
-        
-        if hasattr(main, 'pause_ocr'):
-            self.status_gamestatus.setText("Paused" if main.pause_ocr else "Running")
     
     def toggle_rpc(self):
         """Toggle the Rich Presence on/off"""
@@ -1282,6 +1691,42 @@ All rights reserved by miHoYo"""
     def _ensure_image_cache_dir(self):
         cache_dir = os.path.join(os.getenv('APPDATA'), 'GenshinImpactRichPresence', 'images')
         os.makedirs(cache_dir, exist_ok=True)
+    def _check_for_coordinate_updates(self):
+        """Check for updated coordinates from shared data file and update if necessary"""
+        if os.path.exists(self.shared_data_file):
+            try:
+                with open(self.shared_data_file, 'r') as f:
+                    shared_data = json.load(f)
+
+                # Check if adapted coordinates are available and different from current
+                if 'adapted_coordinates' in shared_data:
+                    adapted_coords = shared_data['adapted_coordinates']
+
+                    if ('ADAPTED_NAMES_4P_COORD' in adapted_coords and
+                        'ADAPTED_NUMBER_4P_COORD' in adapted_coords):
+
+                        new_name_coords = adapted_coords['ADAPTED_NAMES_4P_COORD']
+                        new_number_coords = adapted_coords['ADAPTED_NUMBER_4P_COORD']
+
+                        # Check if coordinates have changed
+                        coords_changed = (
+                            new_name_coords != self.config.CHARACTER_NAME_COORDINATES or
+                            new_number_coords != self.config.CHARACTER_NUMBER_COORDINATES
+                        )
+
+                        if coords_changed:
+                            print("🔄 Updated GUI coordinates from shared data file")
+                            self.config.CHARACTER_NAME_COORDINATES = new_name_coords
+                            self.config.CHARACTER_NUMBER_COORDINATES = new_number_coords
+                            self._log("📍 GUI coordinates updated from adaptive system")
+
+            except Exception as e:
+                # Silently handle file read errors
+                pass
+
+    def _ensure_image_cache_dir(self):
+        cache_dir = os.path.join(os.getenv('APPDATA'), 'GenshinImpactRichPresence', 'images')
+        os.makedirs(cache_dir, exist_ok=True)
         return cache_dir
 
     def _download_image(self, image_key: str, category: str = "Characters") -> Optional[str]:
@@ -1298,7 +1743,7 @@ All rights reserved by miHoYo"""
             return image_path
 
         # Download from GitHub
-        try:her
+        try:
             github_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/resources/assets/images/{urllib.parse.quote(category)}/{urllib.parse.quote(image_key)}.png"
             urllib.request.urlretrieve(github_url, image_path)
             self.image_cache[image_key] = image_path
@@ -1349,20 +1794,13 @@ All rights reserved by miHoYo"""
                 except Exception as e:
                     print(f"Failed to load image {image_key}: {e}")
                     img_label.setPixmap(QPixmap())
-                    img_label.setText("")
+                    img_label.setText("❌")
             else:
                 img_label.setPixmap(QPixmap())
-                img_label.setText("")
+                img_label.setText("❌")
         else:
             img_label.setPixmap(QPixmap())
             img_label.setText("")
-
-    # Remove unused methods
-    # def _monitor_subprocess(self): ... (removed)
-    # def change_appearance_mode(self): ... (removed)
-
-    def _update_status_display(self, activity: Activity):
-        """Update the status display with images and text using shared data"""
         # Update activity text
         activity_text = self._get_activity_text(activity)
 
@@ -1376,7 +1814,169 @@ All rights reserved by miHoYo"""
         # Location and character info will be updated by _update_gui_from_data when shared file is read
 
 
-    # def change_appearance_mode(self): ... (removed as placeholder)
+    def _add_character_image_entry(self):
+        """Add a new character image entry field"""
+        from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
+
+        char_name, ok = QInputDialog.getText(
+            self,
+            "Add Character",
+            "Enter character name:",
+            QLineEdit.Normal,
+            ""
+        )
+
+        if ok and char_name.strip():
+            char_name = char_name.strip()
+
+            # Check if already exists
+            if char_name in self.char_image_entries:
+                QMessageBox.warning(self, "Duplicate", f"Character '{char_name}' already exists!")
+                return
+
+            # Create new entry
+            char_layout = QHBoxLayout()
+
+            char_label = QLabel(f"{char_name}:")
+            char_label.setFont(QFont("Arial", 9))
+            char_label.setStyleSheet("color: #ecf0f1; padding: 3px; min-width: 80px;")
+            char_layout.addWidget(char_label)
+
+            char_entry = QLineEdit()
+            char_entry.setPlaceholderText("e.g., char_traveler_fatui")
+            char_entry.setStyleSheet("""
+                QLineEdit {
+                    background-color: #34495e;
+                    color: #ecf0f1;
+                    border: 1px solid #2c3e50;
+                    border-radius: 3px;
+                    padding: 3px;
+                }
+            """)
+            char_layout.addWidget(char_entry)
+
+            remove_btn = QPushButton("✕")
+            remove_btn.setFont(QFont("Arial", 8))
+            remove_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #e74c3c;
+                    color: #ffffff;
+                    border: none;
+                    padding: 2px 8px;
+                    border-radius: 3px;
+                    margin: 0px;
+                    min-width: 25px;
+                    max-width: 25px;
+                }
+                QPushButton:hover {
+                    background-color: #c0392b;
+                }
+            """)
+            remove_btn.clicked.connect(lambda: self._remove_character_image_entry(char_layout, char_name))
+            char_layout.addWidget(remove_btn)
+
+            # Insert before the "Add Character" button
+            char_images_layout = self.character_images_widget.layout()
+            add_btn_index = char_images_layout.count() - 1  # Button is last item
+            char_images_layout.insertLayout(add_btn_index, char_layout)
+
+            self.char_image_entries[char_name] = char_entry
+
+            self._log(f"Added character image entry for: {char_name}")
+
+    def _remove_character_image_entry(self, layout, char_name):
+        """Remove a character image entry"""
+        # Remove from layout
+        char_images_layout = self.character_images_widget.layout()
+        char_images_layout.removeItem(layout)
+
+        # Clean up widgets
+        while layout.count() > 0:
+            item = layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        layout.deleteLater()
+
+        # Remove from dictionary
+        if char_name in self.char_image_entries:
+            del self.char_image_entries[char_name]
+
+        self._log(f"Removed character image entry for: {char_name}")
+
+    def _save_roaster_config(self):
+        """Save character image configuration from roaster tab"""
+        # Collect character image mappings
+        character_images = {}
+        for char_name, entry in self.char_image_entries.items():
+            image_key = entry.text().strip()
+            if image_key:  # Only include non-empty entries
+                character_images[char_name] = image_key
+
+        # Show saving status
+        self.roaster_status_label.setText("💾 Saving character settings...")
+        self.roaster_status_label.setStyleSheet("""
+            QLabel {
+                color: #f39c12;
+                padding: 5px;
+                margin: 5px 10px;
+                background-color: rgba(243, 156, 18, 0.1);
+                border: 1px solid #f39c12;
+                border-radius: 3px;
+            }
+        """)
+        self.roaster_status_label.setVisible(True)
+
+        # Save to shared config file for subprocess
+        shared_config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shared_config.json')
+        try:
+            # Load existing config
+            if os.path.exists(shared_config_file):
+                with open(shared_config_file, 'r') as f:
+                    config_dict = json.load(f)
+            else:
+                config_dict = {}
+
+            # Update character images
+            config_dict['CHARACTER_IMAGES'] = character_images
+
+            # Save updated config
+            with open(shared_config_file, 'w') as f:
+                json.dump(config_dict, f, indent=4)
+
+            # Show success
+            self.roaster_status_label.setText("✅ Character settings saved!")
+            self.roaster_status_label.setStyleSheet("""
+                QLabel {
+                    color: #2ecc71;
+                    padding: 5px;
+                    margin: 5px 10px;
+                    background-color: rgba(46, 204, 113, 0.1);
+                    border: 1px solid #2ecc71;
+                    border-radius: 3px;
+                }
+            """)
+            self._log("Character image settings saved successfully!")
+
+            # Hide after 3 seconds
+            QTimer.singleShot(3000, lambda: self.roaster_status_label.setVisible(False))
+
+        except Exception as e:
+            self.roaster_status_label.setText(f"❌ Error: {str(e)}")
+            self.roaster_status_label.setStyleSheet("""
+                QLabel {
+                    color: #e74c3c;
+                    padding: 5px;
+                    margin: 5px 10px;
+                    background-color: rgba(231, 76, 60, 0.1);
+                    border: 1px solid #e74c3c;
+                    border-radius: 3px;
+                }
+            """)
+            self._log(f"Failed to save character settings: {e}")
+
+            # Hide after 5 seconds for errors
+            QTimer.singleShot(5000, lambda: self.roaster_status_label.setVisible(False))
 
     def closeEvent(self, event):
         """Handle window closing"""
@@ -1406,13 +2006,9 @@ All rights reserved by miHoYo"""
             self.rpc_thread.join(timeout=5)
         self.rpc_thread = None
 
-        # Clean up shared data file
-        if os.path.exists(self.shared_data_file):
-            try:
-                os.remove(self.shared_data_file)
-                self._log("Shared data file cleaned up")
-            except:
-                pass
+        # Stop coordinate update timer
+        if hasattr(self, 'coordinate_update_timer'):
+            self.coordinate_update_timer.stop()
 
         self._log("✅ Application cleanup complete")
         event.accept()

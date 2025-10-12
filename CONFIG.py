@@ -74,10 +74,10 @@ This is used to determine which character is active and whether the game is paus
 """
 
 NAMES_4P_COORD = [
-    (2166, 320, 2365, 395),
-    (2166, 445, 2365, 520),
-    (2166, 575, 2365, 650),
-    (2166, 705, 2365, 780),
+    (2166, 320, 2365, 395),  # Character 1
+    (2166, 445, 2365, 520),  # Character 2
+    (2166, 575, 2365, 650),  # Character 3
+    (2166, 705, 2365, 780),  # Character 4
 ]
 """
 Bounding box coordinates of character names in 4-character single player mode.
@@ -170,7 +170,7 @@ Text characters whitelist to limit OCR results.
 Ensure that text chars for place/character/boss/domain names are in this list.
 """
 
-NAME_CONF_THRESH = 0.8
+NAME_CONF_THRESH = 0.6
 """
 How confident the OCR should be before accepting a character name.
 
@@ -203,16 +203,9 @@ The brightness of the character number pixel should be lower than this value to 
 
 This works out of the box, but if in-game gamma/brightness is drastically changed, this value may need to be
 adjusted accordingly. (Estimate: 245 for max brightness, 230 for min brightness)
-"""
 
-
-"""
-The following confgs set OCR rate.
-Set number lower to increase OCR rate of that item.
-Locations should be OCR'd as often as possible, as the location text is very transient.
-
-Once character names are read, character names are OCR'd least often, since they persist throughout gameplay.
-(Character names don't affect current active character. Active character detection is super fast.)
+Lower values = more sensitive detection (more likely to detect characters as active)
+Higher values = less sensitive detection (less likely to detect characters as active)
 """
 
 OCR_CHARNAMES_ONE_IN = 60

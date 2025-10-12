@@ -21,6 +21,7 @@ forge,Currently Forging Materials,In Menus,icon_forge
 craft,Currently Crafting Materials,In Menus,icon_craft
 convert,Currently Converting Materials,In Menus,icon_craft
 mystic offering,Currently Offering artifacts for a great cause - Mystic Offering,In Menus,icon_craft
+Lightgleaner's Journer,Checking their Antique Memento Camera's Gallery,In Menus,icon_kamera
 ------,------,ARCHIVE,------
 archive,Browsing through the Archives,In Menus,icon_archive
 living beings,Researching Teyvat's Living Beings,In Menus,icon_archive_living_beings
@@ -80,7 +81,7 @@ liyue requests,Checking Liyue's Requests to improve their Reputation,Reputation 
 liyue world exploration,Checking Liyue's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
 liyue liyue quests,Checking Liyue's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
 reputation reward liyue,Checking Liyue's Reputation Rewards,Reputation in Teyvat,icon_reputation
-inazuma i bounties,Checking Inazuma's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
+inazuma bounties,Checking Inazuma's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
 inazuma requests,Checking Inazuma's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
 inazuma world exploration,Checking Inazuma's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
 inazuma inazuma quests,Checking Inazuma's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
@@ -105,44 +106,15 @@ snezhnaya requests,Checking Snezhnaya's Requests to improve their Reputation,Rep
 snezhnaya world exploration,Checking Snezhnaya's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
 snezhnaya snezhnaya quests,Checking Snezhnaya's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
 reputation reward snezhnaya,Checking Snezhnaya's Reputation Rewards,Reputation in Teyvat,icon_reputation
-------,------,COMMISSIONS-EXPLORATION-REPUTATION,------
-mondstadt I bounties,Checking Mondstadt's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
-mondstadt I requests,Checking Mondstadt's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
-mondstadt I world exploration,Checking Mondstadt's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
-mondstadt I mondstadt quests,Checking Mondstadt's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
-liyue I bounties,Checking Liyue's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
-liyue I requests,Checking Liyue's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
-liyue I world exploration,Checking Liyue's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
-liyue I liyue quests,Checking Liyue's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
-inazuma I bounties,Checking Inazuma's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
-inazuma I requests,Checking Inazuma's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
-inazuma I world exploration,Checking Inazuma's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
-inazuma I inazuma quests,Checking Inazuma's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
-sumeru I bounties,Checking Sumeru's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
-sumeru I requests,Checking Sumeru's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
-sumeru I world exploration,Checking Sumeru's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
-sumeru I sumeru quests,Checking Sumeru's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
-fontaine I bounties,Checking Fontaine's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
-fontaine I requests,Checking Fontaine's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
-fontaine I world exploration,Checking Fontaine's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
-fontaine I fontaine quests,Checking Fontaine's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
-natlan I bounties,Checking Natlan's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
-natlan I requests,Checking Natlan's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
-natlan I world exploration,Checking Natlan's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
-natlan I natlan quests,Checking Natlan's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
-snezhnaya I bounties,Checking Snezhnaya's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
-snezhnaya I requests,Checking Snezhnaya's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
-snezhnaya I world exploration,Checking Snezhnaya's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
-snezhnaya I snezhnaya quests,Checking Snezhnaya's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
 ------,------,OTHER,------
 ------,------,OTHER-TREE,------
-frostbearing tree,Checking the Rewards from the Frost Bearing Tree - Snow-Covered Path - Dragonspine,in Menus,tree_frostbearing
-frostbearing tree's gratitude,Checking the Rewards from the Frost Bearing Tree - Snow-Covered Path - Dragonspine,in Menus,tree_frostbearing
-sacred sakura,Checking the Rewards from the Sacred Sakura's Favor Tree - Grand Narukami Shrine - Inazuma,in Menus,tree_sakura
-sacred sakura's favor,Checking the Rewards from the Sacred Sakura's Favor Tree - Grand Narukami Shrine - Inazuma,in Menus,tree_sakura
-tree of dreams vanarana,Checking the Rewards from the Tree of Dreams Vanarana,Vanarana - Sumeru,tree_dreams
+frostbearing tree,Checking the Frost Bearing Tree,Snow-Covered Path - Dragonspine,tree_frostbearing
+frostbearing tree's gratitude,Checking the Rewards from the Frost Bearing Tree,Snow-Covered Path - Dragonspine,tree_frostbearing
+sacred sakura,Sacred Sakura's Favor,Grand Narukami Shrine - Inazuma,tree_sakura
+sacred sakura's favor,Checking the Rewards from the Sacred Sakura's Favor Tree,Grand Narukami Shrine - Inazuma,tree_sakura
+tree of dreams vanarana,Tree of Dreams Vanarana,Vanarana - Sumeru,tree_dreams
 vanarana's favor,Checking the Rewards from the Tree of Dreams Vanarana,Vanarana - Sumeru,tree_dreams
 fountain of lucine,Fountain of Lucine,Court of Fontaine - Fontaine,fountain_lucine
 tonas flames restitution,Checking the Rewards from the Tablet of Tona,in Menus,tablet_tonas_Flame
-tona's flame's restitution,Checking the Rewards from the Tablet of Tona,in Menus,tablet_tonas_Flame
+tona's flame's restitution,Checking the Rewards from offering at the Tablet of Tona,in Menus,tablet_tonas_Flame
 tona's flame, Tona's Flame,Stadium of the Sacred Flame - Natlan,tablet_tonas_flame
