@@ -231,7 +231,7 @@ If issues persist:
 
 ---
 
-## 📈 Recent Updates (v2.6)
+## 📈 Recent Updates (v3.0indev)
 
 - ✨ **New GUI Interface**: Modern PyQt5-based GUI with real-time monitoring
 - 🎯 **Adaptive Character Detection**: Automatically adjusts to UI layout changes
@@ -256,8 +256,6 @@ If issues persist:
 - ⚡ **Performance Optimizations**: Further reduce CPU usage and improve detection speed
 - 🔄 **Auto-Updates**: Implement automatic update checking and installation
 - 📊 **Advanced Statistics**: Add detailed usage statistics and performance metrics
-- 🔧 **Plugin System**: Extend functionality through community-created plugins
-
 ### Contributing
 
 We welcome contributions! See our [GitHub Issues](https://github.com/ZANdewanai/Genshin-Impact-Rich-Presence/issues) for planned features and bug reports.
