@@ -7,9 +7,9 @@
     "ADAPTED_NAMES_4P_COORD": [
         [
             1624,
-            250,
+            240,
             1774,
-            306
+            296
         ],
         [
             1624,
@@ -19,9 +19,9 @@
         ],
         [
             1624,
-            441,
+            416,
             1774,
-            498
+            473
         ],
         [
             1624,
@@ -51,38 +51,6 @@
     "ADAPTATION_ACTIVE": true,
     "ADAPTATION_HISTORY": [
         {
-            "slot": 0,
-            "original_coords": [
-                1624,
-                240,
-                1774,
-                296
-            ],
-            "adapted_coords": [
-                1624,
-                235,
-                1774,
-                291
-            ],
-            "timestamp": 1760221492.1234202
-        },
-        {
-            "slot": 0,
-            "original_coords": [
-                1624,
-                240,
-                1774,
-                296
-            ],
-            "adapted_coords": [
-                1624,
-                250,
-                1774,
-                306
-            ],
-            "timestamp": 1760221497.89456
-        },
-        {
             "slot": 2,
             "original_coords": [
                 1624,
@@ -92,27 +60,11 @@
             ],
             "adapted_coords": [
                 1624,
-                441,
+                416,
                 1774,
-                498
+                473
             ],
-            "timestamp": 1760221500.2742255
-        },
-        {
-            "slot": 2,
-            "original_coords": [
-                1624,
-                431,
-                1774,
-                488
-            ],
-            "adapted_coords": [
-                1624,
-                441,
-                1774,
-                498
-            ],
-            "timestamp": 1760221506.7758853
+            "timestamp": 1760245323.6761587
         }
     ],
     "OCCUPIED_SLOTS": [

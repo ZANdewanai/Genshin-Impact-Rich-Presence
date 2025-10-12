@@ -482,6 +482,10 @@ def handle_adaptive_character_commands():
 
         elif command == "test_char_adaptation":
             print("🧪 Testing character adaptation system...")
+            # Initialize OCR reader for testing
+            global reader
+            reader = ocr_engine.Reader(["en"], gpu=USE_GPU)
+            print("OCR initialized for testing.")
             occupied_slots, confidence_scores = character_region_manager.detect_occupied_slots()
             character_region_manager.log_status()
             print(f"🎯 Test Results: Occupied slots: {occupied_slots}")
@@ -491,8 +495,27 @@ def handle_adaptive_character_commands():
 # Handle startup commands
 handle_adaptive_character_commands()
 
+print("Initializing OCR.")
+reader = ocr_engine.Reader(["en"], gpu=USE_GPU)
+print("OCR started.")
+print("_______________________________________________________________")
+
+# Print adaptive system status
+print("🎯 Character Adaptive OCR System Status:")
+print(f"   Adaptation enabled: {character_region_manager.adaptation_enabled}")
+print(f"   Max vertical shift: {character_region_manager.max_vertical_shift}px")
+print(f"   Movement step: {character_region_manager.movement_step}px")
+print(f"   Base coordinates: {character_region_manager.base_name_positions}")
+print("✅ Adaptive character detection system initialized!")
+print("💡 Use command line arguments to control the system:")
+print("   python main.py reset_char_positions")
+print("   python main.py log_char_status")
+print("   python main.py disable_char_adaptation")
+print("   python main.py enable_char_adaptation")
+print("   python main.py test_char_adaptation")
+print("_______________________________________________________________")
+
 def detect_characters_with_adaptation():
-    """Enhanced character detection with vertical adaptation"""
     global current_characters
 
     # Detect which slots are occupied
@@ -575,6 +598,103 @@ def search_character_with_custom(text, custom_username, character_images=None):
 
     # Fall back to database lookup
     return DATA.search_character(text)
+
+def calculate_keyword_match_score(ocr_words, location_match, region_word):
+    """
+    Calculate how well OCR keywords match against a location database entry.
+    Returns a score between 0.0 and 1.0 based on keyword overlap and relevance.
+    """
+    score = 0.0
+
+    # Get location details for comparison
+    location_name = location_match.location_name.lower() if hasattr(location_match, 'location_name') else ""
+    subregion = location_match.subarea.lower() if hasattr(location_match, 'subarea') else ""
+    region = location_match.country.lower() if hasattr(location_match, 'country') else ""
+    match_term = location_match.search_str.lower() if hasattr(location_match, 'search_str') else ""
+
+    # Prepare OCR words for comparison (remove punctuation, convert to lowercase)
+    clean_ocr_words = [word.strip('.,!?').lower() for word in ocr_words if len(word.strip('.,!?')) > 1]
+
+    # Score 1: Direct keyword matches with location name
+    name_matches = 0
+    for ocr_word in clean_ocr_words:
+        if (len(ocr_word) > 2 and
+            (ocr_word in location_name or
+             location_name in ocr_word or
+             any(ocr_word in part or part in ocr_word for part in location_name.split()))):
+            name_matches += 1
+
+    if name_matches > 0:
+        score += min(0.4, name_matches * 0.2)  # Up to 40% for name matches
+
+    # Score 2: Match term overlap (this is the key - CSV match column)
+    if match_term:
+        match_words = match_term.split()
+        match_overlap = sum(1 for ocr_word in clean_ocr_words
+                          for match_word in match_words
+                          if (len(ocr_word) > 2 and len(match_word) > 2 and
+                              (ocr_word == match_word or
+                               ocr_word in match_word or
+                               match_word in ocr_word)))
+        if match_overlap > 0:
+            score += min(0.5, match_overlap * 0.25)  # Up to 50% for match term overlap
+
+    # Score 3: Region confirmation
+    if region and region_word.lower() in region:
+        score += 0.2  # 20% bonus for correct region
+
+    # Score 4: Subregion relevance
+    if subregion:
+        subregion_matches = sum(1 for ocr_word in clean_ocr_words
+                              if len(ocr_word) > 2 and ocr_word in subregion)
+        if subregion_matches > 0:
+            score += min(0.1, subregion_matches * 0.05)  # Up to 10% for subregion
+
+    return max(0.0, min(1.0, score))
+
+def calculate_location_confidence(subregion_word, region_word, original_text, pattern):
+    """
+    Calculate confidence score for how well a location pattern matches the OCR text.
+    Returns a value between 0.0 and 1.0 where 1.0 is perfect confidence.
+    """
+    confidence = 0.0
+    original_lower = original_text.lower()
+
+    # Base confidence: Both words appear in the original text
+    if subregion_word.lower() in original_lower and region_word.lower() in original_lower:
+        confidence += 0.4
+
+        # Bonus: Words appear close to each other (within 15 words)
+        subregion_positions = []
+        region_positions = []
+
+        words = original_text.split()
+        for i, word in enumerate(words):
+            if subregion_word.lower() in word.lower():
+                subregion_positions.append(i)
+            if region_word.lower() in word.lower():
+                region_positions.append(i)
+
+        # Check if any subregion and region appear close together
+        for sub_pos in subregion_positions:
+            for reg_pos in region_positions:
+                distance = abs(sub_pos - reg_pos)
+                if distance <= 15:  # Within reasonable proximity
+                    proximity_bonus = max(0, (15 - distance) / 15) * 0.3
+                    confidence += proximity_bonus
+
+        # Bonus: Pattern matches expected format
+        if ', ' in pattern:  # Proper "Subregion, Region" format
+            confidence += 0.2
+        elif pattern.count(' ') <= 2:  # Simple format
+            confidence += 0.1
+
+        # Bonus: Subregion and region words are distinct and meaningful
+        if (len(subregion_word) > 3 and len(region_word) > 3 and
+            subregion_word.lower() != region_word.lower()):
+            confidence += 0.2
+
+    return max(0.0, min(1.0, confidence))
 
 def get_party_info_string():
     """Generate party info string for Discord RPC."""
@@ -935,55 +1055,8 @@ def discord_rpc_loop():
             else:
                 params["state"] = params["state"].replace(" | PARTY_INFO_MARKER", f" | Party: {get_party_info_string()}")
 
-        # Handle location details with region info for LOCATION and MAP_LOCATION activities
-        if (current_activity.activity_type in [ActivityType.LOCATION, ActivityType.MAP_LOCATION]
-            and current_activity.activity_data is not None
-            and hasattr(current_activity.activity_data, 'subarea')
-            and hasattr(current_activity.activity_data, 'country')):
-
-            location = current_activity.activity_data
-            region_info = []
-
-            if location.subarea:
-                region_info.append(location.subarea)
-            if location.country:
-                region_info.append(location.country)
-
-            if region_info:
-                current_details = params.get("details", "")
-                combined_details = f"{current_details} ({', '.join(region_info)})"
-
-                # Check if the combined details would be too long
-                if len(combined_details) > 128:
-                    # Use shortened details and put full info in tooltip
-                    # Shorten to fit within reasonable limits for main text
-                    base_text = "Exploring" if current_activity.activity_type == ActivityType.LOCATION else "Thinking of traveling to"
-                    max_location_length = 128 - len(f"{base_text} ") - len(f" ({', '.join(region_info[:1])}...)") - 10  # Leave room for region
-
-                    if max_location_length > 20:  # Only shorten if we can keep a reasonable amount
-                        shortened_location = location.location_name[:max_location_length] + "..."
-                        params["details"] = f"{base_text} {shortened_location}"
-                    else:
-                        # If location name is extremely long, use just the base activity
-                        params["details"] = base_text
-
-                    # Put only region/subregion info in the tooltip (large_text)
-                if region_info:
-                        region_text = ', '.join(region_info)
-
-                        # Update or set the large_text for tooltip
-                        if "large_text" not in params:
-                            params["large_text"] = region_text
-                        else:
-                            # If large_text already exists, append to it
-                            existing_text = params.get("large_text", "")
-                            if existing_text and "Domain" not in existing_text and "Trounce" not in existing_text:
-                                params["large_text"] = f"{existing_text} | {region_text}"
-                            else:
-                                params["large_text"] = region_text
-            else:
-                # If it fits within 128 characters, use the combined details
-                params["details"] = combined_details
+        # No truncation needed - Discord allows up to 128 characters for details,
+        # and our formatted location names are well under this limit
 
         # Smart timer selection based on activity type
         if current_timer_type == "global" and game_start_time != None:
@@ -1035,26 +1108,6 @@ rpc_thread.start()
 PRIMARY LOOP
                                                                                                       
 """
-
-print("Initializing OCR.")
-reader = ocr_engine.Reader(["en"], gpu=USE_GPU)
-print("OCR started.")
-print("_______________________________________________________________")
-
-# Print adaptive system status
-print("🎯 Character Adaptive OCR System Status:")
-print(f"   Adaptation enabled: {character_region_manager.adaptation_enabled}")
-print(f"   Max vertical shift: {character_region_manager.max_vertical_shift}px")
-print(f"   Movement step: {character_region_manager.movement_step}px")
-print(f"   Base coordinates: {character_region_manager.base_name_positions}")
-print("✅ Adaptive character detection system initialized!")
-print("💡 Use command line arguments to control the system:")
-print("   python main.py reset_char_positions")
-print("   python main.py log_char_status")
-print("   python main.py disable_char_adaptation")
-print("   python main.py enable_char_adaptation")
-print("   python main.py test_char_adaptation")
-print("_______________________________________________________________")
 
 pause_ocr = False
 """
@@ -1459,11 +1512,238 @@ while True:
             inactive_detection_cooldown == 0
             or inactive_detection_mode == ActivityType.MAP_LOCATION
         ) and not found_active_character:  # Only check map location when no active character (saves CPU)
-            def map_text_processor(text):
-                comma_idx = text.find(",")
-                if comma_idx != -1:
-                    text = text[:comma_idx]
-                return text
+            def map_text_processor(text, data_instance=DATA):
+                if not text or not text.strip():
+                    return ""
+
+                # Handle text duplication issue - remove repeated patterns
+                cleaned_text = ' '.join(text.replace('\n', ' ').split())
+
+                # Remove duplicated substrings (like "Nasha Nod-Krai d devices that are s" appearing twice)
+                words = cleaned_text.split()
+                if len(words) > 10:  # Only process if we have a lot of words (indicating possible duplication)
+                    # Find and remove repeated sequences
+                    result_words = []
+                    i = 0
+                    while i < len(words):
+                        current_word = words[i]
+                        # Check if this word starts a repeated sequence
+                        found_repetition = False
+                        for length in range(min(8, len(words) - i - 1), 2, -1):  # Try different sequence lengths
+                            if i + length * 2 <= len(words):
+                                seq1 = ' '.join(words[i:i + length])
+                                seq2 = ' '.join(words[i + length:i + length * 2])
+                                if seq1 == seq2 and len(seq1) > 10:  # Only remove substantial repetitions
+                                    if DEBUG_MODE:
+                                        print(f"🔄 MAP_LOC: Found repetition, removing duplicate sequence: '{seq1}'")
+                                    i += length * 2  # Skip both occurrences
+                                    found_repetition = True
+                                    break
+                        if not found_repetition:
+                            result_words.append(current_word)
+                            i += 1
+                    if result_words:
+                        cleaned_text = ' '.join(result_words)
+                    else:
+                        cleaned_text = ' '.join(words)  # Fallback to original if deduplication fails
+
+                # Split into words for better processing
+                words = cleaned_text.split()
+                if not words:
+                    return ""
+
+                # Filter out only the most obvious OCR artifacts
+                filtered_words = []
+                skip_words = {
+                    'd', 'devices', 'that', 'are', 'scattered', 'of', 'the',
+                    'and', 'or', 'but', 'with', 'for', 'from', 'this', 'these', 'those',
+                    'menu', 'exit', 'close', 'ok', 'cancel', 'select', 'ready', 'waiting',
+                    's', 't', 're', 've', 'll', 'm', 'n'  # Common OCR fragments
+                }
+
+                # Keep location-related words for pattern reconstruction
+                location_context_words = {'town', 'city', 'village'}
+
+                for word in words:
+                    word_lower = word.lower()
+                    # Skip very short words, common artifacts, and UI words
+                    if (len(word) < 2 or
+                        word_lower in skip_words or
+                        word.isdigit() or
+                        (len(word) <= 3 and not word[0].isupper() and word_lower not in location_context_words)):  # Keep "town", "city" etc.
+                        continue
+                    # Clean up words that end with comma but are otherwise good
+                    clean_word = word.rstrip(',') if word.endswith(',') and len(word) > 3 else word
+                    if len(clean_word) >= 2:
+                        filtered_words.append(clean_word)
+
+                if not filtered_words:
+                    return ""
+
+                # Try multiple candidate extractions and validate against database
+                candidates = []
+
+                # Pattern 1: Look for proper noun combinations (capitalized words)
+                proper_nouns = [word for word in filtered_words if word[0].isupper() and len(word) > 2]
+
+                if len(proper_nouns) >= 2:
+                    # Try combinations of 2-3 proper nouns
+                    for i in range(len(proper_nouns) - 1):
+                        for j in range(i + 1, min(i + 3, len(proper_nouns))):
+                            combination = ' '.join(proper_nouns[i:j+1])
+                            if 5 < len(combination) < 50:  # Reasonable length for location name
+                                candidates.append(combination)
+
+                # Pattern 2: Try mixed case word combinations
+                if len(filtered_words) >= 2:
+                    # Try 2-word combinations
+                    for i in range(len(filtered_words) - 1):
+                        combination = f"{filtered_words[i]} {filtered_words[i+1]}"
+                        if 5 < len(combination) < 40:
+                            candidates.append(combination)
+
+                    # Try 3-word combinations if available
+                    if len(filtered_words) >= 3:
+                        for i in range(len(filtered_words) - 2):
+                            combination = f"{filtered_words[i]} {filtered_words[i+1]} {filtered_words[i+2]}"
+                            if 5 < len(combination) < 50:
+                                candidates.append(combination)
+
+                # Pattern 3: Single proper nouns
+                for word in proper_nouns:
+                    if 3 < len(word) < 30:
+                        candidates.append(word)
+
+                # Pattern 4: Single filtered words
+                for word in filtered_words:
+                    if 3 < len(word) < 30:
+                        candidates.append(word)
+
+                # Cross-check each candidate against the locations database
+                for candidate in candidates:
+                    # Try exact match first
+                    location_match = data_instance.search_location(candidate)
+                    if location_match:
+                        if DEBUG_MODE:
+                            print(f"✅ MAP_LOC: Found database match for '{candidate}' -> '{location_match.location_name}'")
+                        return candidate
+
+                    # Try partial matches with database entries
+                    for word in candidate.split():
+                        if len(word) > 3:  # Only try meaningful words
+                            location_match = data_instance.search_location(word)
+                            if location_match:
+                                if DEBUG_MODE:
+                                    print(f"✅ MAP_LOC: Found partial database match for '{word}' in '{candidate}' -> '{location_match.location_name}'")
+                                return candidate
+
+                # Systematic keyword matching approach
+                # Step 1: First identify potential regions from the garbled text
+                potential_regions = []
+                for word in proper_nouns:
+                    if len(word) > 3:  # Regions are typically longer words
+                        region_match = data_instance.search_location(word)
+                        if region_match:
+                            potential_regions.append((word, region_match))
+
+                # Step 2: If we found regions, cache ALL locations for those regions
+                if potential_regions:
+                    for region_word, region_match in potential_regions:
+                        if DEBUG_MODE:
+                            print(f"🔍 MAP_LOC: Found region '{region_word}', caching all locations for this region...")
+
+                        # Get the original uncleaned text to extract ALL keywords
+                        original_words = cleaned_text.split()
+
+                        # Cache all locations that belong to this region
+                        region_locations = []
+                        # We need to search through the data to find locations in this region
+                        # Since we don't have a direct method, we'll use a broad search approach
+
+                        # Step 3: Extract ALL words from the original OCR text (no filtering)
+                        all_ocr_words = [word.strip(',') for word in original_words if len(word.strip(',')) > 1]
+
+                        if DEBUG_MODE:
+                            print(f"🔍 MAP_LOC: Extracted keywords from OCR: {all_ocr_words}")
+
+                        # Step 4: Try to find the best matching location by keyword overlap
+                        best_match = None
+                        best_score = 0
+                        best_pattern = None
+
+                        # Get all possible location match terms for this region
+                        # We'll search for locations and filter by region
+                        for test_word in all_ocr_words:
+                            if len(test_word) > 2:
+                                # Try the word as a potential location match term
+                                location_match = data_instance.search_location(test_word.lower())
+
+                                if location_match:
+                                    # Check if this location belongs to our region
+                                    if (hasattr(location_match, 'country') and
+                                        location_match.country and
+                                        region_word.lower() in location_match.country.lower()):
+
+                                        # Calculate match score based on keyword overlap
+                                        match_score = calculate_keyword_match_score(all_ocr_words, location_match, region_word)
+
+                                        if match_score > best_score and match_score > 0.3:  # 30% minimum score
+                                            best_match = location_match
+                                            best_score = match_score
+                                            best_pattern = test_word.lower()
+
+                                            if DEBUG_MODE:
+                                                print(f"🎯 MAP_LOC: Found potential match '{test_word.lower()}' -> '{location_match.location_name}' (score: {match_score:.2f})")
+
+                        # Step 5: Return the best match if it meets our criteria
+                        if best_match and best_score > 0.4:  # 40% confidence threshold
+                            if DEBUG_MODE:
+                                print(f"✅ MAP_LOC: Selected best match '{best_pattern}' -> '{best_match.location_name}' (score: {best_score:.2f})")
+                            return best_pattern
+
+                # Fallback: Try the original region/subregion approach for cleaner text
+                if len(proper_nouns) >= 2:
+                    # Try different combinations where later words might be regions and earlier words subregions
+                    for region_candidate in proper_nouns:
+                        for subregion_candidate in proper_nouns:
+                            if region_candidate != subregion_candidate:
+                                # Try "Subregion Region" format (common OCR concatenation)
+                                combined_candidate = f"{subregion_candidate} {region_candidate}"
+                                if len(combined_candidate) < 50:
+                                    location_match = data_instance.search_location(combined_candidate)
+                                    if location_match:
+                                        if DEBUG_MODE:
+                                            print(f"✅ MAP_LOC: Found region/subregion match for '{combined_candidate}' -> '{location_match.location_name}'")
+                                        return combined_candidate
+
+                                # Try "Subregion, Region" format (proper format)
+                                proper_format = f"{subregion_candidate}, {region_candidate}"
+                                if len(proper_format) < 60:
+                                    location_match = data_instance.search_location(proper_format)
+                                    if location_match:
+                                        if DEBUG_MODE:
+                                            print(f"✅ MAP_LOC: Found proper format match for '{proper_format}' -> '{location_match.location_name}'")
+                                        return proper_format
+
+                # If no database matches found, try one more approach with original text
+                # but only if it contains proper nouns and isn't just artifacts
+                original_words = cleaned_text.split()
+                original_proper_nouns = [word for word in original_words if word[0].isupper() and len(word) > 2]
+
+                for word in original_proper_nouns:
+                    if 3 < len(word) < 30:
+                        # Last chance - check if this single word matches database
+                        location_match = data_instance.search_location(word)
+                        if location_match:
+                            if DEBUG_MODE:
+                                print(f"✅ MAP_LOC: Found final database match for '{word}' -> '{location_match.location_name}'")
+                            return word
+
+                # No valid location found in database
+                if DEBUG_MODE:
+                    print(f"❌ MAP_LOC: No database matches found for any candidates from '{cleaned_text}'")
+                    print(f"❌ MAP_LOC: Tried candidates: {candidates}")
+                return ""
 
             map_loc_data = capture_and_process_ocr(
                 MAP_LOC_COORD,
@@ -1483,7 +1763,18 @@ while True:
                 curr_game_paused = False
                 inactive_detection_cooldown = INACTIVE_COOLDOWN
                 inactive_detection_mode = ActivityType.MAP_LOCATION
-                map_location_log = f"Thinking of traveling to: {map_loc_data.location_name}"
+
+                # Format location with subregion and region information
+                location_parts = []
+                if map_loc_data.location_name:
+                    location_parts.append(map_loc_data.location_name)
+                if hasattr(map_loc_data, 'subarea') and map_loc_data.subarea:
+                    location_parts.append(map_loc_data.subarea)
+                if hasattr(map_loc_data, 'country') and map_loc_data.country:
+                    location_parts.append(map_loc_data.country)
+
+                full_location_name = ", ".join(location_parts) if location_parts else map_loc_data.location_name
+                map_location_log = f"Thinking of traveling to: {full_location_name}"
                 if map_location_log != _last_location_log:
                     print(map_location_log)
                     _last_location_log = map_location_log

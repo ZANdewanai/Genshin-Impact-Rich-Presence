@@ -314,17 +314,36 @@ class Activity:
                     "large_text": str(self.activity_data.gamemenu_type),
                 }
             case ActivityType.LOCATION:
+                # Format location with subregion and region information
+                location_parts = []
+                if self.activity_data.location_name:
+                    location_parts.append(self.activity_data.location_name)
+                if hasattr(self.activity_data, 'subarea') and self.activity_data.subarea:
+                    location_parts.append(self.activity_data.subarea)
+                if hasattr(self.activity_data, 'country') and self.activity_data.country:
+                    location_parts.append(self.activity_data.country)
+
+                full_location_name = ", ".join(location_parts) if location_parts else self.activity_data.location_name
+
                 return {
-                    "details": f"Exploring {self.activity_data.location_name}",
+                    "details": f"Exploring {full_location_name}",
                     "state": "LOCATION_PARTY_INFO",  # Special marker for main loop to replace
                     "large_image": self.activity_data.image_key,
                 }
             case ActivityType.MAP_LOCATION:
-                # Only show location name in details, region/subregion will be appended to details
-                location_context = self.activity_data.location_name
+                # Format location with subregion and region information
+                location_parts = []
+                if self.activity_data.location_name:
+                    location_parts.append(self.activity_data.location_name)
+                if hasattr(self.activity_data, 'subarea') and self.activity_data.subarea:
+                    location_parts.append(self.activity_data.subarea)
+                if hasattr(self.activity_data, 'country') and self.activity_data.country:
+                    location_parts.append(self.activity_data.country)
+
+                full_location_name = ", ".join(location_parts) if location_parts else self.activity_data.location_name
 
                 return {
-                    "details": f"Thinking of traveling to {location_context}",
+                    "details": f"Thinking of traveling to {full_location_name}",
                     "state": "MAP_PARTY_INFO",  # Special marker for main loop to replace
                     "large_image": self.activity_data.image_key,
                 }

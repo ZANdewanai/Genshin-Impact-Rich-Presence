@@ -363,200 +363,8 @@ class GenshinRichPresenceApp(QMainWindow):
         self.setCentralWidget(self.central_widget)
         main_content_layout = QVBoxLayout(self.central_widget)
 
-        # Clean minimalist dark theme styling
-        self.setStyleSheet("""
-            QMainWindow {
-                background: #2f3136;
-            }
-
-            QTabWidget::pane {
-                border: 1px solid #202225;
-                background: #36393f;
-                border-radius: 6px;
-                margin: 0px;
-            }
-
-            QTabBar::tab {
-                background: #2f3136;
-                color: #b9bbbe;
-                border: 1px solid #202225;
-                border-bottom: none;
-                border-top-left-radius: 4px;
-                border-top-right-radius: 4px;
-                padding: 10px 16px;
-                margin-right: 2px;
-                font-size: 12px;
-                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            }
-
-            QTabBar::tab:selected {
-                background: #36393f;
-                color: #ffffff;
-                border-color: #ffffff;
-            }
-
-            QTabBar::tab:hover:!selected {
-                background: #40444b;
-                color: #dcddde;
-            }
-
-            QFrame {
-                background: #36393f;
-                border: 1px solid #202225;
-                border-radius: 4px;
-            }
-
-            QLabel {
-                color: #dcddde;
-                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            }
-
-            QLineEdit {
-                background: #202225;
-                color: #dcddde;
-                border: 1px solid #202225;
-                border-radius: 3px;
-                padding: 6px 10px;
-                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-                font-size: 12px;
-                selection-background-color: #ffffff;
-            }
-
-            QLineEdit:focus {
-                border-color: #ffffff;
-                background: #2f3136;
-            }
-
-            QLineEdit:hover {
-                border-color: #40444b;
-            }
-
-            QComboBox {
-                background: #202225;
-                color: #dcddde;
-                border: 1px solid #202225;
-                border-radius: 3px;
-                padding: 6px 10px;
-                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-                font-size: 12px;
-                selection-background-color: #ffffff;
-            }
-
-            QComboBox:hover {
-                border-color: #40444b;
-            }
-
-            QComboBox:focus {
-                border-color: #ffffff;
-            }
-
-            QComboBox::drop-down {
-                border: none;
-                width: 16px;
-                margin-right: 6px;
-            }
-
-            QComboBox::down-arrow {
-                image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xIDFMNiA2TDEwIDEiIHN0cm9rZT0iI2I5YmJiZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+);
-                width: 12px;
-                height: 8px;
-            }
-
-            QComboBox QAbstractItemView {
-                background: #2f3136;
-                color: #dcddde;
-                selection-background: #ffffff;
-                border: 1px solid #202225;
-                border-radius: 3px;
-                outline: none;
-            }
-
-            QPushButton {
-                background: #4f5660;
-                color: #ffffff;
-                border: none;
-                border-radius: 3px;
-                padding: 8px 16px;
-                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-                font-size: 12px;
-                font-weight: 500;
-            }
-
-            QPushButton:hover {
-                background: #5d6b7a;
-            }
-
-            QPushButton:pressed {
-                background: #3e4449;
-            }
-
-            QCheckBox {
-                color: #b9bbbe;
-                spacing: 6px;
-                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-                font-size: 12px;
-            }
-
-            QCheckBox::indicator {
-                width: 16px;
-                height: 16px;
-                border: 1px solid #202225;
-                border-radius: 2px;
-                background: #2f3136;
-            }
-
-            QCheckBox::indicator:checked {
-                background: #4f5660;
-                border-color: #4f5660;
-                image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIgM1Y0LjVMNS41OCA5SDdMMTAgMkw5IDFMNiA2LjVMNSA1LjVMNyAySDJWM1oiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg==);
-            }
-
-            QCheckBox::indicator:hover {
-                border-color: #40444b;
-            }
-
-            QTextEdit {
-                background: #202225;
-                color: #dcddde;
-                border: 1px solid #202225;
-                border-radius: 3px;
-                padding: 10px;
-                font-family: 'Consolas', 'Courier New', monospace;
-                font-size: 11px;
-                selection-background-color: #ffffff;
-            }
-
-            QTextEdit:focus {
-                border-color: #ffffff;
-            }
-
-            /* Scrollbar styling */
-            QScrollBar:vertical {
-                border: 1px solid #202225;
-                background: #2f3136;
-                width: 12px;
-                border-radius: 6px;
-            }
-
-            QScrollBar::handle:vertical {
-                background: #4f5660;
-                border-radius: 5px;
-                min-height: 18px;
-            }
-
-            QScrollBar::handle:vertical:hover {
-                background: #5d6b7a;
-            }
-
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-                border: none;
-                background: none;
-            }
-
-            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
-                background: none;
-            }
-        """)
+        # Load external stylesheet
+        self._load_stylesheet()
         # Create main content area with sidebar and tab widget
         main_content = QWidget()
         main_content_layout_inner = QHBoxLayout(main_content)
@@ -590,6 +398,20 @@ class GenshinRichPresenceApp(QMainWindow):
     # def _run_text_based_mode(self): ... (removed)
     # def _start_text_display(self): ... (removed)
 
+    def _load_stylesheet(self):
+        """Load external stylesheet file"""
+        try:
+            stylesheet_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'styles.qss')
+            if os.path.exists(stylesheet_path):
+                with open(stylesheet_path, 'r') as f:
+                    stylesheet = f.read()
+                self.setStyleSheet(stylesheet)
+                self._log("✅ External stylesheet loaded successfully")
+            else:
+                self._log("⚠️ Stylesheet file not found, using default styling")
+        except Exception as e:
+            self._log(f"❌ Error loading stylesheet: {e}")
+
     def _run_non_gui_mode(self):
         """Legacy method - no longer used, subprocess is handled by _start_main_subprocess"""
         pass
@@ -597,20 +419,14 @@ class GenshinRichPresenceApp(QMainWindow):
     def _create_sidebar(self):
         """Create the sidebar with app controls"""
         self.sidebar_widget = QWidget()
-        self.sidebar_widget.setFixedWidth(180)
-        self.sidebar_widget.setStyleSheet("""
-            QWidget {
-                background: #2f3136;
-                border-right: 1px solid #202225;
-            }
-        """)
+        self.sidebar_widget.setObjectName("sidebar_widget")
+        self.sidebar_widget.setFixedWidth(200)
 
         sidebar_layout = QVBoxLayout(self.sidebar_widget)
 
         # Logo and title
         logo_label = QLabel("Genshin Impact\nRich Presence")
         logo_label.setFont(QFont("Arial", 16, QFont.Bold))
-        logo_label.setStyleSheet("color: #ffffff; padding: 10px;")
         logo_label.setAlignment(Qt.AlignCenter)
         sidebar_layout.addWidget(logo_label)
 
@@ -619,37 +435,22 @@ class GenshinRichPresenceApp(QMainWindow):
 
         # Start/Stop button
         self.start_button = QPushButton("Start Rich Presence")
+        self.start_button.setObjectName("start_button")
         self.start_button.setFont(QFont("Arial", 10, QFont.Bold))
-        self.start_button.setStyleSheet("""
-            QPushButton {
-                background: #4f5660;
-                color: #ffffff;
-                border: none;
-                padding: 12px 16px;
-                border-radius: 4px;
-                margin: 5px;
-            }
-            QPushButton:hover {
-                background: #5d6b7a;
-            }
-            QPushButton:pressed {
-                background: #3e4449;
-            }
-        """)
         self.start_button.clicked.connect(self.toggle_rpc)
         sidebar_layout.addWidget(self.start_button)
 
         # Status indicator
         self.status_label = QLabel("Status: Stopped")
+        self.status_label.setObjectName("status_label")
         self.status_label.setFont(QFont("Arial", 9, QFont.Bold))
-        self.status_label.setStyleSheet("color: #b9bbbe; padding: 5px; margin: 5px;")
         self.status_label.setAlignment(Qt.AlignCenter)
         sidebar_layout.addWidget(self.status_label)
 
         # Current activity
         self.activity_label = QLabel("Activity: Not running")
+        self.activity_label.setObjectName("activity_label")
         self.activity_label.setFont(QFont("Arial", 8))
-        self.activity_label.setStyleSheet("color: #b9bbbe; padding: 5px; margin: 5px;")
         self.activity_label.setWordWrap(True)
         self.activity_label.setAlignment(Qt.AlignCenter)
         sidebar_layout.addWidget(self.activity_label)
@@ -659,8 +460,8 @@ class GenshinRichPresenceApp(QMainWindow):
 
         # Version info
         version_label = QLabel("v2.6")
+        version_label.setObjectName("version_label")
         version_label.setFont(QFont("Arial", 10))
-        version_label.setStyleSheet("color: #b9bbbe; padding: 10px;")
         version_label.setAlignment(Qt.AlignCenter)
         sidebar_layout.addWidget(version_label)
     
@@ -670,21 +471,14 @@ class GenshinRichPresenceApp(QMainWindow):
 
         # Title
         title_label = QLabel("Genshin Impact Rich Presence")
+        title_label.setObjectName("main_tab")
         title_label.setFont(QFont("Arial", 18, QFont.Bold))
-        title_label.setStyleSheet("color: #ffffff; padding: 10px; margin: 10px;")
         main_layout.addWidget(title_label)
 
         # Status frame
         status_frame = QFrame()
+        status_frame.setObjectName("status_frame")
         status_frame.setFrameStyle(QFrame.Box)
-        status_frame.setStyleSheet("""
-            QFrame {
-                background: #36393f;
-                border: 1px solid #202225;
-                border-radius: 6px;
-                margin: 10px;
-            }
-        """)
         status_layout = QGridLayout(status_frame)
 
         # Status info with images
@@ -700,19 +494,18 @@ class GenshinRichPresenceApp(QMainWindow):
             # Image placeholder (will be updated dynamically)
             img_label = QLabel("")
             img_label.setFixedSize(32, 32)
-            img_label.setStyleSheet("border: 1px solid #202225; background: #2f3136;")
+            img_label.setObjectName(f"status_img_{label.lower().replace(' ', '_').replace(':', '')}")
             status_layout.addWidget(img_label, i, 0)
 
             # Label
             lbl = QLabel(label)
             lbl.setFont(QFont("Arial", 10, QFont.Bold))
-            lbl.setStyleSheet("color: #b9bbbe;")
             status_layout.addWidget(lbl, i, 1)
 
             # Value
             value_label = QLabel(value)
             value_label.setFont(QFont("Arial", 9))
-            value_label.setStyleSheet("color: #b9bbbe; padding-left: 10px;")
+            value_label.setObjectName(f"status_{label.lower().replace(' ', '_').replace(':', '')}")
             status_layout.addWidget(value_label, i, 2)
 
             # Store references for updating
@@ -723,22 +516,13 @@ class GenshinRichPresenceApp(QMainWindow):
         main_layout.addWidget(status_frame)
 
         log_label = QLabel("Activity Log:")
+        log_label.setObjectName("log_label")
         log_label.setFont(QFont("Arial", 12, QFont.Bold))
-        log_label.setStyleSheet("color: #ffffff; padding: 5px; margin: 10px 10px 5px 10px;")
         main_layout.addWidget(log_label)
 
         self.log_text = QTextEdit()
+        self.log_text.setObjectName("log_text")
         self.log_text.setMaximumHeight(150)
-        self.log_text.setStyleSheet("""
-            QTextEdit {
-                background: #202225;
-                color: #dcddde;
-                border: 1px solid #202225;
-                border-radius: 4px;
-                padding: 10px;
-                margin: 5px 10px 10px 10px;
-            }
-        """)
         self.log_text.setReadOnly(True)
         main_layout.addWidget(self.log_text)
 
@@ -750,126 +534,61 @@ class GenshinRichPresenceApp(QMainWindow):
 
         # Title
         title_label = QLabel("Configuration")
+        title_label.setObjectName("config_title_label")
         title_label.setFont(QFont("Arial", 18, QFont.Bold))
-        title_label.setStyleSheet("color: #ffffff; padding: 10px; margin: 10px;")
         config_layout.addWidget(title_label)
 
         # Create main config frame
         config_frame = QFrame()
+        config_frame.setObjectName("config_frame")
         config_frame.setFrameStyle(QFrame.Box)
-        config_frame.setStyleSheet("""
-            QFrame {
-                background: #36393f;
-                border: 1px solid #202225;
-                border-radius: 6px;
-                margin: 10px;
-            }
-        """)
         config_main_layout = QHBoxLayout(config_frame)
 
         # User settings frame (left side)
         user_frame = QFrame()
-        user_frame.setStyleSheet("""
-            QFrame {
-                background: #2f3136;
-                border: 1px solid #202225;
-                border-radius: 4px;
-                margin: 5px;
-            }
-        """)
+        user_frame.setObjectName("user_frame")
         user_layout = QVBoxLayout(user_frame)
 
         user_label = QLabel("User Settings")
+        user_label.setObjectName("user_label")
         user_label.setFont(QFont("Arial", 14, QFont.Bold))
-        user_label.setStyleSheet("color: #ffffff; padding: 10px;")
         user_layout.addWidget(user_label)
 
         # Username
         username_layout = QHBoxLayout()
         username_label = QLabel("Username:")
+        username_label.setObjectName("username_label")
         username_label.setFont(QFont("Arial", 10))
-        username_label.setStyleSheet("color: #b9bbbe; padding: 5px;")
         username_layout.addWidget(username_label)
 
         self.username_entry = QLineEdit(self.config.USERNAME)
-        self.username_entry.setStyleSheet("""
-            QLineEdit {
-                background: #202225;
-                color: #dcddde;
-                border: 1px solid #202225;
-                border-radius: 3px;
-                padding: 6px 10px;
-            }
-            QLineEdit:focus {
-                border-color: #ffffff;
-                background: #2f3136;
-            }
-        """)
+        self.username_entry.setObjectName("username_entry")
         username_layout.addWidget(self.username_entry)
         user_layout.addLayout(username_layout)
 
         # Main character selection
         mc_layout = QHBoxLayout()
         mc_label = QLabel("Main Character:")
+        mc_label.setObjectName("mc_label")
         mc_label.setFont(QFont("Arial", 10))
-        mc_label.setStyleSheet("color: #b9bbbe; padding: 5px;")
         mc_layout.addWidget(mc_label)
 
         self.mc_combo = QComboBox()
+        self.mc_combo.setObjectName("mc_combo")
         self.mc_combo.addItems(["Aether (Male)", "Lumine (Female)"])
         self.mc_combo.setCurrentText("Aether (Male)" if self.config.MC_AETHER else "Lumine (Female)")
-        self.mc_combo.setStyleSheet("""
-            QComboBox {
-                background: #202225;
-                color: #dcddde;
-                border: 1px solid #202225;
-                border-radius: 3px;
-                padding: 6px 10px;
-            }
-            QComboBox:hover {
-                border-color: #40444b;
-            }
-            QComboBox:focus {
-                border-color: #ffffff;
-            }
-            QComboBox::drop-down {
-                border: none;
-                width: 16px;
-                margin-right: 6px;
-            }
-            QComboBox QAbstractItemView {
-                background: #2f3136;
-                color: #dcddde;
-                selection-background: #ffffff;
-                border: 1px solid #202225;
-                border-radius: 3px;
-                outline: none;
-            }
-        """)
         mc_layout.addWidget(self.mc_combo)
         user_layout.addLayout(mc_layout)
 
         # Wanderer name
         wanderer_layout = QHBoxLayout()
         wanderer_label = QLabel("Wanderer Name:")
+        wanderer_label.setObjectName("wanderer_label")
         wanderer_label.setFont(QFont("Arial", 10))
-        wanderer_label.setStyleSheet("color: #b9bbbe; padding: 5px;")
         wanderer_layout.addWidget(wanderer_label)
 
         self.wanderer_entry = QLineEdit(self.config.WANDERER_NAME)
-        self.wanderer_entry.setStyleSheet("""
-            QLineEdit {
-                background: #202225;
-                color: #dcddde;
-                border: 1px solid #202225;
-                border-radius: 3px;
-                padding: 6px 10px;
-            }
-            QLineEdit:focus {
-                border-color: #ffffff;
-                background: #2f3136;
-            }
-        """)
+        self.wanderer_entry.setObjectName("wanderer_entry")
         wanderer_layout.addWidget(self.wanderer_entry)
         user_layout.addLayout(wanderer_layout)
 
@@ -877,48 +596,19 @@ class GenshinRichPresenceApp(QMainWindow):
 
         # Performance settings frame (right side)
         perf_frame = QFrame()
-        perf_frame.setStyleSheet("""
-            QFrame {
-                background: #2f3136;
-                border: 1px solid #202225;
-                border-radius: 4px;
-                margin: 5px;
-            }
-        """)
+        perf_frame.setObjectName("perf_frame")
         perf_layout = QVBoxLayout(perf_frame)
 
         perf_label = QLabel("Performance Settings")
+        perf_label.setObjectName("perf_label")
         perf_label.setFont(QFont("Arial", 14, QFont.Bold))
-        perf_label.setStyleSheet("color: #ffffff; padding: 10px;")
         perf_layout.addWidget(perf_label)
 
         # GPU acceleration toggle
         self.gpu_checkbox = QCheckBox("Enable GPU acceleration for OCR")
+        self.gpu_checkbox.setObjectName("gpu_checkbox")
         self.gpu_checkbox.setChecked(self.config.USE_GPU)
         self.gpu_checkbox.setFont(QFont("Arial", 10))
-        self.gpu_checkbox.setStyleSheet("""
-            QCheckBox {
-                color: #b9bbbe;
-                spacing: 6px;
-                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-                font-size: 12px;
-            }
-            QCheckBox::indicator {
-                width: 16px;
-                height: 16px;
-                border: 1px solid #202225;
-                border-radius: 2px;
-                background: #2f3136;
-            }
-            QCheckBox::indicator:checked {
-                background: #4f5660;
-                border-color: #4f5660;
-                image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIgM1Y0LjVMNS41OCA5SDdMMTAgMkw5IDFMNiA2LjVMNSA1LjVMNyAySDJWM1oiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg==);
-            }
-            QCheckBox::indicator:hover {
-                border-color: #40444b;
-            }
-        """)
         perf_layout.addWidget(self.gpu_checkbox)
 
         perf_layout.addStretch()
@@ -928,39 +618,16 @@ class GenshinRichPresenceApp(QMainWindow):
 
         # Status label for save feedback
         self.config_status_label = QLabel("")
+        self.config_status_label.setObjectName("config_status_label")
         self.config_status_label.setFont(QFont("Arial", 10, QFont.Bold))
-        self.config_status_label.setStyleSheet("""
-            QLabel {
-                color: #ffffff;
-                padding: 5px;
-                margin: 5px 10px;
-                background: rgba(255, 255, 255, 0.1);
-                border: 1px solid #ffffff;
-                border-radius: 3px;
-            }
-        """)
         self.config_status_label.setAlignment(Qt.AlignCenter)
         self.config_status_label.setVisible(False)
         config_layout.addWidget(self.config_status_label)
 
         # Save button
         save_button = QPushButton("Save Settings")
+        save_button.setObjectName("config_save_button")
         save_button.setFont(QFont("Arial", 12, QFont.Bold))
-        save_button.setStyleSheet("""
-            QPushButton {
-                background: #4f5660;
-                color: #ffffff;
-                border: none;
-                border-radius: 4px;
-                padding: 10px 20px;
-                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-                font-size: 12px;
-                font-weight: 500;
-            }
-            QPushButton:hover {
-                background: #5d6b7a;
-            }
-        """)
         save_button.clicked.connect(self._save_config)
         config_layout.addWidget(save_button)
 
@@ -972,21 +639,14 @@ class GenshinRichPresenceApp(QMainWindow):
 
         # Title
         title_label = QLabel("Character Roster")
+        title_label.setObjectName("roaster_title_label")
         title_label.setFont(QFont("Arial", 18, QFont.Bold))
-        title_label.setStyleSheet("color: #ffffff; padding: 10px; margin: 10px;")
         roaster_layout.addWidget(title_label)
 
         # Create main roaster frame
         roaster_frame = QFrame()
+        roaster_frame.setObjectName("roaster_frame")
         roaster_frame.setFrameStyle(QFrame.Box)
-        roaster_frame.setStyleSheet("""
-            QFrame {
-                background: #36393f;
-                border: 1px solid #202225;
-                border-radius: 6px;
-                margin: 10px;
-            }
-        """)
         roaster_main_layout = QVBoxLayout(roaster_frame)
 
         # Load current character images from shared config
@@ -1002,20 +662,13 @@ class GenshinRichPresenceApp(QMainWindow):
 
         # Character image mapping widget
         self.character_images_widget = QWidget()
-        self.character_images_widget.setStyleSheet("""
-            QWidget {
-                background: #2f3136;
-                border: 1px solid #202225;
-                border-radius: 4px;
-                padding: 10px;
-            }
-        """)
+        self.character_images_widget.setObjectName("character_images_widget")
         char_images_layout = QVBoxLayout(self.character_images_widget)
 
         # Instructions
         instructions = QLabel("Configure custom image keys for Genshin characters.\nUse this for alternate skins, Fatui versions, or other variants.\nTraveler gender is configured in 'Main Character' above.")
+        instructions.setObjectName("instructions")
         instructions.setFont(QFont("Arial", 9))
-        instructions.setStyleSheet("color: #b9bbbe; padding: 5px;")
         instructions.setWordWrap(True)
         char_images_layout.addWidget(instructions)
 
@@ -1030,21 +683,12 @@ class GenshinRichPresenceApp(QMainWindow):
             char_layout = QHBoxLayout()
 
             char_label = QLabel(f"{char_name}:")
+            char_label.setObjectName("char_label")
             char_label.setFont(QFont("Arial", 9))
-            char_label.setStyleSheet("color: #b9bbbe; padding: 3px; min-width: 80px;")
             char_layout.addWidget(char_label)
 
             char_entry = QLineEdit(character_images.get(char_name, ""))
             char_entry.setPlaceholderText("e.g., char_traveler_fatui")
-            char_entry.setStyleSheet("""
-                QLineEdit {
-                    background: #202225;
-                    color: #dcddde;
-                    border: 1px solid #202225;
-                    border-radius: 3px;
-                    padding: 6px 10px;
-                }
-            """)
             char_layout.addWidget(char_entry)
 
             self.char_image_entries[char_name] = char_entry
@@ -1054,20 +698,8 @@ class GenshinRichPresenceApp(QMainWindow):
         char_images_layout.addStretch()
 
         add_char_btn = QPushButton("Add Character")
+        add_char_btn.setObjectName("add_char_btn")
         add_char_btn.setFont(QFont("Arial", 8))
-        add_char_btn.setStyleSheet("""
-            QPushButton {
-                background: #4f5660;
-                color: #ffffff;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 3px;
-                margin: 5px;
-            }
-            QPushButton:hover {
-                background: #5d6b7a;
-            }
-        """)
         add_char_btn.clicked.connect(self._add_character_image_entry)
         char_images_layout.addWidget(add_char_btn)
 
@@ -1077,37 +709,16 @@ class GenshinRichPresenceApp(QMainWindow):
 
         # Status label for save feedback
         self.roaster_status_label = QLabel("")
+        self.roaster_status_label.setObjectName("roaster_status_label")
         self.roaster_status_label.setFont(QFont("Arial", 10, QFont.Bold))
-        self.roaster_status_label.setStyleSheet("""
-            QLabel {
-                color: #ffffff;
-                padding: 5px;
-                margin: 5px 10px;
-                background: rgba(255, 255, 255, 0.1);
-                border: 1px solid #ffffff;
-                border-radius: 3px;
-            }
-        """)
         self.roaster_status_label.setAlignment(Qt.AlignCenter)
         self.roaster_status_label.setVisible(False)
         roaster_layout.addWidget(self.roaster_status_label)
 
         # Save button
         save_button = QPushButton("Save Character Settings")
+        save_button.setObjectName("roaster_save_button")
         save_button.setFont(QFont("Arial", 12, QFont.Bold))
-        save_button.setStyleSheet("""
-            QPushButton {
-                background: #4f5660;
-                color: #ffffff;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 4px;
-                margin: 10px;
-            }
-            QPushButton:hover {
-                background: #5d6b7a;
-            }
-        """)
         save_button.clicked.connect(self._save_roaster_config)
         roaster_layout.addWidget(save_button)
 
@@ -1119,8 +730,8 @@ class GenshinRichPresenceApp(QMainWindow):
 
         # Title
         title_label = QLabel("About Genshin Impact Rich Presence")
+        title_label.setObjectName("about_title_label")
         title_label.setFont(QFont("Arial", 18, QFont.Bold))
-        title_label.setStyleSheet("color: #ffffff; padding: 10px; margin: 10px;")
         about_layout.addWidget(title_label)
 
         # Info text
@@ -1141,17 +752,8 @@ Image assets are intellectual property of HoYoverse
 All rights reserved by miHoYo"""
 
         info_label = QLabel(info_text)
+        info_label.setObjectName("info_label")
         info_label.setFont(QFont("Arial", 10))
-        info_label.setStyleSheet("""
-            QLabel {
-                color: #dcddde;
-                padding: 15px;
-                margin: 10px;
-                background: #2f3136;
-                border: 1px solid #202225;
-                border-radius: 6px;
-            }
-        """)
         info_label.setWordWrap(True)
         about_layout.addWidget(info_label)
 
@@ -1593,16 +1195,34 @@ All rights reserved by miHoYo"""
 
                 if activity_type == 5:  # LOCATION
                     if isinstance(activity_details, dict) and 'location_name' in activity_details:
-                        location_name = activity_details['location_name']
+                        # Format location with subregion and region information
+                        location_parts = []
+                        if activity_details.get('location_name'):
+                            location_parts.append(activity_details['location_name'])
+                        if activity_details.get('subarea'):
+                            location_parts.append(activity_details['subarea'])
+                        if activity_details.get('country'):
+                            location_parts.append(activity_details['country'])
+
+                        full_location_name = ", ".join(location_parts) if location_parts else activity_details['location_name']
                         if hasattr(self, 'status_current_location'):
-                            self.status_current_location.setText(location_name)
-                            self._log(f"✅ Updated location: {location_name}")
+                            self.status_current_location.setText(full_location_name)
+                            self._log(f"✅ Updated location: {full_location_name}")
                 elif activity_type == 6:  # MAP_LOCATION
                     if isinstance(activity_details, dict) and 'location_name' in activity_details:
-                        location_name = activity_details['location_name']
+                        # Format location with subregion and region information
+                        location_parts = []
+                        if activity_details.get('location_name'):
+                            location_parts.append(activity_details['location_name'])
+                        if activity_details.get('subarea'):
+                            location_parts.append(activity_details['subarea'])
+                        if activity_details.get('country'):
+                            location_parts.append(activity_details['country'])
+
+                        full_location_name = ", ".join(location_parts) if location_parts else activity_details['location_name']
                         if hasattr(self, 'status_current_location'):
-                            self.status_current_location.setText(f"Thinking of traveling to {location_name}")
-                            self._log(f"✅ Updated map location: {location_name}")
+                            self.status_current_location.setText(f"Thinking of traveling to {full_location_name}")
+                            self._log(f"✅ Updated map location: {full_location_name}")
                 elif activity_type == 3:  # DOMAIN
                     if isinstance(activity_details, dict) and 'domain_name' in activity_details:
                         if hasattr(self, 'status_current_location'):
@@ -1838,8 +1458,8 @@ All rights reserved by miHoYo"""
             char_layout = QHBoxLayout()
 
             char_label = QLabel(f"{char_name}:")
+            char_label.setObjectName("char_label")
             char_label.setFont(QFont("Arial", 9))
-            char_label.setStyleSheet("color: #ecf0f1; padding: 3px; min-width: 80px;")
             char_layout.addWidget(char_label)
 
             char_entry = QLineEdit()
