@@ -109,7 +109,7 @@ class CharacterRegionManager:
             # Try current position first
             success, confidence = self._test_slot_detection(i, self.current_name_positions[i])
 
-            if DEBUG_MODE:
+            if DEBUG_MODE and DEBUG_CHARACTER_MODE:
                 print(f"🔍 Slot {i} detection: success={success}, confidence={confidence:.3f}")
 
             if success:
@@ -567,6 +567,9 @@ def detect_characters_with_adaptation():
                 # Validate that the OCR result is a legitimate character from the database
                 if char_data.image_key != "char_unknown":
                     # This is a validated character from the database
+                    if DEBUG_MODE and DEBUG_CHARACTER_MODE:
+                        char_names = [char.character_display_name if char else None for char in current_characters]
+                        print(f"🔍 DEBUG: current_characters before JSON write: {char_names}")
                     if current_characters[char_idx] != char_data:
                         current_characters[char_idx] = char_data
                         print(f"✅ Detected character {char_idx + 1}: {char_data.character_display_name}")
@@ -1189,9 +1192,14 @@ while True:
     if loop_count == 0 or loop_count % (RESOLUTION_CHECK_INTERVAL * 10) == 0:  # Check every ~10 minutes (60*10 seconds)
         update_coordinates_if_needed()
 
-    if pause_ocr:
-        # When Genshin is minimized/closed, sleep much longer to reduce CPU usage
-        time.sleep(3)  # Sleep 3 seconds when completely minimized
+    # Check if Genshin is in foreground before doing any OCR operations
+    if not ps_helper.check_genshin_is_foreground():
+        if not pause_ocr:
+            pause_ocr = True
+            print("GenshinImpact.exe lost focus. Pausing OCR.")
+
+        # When Genshin is not in foreground, sleep much longer to reduce CPU usage
+        time.sleep(3)  # Sleep 3 seconds when not in foreground
 
         # Check window status less frequently when inactive
         if loop_count % 3 == 0:  # Check every 3 iterations when paused
@@ -1205,6 +1213,11 @@ while True:
                 )
                 ps_window_thread_instance.start()
         continue
+
+    # Update pause_ocr status if Genshin is back in foreground
+    if pause_ocr:
+        pause_ocr = False
+        print("GenshinImpact.exe resumed. Resuming OCR.")
 
     try:
         # Use adaptive number coordinates that stay paired with name positions
@@ -1230,7 +1243,7 @@ while True:
     charnumber_brightness = [sum(rgb) for rgb in charnumber_cap]
 
     # Debug: Log brightness values to see what's happening
-    if DEBUG_MODE and loop_count % 50 == 0:  # Log every 5 seconds
+    if DEBUG_MODE and DEBUG_CHARACTER_MODE and loop_count % 50 == 0:  # Log every 5 seconds
         print(f"🔍 Active Character Debug - Brightness: {charnumber_brightness}")
         print(f"🔍 Active Character Debug - Threshold: {ACTIVE_CHARACTER_THRESH}")
         print(f"🔍 Active Character Debug - Adaptive Coords: {character_region_manager.get_adaptive_number_coordinates()}")
@@ -1243,7 +1256,7 @@ while True:
     found_active_character = len(active_character) >= 1  # Allow multiple active indicators
 
     # Debug: Log active character detection results
-    if DEBUG_MODE and loop_count % 50 == 0:  # Log every 5 seconds
+    if DEBUG_MODE and DEBUG_CHARACTER_MODE:
         print(f"🔍 Active Character Detection: found={found_active_character}, candidates={active_character}")
 
     # Dynamic sleep timing based on game state for better CPU efficiency
@@ -1292,17 +1305,17 @@ while True:
                 total_brightness_change = sum(abs(current - prev) for current, prev in zip(current_brightness, prev_brightness))
 
                 if total_brightness_change > brightness_change_threshold:
-                    if DEBUG_MODE:
+                    if DEBUG_MODE and DEBUG_CHARACTER_MODE:
                         print(f"🔄 Detected significant brightness change ({total_brightness_change}), triggering character redetection")
                     character_region_manager.needs_redetection = True
                 elif loop_count % 60 == 0:  # Fallback: every 60 loops (about 8-9 seconds) if no changes detected
-                    if DEBUG_MODE:
+                    if DEBUG_MODE and DEBUG_CHARACTER_MODE:
                         print("🔄 Periodic character redetection check (fallback)")
                     character_region_manager.needs_redetection = True
             else:
                 # First time - store current brightness and trigger initial redetection
                 character_region_manager._last_brightness_check = charnumber_brightness
-                if DEBUG_MODE:
+                if DEBUG_MODE and DEBUG_CHARACTER_MODE:
                     print("🔄 Initial brightness check, triggering character redetection")
                 character_region_manager.needs_redetection = True
 
@@ -1944,14 +1957,11 @@ while True:
                     characters_dict.append({
                         'character_display_name': char.character_display_name,
                         'image_key': char.image_key,
-                        'search_str': char.search_str
                     })
-                else:
-                    characters_dict.append(None)
 
             # Debug: Log current_characters before writing
-            if DEBUG_MODE:
-                char_names = [char.character_display_name if char else None for char in current_characters]
+            if DEBUG_MODE and DEBUG_CHARACTER_MODE:
+                char_names = [char['character_display_name'] if char else None for char in characters_dict]
                 print(f"🔍 DEBUG: current_characters before JSON write: {char_names}")
 
             data_to_write = {
@@ -1961,7 +1971,6 @@ while True:
                 'current_active_character': current_active_character,
                 'game_start_time': game_start_time,
                 'pause_ocr': pause_ocr,
-                # Include adapted coordinates in the frequently updated file
                 'adapted_coordinates': {
                     'ADAPTED_NAMES_4P_COORD': character_region_manager.current_name_positions.copy(),
                     'ADAPTED_NUMBER_4P_COORD': character_region_manager.current_number_positions.copy(),
@@ -1969,8 +1978,6 @@ while True:
                     'OCCUPIED_SLOTS': character_region_manager.occupied_slots.copy()
                 }
             }
-            with open(shared_file, 'w') as f:
-                json.dump(data_to_write, f)
             if DEBUG_MODE:
                 print(f"✅ Wrote shared data to {shared_file}")
         except Exception as e:

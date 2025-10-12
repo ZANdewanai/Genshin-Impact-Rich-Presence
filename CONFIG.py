@@ -289,6 +289,12 @@ DEBUG_MODE = True
 Set to true to print debug messages.
 """
 
+DEBUG_CHARACTER_MODE = False
+"""
+Set to true to print character detection debug messages.
+Disable to reduce console spam from character detection.
+"""
+
 # Base coordinates for 2560x1440 resolution (1440p)
 BASE_RESOLUTION_WIDTH = 2560
 BASE_RESOLUTION_HEIGHT = 1440

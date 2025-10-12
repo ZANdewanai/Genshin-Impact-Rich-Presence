@@ -1352,9 +1352,21 @@ All rights reserved by miHoYo"""
                 pass
 
     def _ensure_image_cache_dir(self):
-        cache_dir = os.path.join(os.getenv('APPDATA'), 'GenshinImpactRichPresence', 'images')
+        cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'image_cache')
         os.makedirs(cache_dir, exist_ok=True)
         return cache_dir
+
+    def _try_boss_subfolders(self, image_key: str, cache_dir: str, image_path: str) -> Optional[str]:
+        """Try downloading from boss subfolders"""
+        subfolders = ["hypostasis", "regisvine", "animal", "mechanical_construct", "elemental", "person_and_mechanical"]
+        for subfolder in subfolders:
+            try:
+                boss_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/resources/assets/images/bosses/{subfolder}/{image_key}.png"
+                urllib.request.urlretrieve(boss_url, image_path)
+                return image_path
+            except Exception:
+                continue
+        return None
 
     def _download_image(self, image_key: str, category: str = "Characters") -> Optional[str]:
         """Download an image from GitHub if not cached"""
@@ -1369,30 +1381,34 @@ All rights reserved by miHoYo"""
             self.image_cache[image_key] = image_path
             return image_path
 
-        # Download from GitHub
+        # Map category to correct folder name
+        folder_map = {
+            "Characters": "characters",
+            "Bosses": "bosses"
+        }
+        folder = folder_map.get(category, category.lower())
+
+        # Download from GitHub with correct folder
         try:
-            github_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/resources/assets/images/{urllib.parse.quote(category)}/{urllib.parse.quote(image_key)}.png"
+            github_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/resources/assets/images/{folder}/{image_key}.png"
             urllib.request.urlretrieve(github_url, image_path)
             self.image_cache[image_key] = image_path
             return image_path
         except Exception as e:
             # Try alternative URL patterns
             try:
-                # Some images might be in different subfolders
-                alt_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/resources/assets/images/{urllib.parse.quote(image_key)}.png"
+                # Try without folder for characters
+                alt_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/resources/assets/images/{image_key}.png"
                 urllib.request.urlretrieve(alt_url, image_path)
                 self.image_cache[image_key] = image_path
                 return image_path
             except Exception as e2:
-                # Try boss subfolder if category is Bosses
+                # For bosses, try specific subfolders
                 if category == "Bosses":
-                    try:
-                        boss_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/resources/assets/images/Bosses/World Bosses/{urllib.parse.quote(image_key)}.png"
-                        urllib.request.urlretrieve(boss_url, image_path)
-                        self.image_cache[image_key] = image_path
-                        return image_path
-                    except Exception as e3:
-                        pass
+                    boss_path = self._try_boss_subfolders(image_key, cache_dir, image_path)
+                    if boss_path:
+                        self.image_cache[image_key] = boss_path
+                        return boss_path
                 print(f"Failed to download image {image_key}: {e2}")
                 return None
 
@@ -1412,8 +1428,16 @@ All rights reserved by miHoYo"""
                     pil_image = Image.open(image_path)
                     pil_image = pil_image.resize((32, 32), Image.Resampling.LANCZOS)
 
+                    # Determine format based on image mode
+                    if pil_image.mode in ('RGBA', 'LA') or (pil_image.mode == 'P' and 'transparency' in pil_image.info):
+                        pil_image = pil_image.convert('RGBA')
+                        qimage_format = QImage.Format_RGBA8888
+                    else:
+                        pil_image = pil_image.convert('RGB')
+                        qimage_format = QImage.Format_RGB888
+
                     # Convert PIL image to QPixmap
-                    qimage = QImage(pil_image.tobytes(), pil_image.width, pil_image.height, QImage.Format_RGB888)
+                    qimage = QImage(pil_image.tobytes(), pil_image.width, pil_image.height, qimage_format)
                     pixmap = QPixmap.fromImage(qimage)
 
                     img_label.setPixmap(pixmap.scaled(32, 32, Qt.KeepAspectRatio, Qt.SmoothTransformation))
