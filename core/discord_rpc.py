@@ -76,6 +76,8 @@ def get_asset_url(image_key: str) -> str:
             subfolder = "content/"
         elif image_key.startswith('icon_'):
             subfolder = "ui/ui/"
+        elif image_key.startswith('archive_'):
+            subfolder = "ui/archive/"
     
     # Ensure base URL ends with / for proper concatenation
     base_url = ASSET_BASE_URL if ASSET_BASE_URL.endswith('/') else ASSET_BASE_URL + '/'
