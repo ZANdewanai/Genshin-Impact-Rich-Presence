@@ -730,37 +730,43 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
 
         # CAPTURE GAMEMENU
         if inactive_detection_cooldown == 0 or inactive_detection_mode == ActivityType.GAMEMENU:
-            gamemenu_data = capture_and_process_ocr(
-                reader,
-                PARTY_SETUP_COORD,  # Note: Uses PARTY_SETUP_COORD for gamemenu
-                ALLOWLIST2,
-                LOC_CONF_THRESH,
-                ActivityType.GAMEMENU,
-                DATA.search_gamemenu,
-                debug_key='GAMEMENU'
-            )
-            if gamemenu_data:
-                with state_lock:
-                    # Safely get current search_str if it exists
-                    current_search_str = None
-                    if (hasattr(current_activity, 'activity_data')
-                        and current_activity.activity_data is not None
-                        and hasattr(current_activity.activity_data, 'search_str')):
-                        current_search_str = current_activity.activity_data.search_str
+            try:
+                gamemenu_data = capture_and_process_ocr(
+                    reader,
+                    PARTY_SETUP_COORD,  # Note: Uses PARTY_SETUP_COORD for gamemenu
+                    ALLOWLIST2,
+                    LOC_CONF_THRESH,
+                    ActivityType.GAMEMENU,
+                    DATA.search_gamemenu,
+                    debug_key='GAMEMENU'
+                )
+                if gamemenu_data:
+                    with state_lock:
+                        # Safely get current search_str if it exists
+                        current_search_str = None
+                        if (hasattr(current_activity, 'activity_data')
+                            and current_activity.activity_data is not None
+                            and hasattr(current_activity.activity_data, 'search_str')):
+                            current_search_str = current_activity.activity_data.search_str
 
-                    if (current_activity.activity_type != ActivityType.GAMEMENU
-                        or current_search_str != gamemenu_data.search_str):
-                        new_activity = Activity(ActivityType.GAMEMENU, gamemenu_data)
-                        update_activity(new_activity)
-                        current_timer_type = "menu"  # Activity region menus use menu timer
-                        menu_start_time = time.time()  # Start menu timer
-                        curr_game_paused = False
-                        inactive_detection_cooldown = INACTIVE_COOLDOWN
-                        inactive_detection_mode = ActivityType.GAMEMENU
-                        activity_log = f"Detected gamemenu activity: {gamemenu_data.gamemenu_name}"
-                        if activity_log != _last_activity_log:
-                            print(activity_log)
-                            _last_activity_log = activity_log
+                        if (current_activity.activity_type != ActivityType.GAMEMENU
+                            or current_search_str != gamemenu_data.search_str):
+                            new_activity = Activity(ActivityType.GAMEMENU, gamemenu_data)
+                            update_activity(new_activity)
+                            current_timer_type = "menu"  # Activity region menus use menu timer
+                            menu_start_time = time.time()  # Start menu timer
+                            curr_game_paused = False
+                            inactive_detection_cooldown = INACTIVE_COOLDOWN
+                            inactive_detection_mode = ActivityType.GAMEMENU
+                            activity_log = f"Detected gamemenu activity: {gamemenu_data.gamemenu_name}"
+                            if activity_log != _last_activity_log:
+                                print(activity_log)
+                                _last_activity_log = activity_log
+            except Exception as e:
+                if DEBUG_MODE:
+                    print(f"❌ Error processing GAMEMENU detection: {e}")
+                    import traceback
+                    traceback.print_exc()
 
         # CAPTURE MAP LOCATION
         if (inactive_detection_cooldown == 0 or inactive_detection_mode == ActivityType.MAP_LOCATION) and not found_active_character:

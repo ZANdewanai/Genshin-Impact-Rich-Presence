@@ -260,7 +260,14 @@ while not shutdown_event.is_set():
         print("GenshinImpact.exe resumed. Resuming OCR.")
 
     # Run one detection iteration
-    sleep_duration = run_detection_iteration(reader, DATA, character_region_manager, loop_count)
+    try:
+        sleep_duration = run_detection_iteration(reader, DATA, character_region_manager, loop_count)
+    except Exception as e:
+        print(f"❌ Error in detection iteration: {e}")
+        if DEBUG_MODE:
+            import traceback
+            traceback.print_exc()
+        sleep_duration = 1.0  # Use longer sleep on error to avoid spamming
 
     # Write data to shared file for GUI if environment variable is set
     shared_file = os.getenv('GUI_SHARED_DATA_FILE')

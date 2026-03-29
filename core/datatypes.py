@@ -85,6 +85,8 @@ class DomainType(Enum):
                 return DomainType.LIMITED_EVENT
             case "one-time":
                 return DomainType.ONE_TIME
+            case _:
+                return DomainType.ONE_TIME  # Default fallback for unrecognized types
 
     def __str__(self) -> str:
         match self.name:
@@ -100,6 +102,8 @@ class DomainType(Enum):
                 return "Limited-Time Event Domain"
             case "ONE_TIME":
                 return "Domain"
+            case _:
+                return "Domain"  # Default fallback
 
 
 class Domain:
@@ -168,6 +172,8 @@ class GamemenuType(Enum):
                 return GamemenuType.CUTSCENE
             case "spyral abyss":
                 return GamemenuType.SPYRAL
+            case _:
+                return GamemenuType.MENUS  # Default fallback for unrecognized types
     def __str__(self) -> str:
         match self.name:
             case "MENUS":
@@ -176,6 +182,8 @@ class GamemenuType(Enum):
                 return "In a Cutscene"
             case "SPYRAL":
                 return "Spyral Abyss"
+            case _:
+                return "In Menus"  # Default fallback
 
 class Gamemenu:
     """

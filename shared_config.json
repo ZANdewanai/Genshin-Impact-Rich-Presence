@@ -7,9 +7,9 @@
     "ADAPTED_NAMES_4P_COORD": [
         [
             2165,
-            340,
+            330,
             2362,
-            411
+            401
         ],
         [
             2165,
@@ -19,15 +19,15 @@
         ],
         [
             2165,
-            575,
+            585,
             2360,
-            650
+            660
         ],
         [
             2165,
-            725,
+            755,
             2362,
-            798
+            828
         ]
     ],
     "ADAPTED_NUMBER_4P_COORD": [
@@ -59,60 +59,28 @@
     "ADAPTATION_ACTIVE": true,
     "ADAPTATION_HISTORY": [
         {
-            "slot": 0,
-            "original_coords": [
-                2165,
-                320,
-                2362,
-                391
-            ],
-            "adapted_coords": [
-                2165,
-                345,
-                2362,
-                416
-            ],
-            "timestamp": 1774820139.4023552
-        },
-        {
             "slot": 3,
             "original_coords": [
-                2165,
-                705,
-                2362,
-                778
-            ],
-            "adapted_coords": [
                 2165,
                 725,
                 2362,
                 798
             ],
-            "timestamp": 1774820160.497508
-        },
-        {
-            "slot": 1,
-            "original_coords": [
-                2165,
-                445,
-                2362,
-                517
-            ],
             "adapted_coords": [
                 2165,
-                425,
+                695,
                 2362,
-                497
+                768
             ],
-            "timestamp": 1774820209.7698514
+            "timestamp": 1774828245.8855968
         },
         {
             "slot": 0,
             "original_coords": [
                 2165,
-                320,
+                340,
                 2362,
-                391
+                411
             ],
             "adapted_coords": [
                 2165,
@@ -120,23 +88,71 @@
                 2362,
                 406
             ],
-            "timestamp": 1774820215.8346322
+            "timestamp": 1774828250.980912
+        },
+        {
+            "slot": 3,
+            "original_coords": [
+                2165,
+                725,
+                2362,
+                798
+            ],
+            "adapted_coords": [
+                2165,
+                710,
+                2362,
+                783
+            ],
+            "timestamp": 1774828262.7899082
         },
         {
             "slot": 1,
             "original_coords": [
                 2165,
-                445,
-                2362,
-                517
-            ],
-            "adapted_coords": [
-                2165,
                 470,
                 2362,
                 542
             ],
-            "timestamp": 1774820217.2272277
+            "adapted_coords": [
+                2165,
+                440,
+                2362,
+                512
+            ],
+            "timestamp": 1774828267.8949313
+        },
+        {
+            "slot": 0,
+            "original_coords": [
+                2165,
+                340,
+                2362,
+                411
+            ],
+            "adapted_coords": [
+                2165,
+                345,
+                2362,
+                416
+            ],
+            "timestamp": 1774828275.963325
+        },
+        {
+            "slot": 0,
+            "original_coords": [
+                2165,
+                340,
+                2362,
+                411
+            ],
+            "adapted_coords": [
+                2165,
+                330,
+                2362,
+                401
+            ],
+            "timestamp": 1774828308.0575159
         },
         {
             "slot": 2,
@@ -148,65 +164,97 @@
             ],
             "adapted_coords": [
                 2165,
+                545,
+                2360,
+                620
+            ],
+            "timestamp": 1774828313.4977593
+        },
+        {
+            "slot": 1,
+            "original_coords": [
+                2165,
+                470,
+                2362,
+                542
+            ],
+            "adapted_coords": [
+                2165,
+                470,
+                2362,
+                542
+            ],
+            "timestamp": 1774828323.751102
+        },
+        {
+            "slot": 2,
+            "original_coords": [
+                2165,
                 575,
                 2360,
                 650
             ],
-            "timestamp": 1774820234.5629804
+            "adapted_coords": [
+                2165,
+                585,
+                2360,
+                660
+            ],
+            "timestamp": 1774828330.3982394
         },
         {
             "slot": 3,
             "original_coords": [
-                2165,
-                705,
-                2362,
-                778
-            ],
-            "adapted_coords": [
-                2165,
-                715,
-                2362,
-                788
-            ],
-            "timestamp": 1774820235.7486248
-        },
-        {
-            "slot": 3,
-            "original_coords": [
-                2165,
-                705,
-                2362,
-                778
-            ],
-            "adapted_coords": [
                 2165,
                 725,
                 2362,
                 798
             ],
-            "timestamp": 1774820286.2844992
+            "adapted_coords": [
+                2165,
+                700,
+                2362,
+                773
+            ],
+            "timestamp": 1774828346.9714813
         },
         {
-            "slot": 0,
+            "slot": 3,
             "original_coords": [
                 2165,
-                320,
+                725,
                 2362,
-                391
+                798
             ],
             "adapted_coords": [
                 2165,
-                340,
+                720,
                 2362,
-                411
+                793
             ],
-            "timestamp": 1774820298.972127
+            "timestamp": 1774828351.951203
+        },
+        {
+            "slot": 3,
+            "original_coords": [
+                2165,
+                725,
+                2362,
+                798
+            ],
+            "adapted_coords": [
+                2165,
+                755,
+                2362,
+                828
+            ],
+            "timestamp": 1774828365.9895954
         }
     ],
     "OCCUPIED_SLOTS": [
         null,
         null,
-        null,
-        null
+        2,
+        3
     ]
 }
