@@ -6,12 +6,85 @@ from asyncio import new_event_loop, set_event_loop
 import pypresence as discord
 
 from core.datatypes import Activity, ActivityType, DEBUG_MODE
-from CONFIG import DISC_APP_ID
+from CONFIG import DISC_APP_ID, USE_URL_ASSETS, ASSET_BASE_URL
 
 
 # Event for clean shutdown
 _shutdown_event = threading.Event()
 _rpc_thread: threading.Thread = None
+
+
+def get_asset_url(image_key: str) -> str:
+    """
+    Convert an image key to a URL if URL assets are enabled.
+    
+    When USE_URL_ASSETS is True, converts image keys like 'char_aether' or 
+    'boss_anemo_hypostasis' to full URLs by prepending ASSET_BASE_URL.
+    Automatically adds subfolder based on image key prefix (char_ → characters/, boss_ → bosses/, etc.)
+    
+    Args:
+        image_key: The image key from CSV files (e.g., 'char_aether', 'icon_paimon')
+        
+    Returns:
+        Full URL if USE_URL_ASSETS is enabled and base URL is set, 
+        otherwise returns the original image_key for Discord asset lookup.
+    """
+    if not USE_URL_ASSETS or not ASSET_BASE_URL:
+        return image_key
+    
+    # Don't convert special Discord-native assets or empty values
+    if not image_key or image_key.startswith('http'):
+        return image_key
+    
+    # Map image key prefixes to subfolders (only if key doesn't already contain a path)
+    subfolder = ""
+    filename = image_key
+    if '/' not in image_key:
+        if image_key.startswith('char_'):
+            subfolder = "characters/"
+        elif image_key.startswith('boss_'):
+            subfolder = "bosses/"
+        elif image_key.startswith('domain_'):
+            # Domains have subfolders by type (forgery, blessing, mastery, trounce)
+            if '_forgery_' in image_key or image_key.endswith('_forgery'):
+                subfolder = "domains/forgery/"
+            elif '_blessing_' in image_key or image_key.endswith('_blessing'):
+                subfolder = "domains/blessing/"
+            elif '_mastery_' in image_key or image_key.endswith('_mastery'):
+                subfolder = "domains/mastery/"
+            elif '_trounce_' in image_key or image_key.endswith('_trounce'):
+                subfolder = "domains/trounce/"
+            else:
+                subfolder = "domains/"
+        elif image_key.startswith('emblem_'):
+            subfolder = "locations/"
+        elif image_key.startswith('area_'):
+            subfolder = "areas/"
+        elif image_key.startswith('loc_'):
+            subfolder = "locations/"
+        elif image_key.startswith('menu_'):
+            subfolder = "ui/menus/"
+        elif image_key.startswith('ui_'):
+            subfolder = "ui/ui/"
+        elif image_key.startswith('tree_'):
+            subfolder = "content/tree/"
+        elif image_key.startswith('fountain_'):
+            subfolder = "content/fountain/"
+        elif image_key.startswith('spiral_abyss'):
+            subfolder = "content/abyss/"
+        elif image_key.startswith('tablet_'):
+            subfolder = "content/"
+        elif image_key.startswith('icon_'):
+            subfolder = "ui/ui/"
+    
+    # Ensure base URL ends with / for proper concatenation
+    base_url = ASSET_BASE_URL if ASSET_BASE_URL.endswith('/') else ASSET_BASE_URL + '/'
+    
+    # Construct full URL - add .png extension if no extension present
+    if '.' not in filename:
+        return f"{base_url}{subfolder}{filename}.png"
+    else:
+        return f"{base_url}{subfolder}{filename}"
 
 
 def get_party_info_string(current_characters):
@@ -49,6 +122,8 @@ def discord_rpc_loop(current_activity_ref, current_characters_ref, game_start_ti
                 rpc = discord.Presence(DISC_APP_ID)
                 rpc.connect()
                 print("Connected to Discord Client!")
+                if USE_URL_ASSETS and ASSET_BASE_URL:
+                    print(f"URL Asset Mode enabled - images will be loaded from: {ASSET_BASE_URL}")
                 break
             except discord.exceptions.DiscordNotFound:
                 if not printed_wait:
@@ -124,6 +199,16 @@ def discord_rpc_loop(current_activity_ref, current_characters_ref, game_start_ti
                 if c is not None:
                     params["small_image"] = c.image_key
                     params["small_text"] = f"playing {c.character_display_name}"
+
+            # Convert image keys to URLs if URL assets are enabled
+            if USE_URL_ASSETS and ASSET_BASE_URL:
+                if "large_image" in params and params["large_image"]:
+                    params["large_image"] = get_asset_url(params["large_image"])
+                if "small_image" in params and params["small_image"]:
+                    params["small_image"] = get_asset_url(params["small_image"])
+                
+                if DEBUG_MODE:
+                    print(f"DEBUG Discord RPC (URL mode): large_image={params.get('large_image')}, small_image={params.get('small_image')}")
 
             # Always update Discord - remove caching to prevent stale data
             try:

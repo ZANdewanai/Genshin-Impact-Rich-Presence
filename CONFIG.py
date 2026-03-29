@@ -267,6 +267,47 @@ DISC_APP_ID = "944346292568596500"
 Discord Application ID of euwbah's genshin-rpc discord app.
 """
 
+# URL-based asset loading - bypasses Discord's 300 asset limit
+USE_URL_ASSETS = True
+"""
+Enable to use external URLs for images instead of Discord-uploaded assets.
+This bypasses Discord's 300 asset limit by hot-loading images from a CDN/hosted location.
+
+When enabled, image keys from CSV files (e.g., 'char_aether', 'boss_anemo_hypostasis')
+will be converted to full URLs by prepending ASSET_BASE_URL.
+
+⚠️  IMPORTANT: Discord only supports URLs that:
+   - Start with https://
+   - Point to a direct image file (jpg, png, etc.)
+   - Are publicly accessible without authentication
+   - Have proper CORS headers (for Discord client to fetch)
+
+Example: Set ASSET_BASE_URL to a GitHub raw content URL or your own CDN.
+"""
+
+ASSET_BASE_URL = "https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/refs/heads/main/resources/assets/images/"
+"""
+Base URL for external image assets when USE_URL_ASSETS is True.
+
+The image key from CSV files will be appended to this URL.
+
+Examples:
+- GitHub (branch): "https://raw.githubusercontent.com/username/repo/refs/heads/main/resources/assets/images/characters/"
+- GitHub (tag): "https://raw.githubusercontent.com/username/repo/refs/tags/v1.0.0/assets/"
+- Self-hosted CDN: "https://cdn.yoursite.com/genshin-rpc/"
+- Imgur (direct links): "https://i.imgur.com/"
+
+Note: For GitHub, use the 'raw.githubusercontent.com' domain for direct file access.
+Format: https://raw.githubusercontent.com/USER/REPO/refs/heads/BRANCH/PATH/
+
+The image keys in CSV files (char_aether, boss_anemo_hypostasis, etc.) will be
+appended with '.png' extension automatically.
+
+Example full URL construction:
+  ASSET_BASE_URL + "char_aether" + ".png"
+  = "https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/refs/heads/main/resources/assets/images/characters/char_aether.png"
+"""
+
 GENSHIN_WINDOW_NAME = "Genshin Impact"
 """
 The exact window caption (window name) of GenshinImpact.exe.
