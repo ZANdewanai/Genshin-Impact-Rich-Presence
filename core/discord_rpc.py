@@ -175,7 +175,7 @@ def discord_rpc_loop(current_activity_ref, current_characters_ref, game_start_ti
                 if c is not None:
                     params["large_image"] = c.image_key
                     params["large_text"] = f"Playing as {c.character_display_name}"
-                    params["small_image"] = "icon_paimon"
+                    params["small_image"] = "menu_paimon"
                     params["small_text"] = "Loading..."
                     # Show "Playing as [character]" until we get location/boss/domain data
                     params["state"] = f"Playing as {c.character_display_name}"

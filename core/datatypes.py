@@ -281,29 +281,29 @@ class Activity:
                 if not self.activity_data:
                     return {
                         "state": "Loading",
-                        "large_image": "icon_paimon",
+                        "large_image": "menu_paimon",
                     }
                 else:
                     return {
                         "details": "Somewhere in Teyvat",
                         "state": "PARTY_INFO_MARKER",
-                        "large_image": "icon_paimon",
+                        "large_image": "menu_paimon",
                     }
             case ActivityType.PAUSED:
                 return {
                     "state": "Game paused",
-                    "large_image": "icon_paimon",
+                    "large_image": "menu_paimon",
                 }
             case ActivityType.PARTY_SETUP:
                 return {
                     "state": "Party Setup | PARTY_INFO_MARKER",
-                    "large_image": "icon_party_setup",
+                    "large_image": "menu_party_setup",
                 }
             case ActivityType.DOMAIN:
                 if self.activity_data is None:
                     return {
                         "state": "Clearing a domain",
-                        "large_image": "icon_paimon",
+                        "large_image": "menu_paimon",
                     }
                 return {
                     "details": self.activity_data.domain_name,
@@ -315,7 +315,7 @@ class Activity:
                 if self.activity_data is None:
                     return {
                         "state": "In Menus",
-                        "large_image": "icon_paimon",
+                        "large_image": "menu_paimon",
                     }
                 return {
                     "details": self.activity_data.gamemenu_name,
@@ -328,7 +328,7 @@ class Activity:
                     return {
                         "details": "Exploring Teyvat",
                         "state": "LOCATION_PARTY_INFO",
-                        "large_image": "icon_paimon",
+                        "large_image": "menu_paimon",
                     }
                 # Format location with subregion and region information
                 location_parts = []
@@ -351,7 +351,7 @@ class Activity:
                     return {
                         "details": "Viewing map",
                         "state": "MAP_PARTY_INFO",
-                        "large_image": "icon_paimon",
+                        "large_image": "menu_paimon",
                     }
                 # Format location with subregion and region information
                 location_parts = []
@@ -375,13 +375,13 @@ class Activity:
                     "details": f"In {self.activity_data.location_name}, {self.activity_data.country}"
                     if self.activity_data != None
                     else "",
-                    "large_image": "icon_commission",
+                    "large_image": "menu_commissions",
                 }
             case ActivityType.WORLD_BOSS:
                 if self.activity_data is None:
                     return {
                         "state": "Fighting a boss | PARTY_INFO_MARKER",
-                        "large_image": "icon_paimon",
+                        "large_image": "menu_paimon",
                     }
                 return {
                     "state": f"Fighting a boss | PARTY_INFO_MARKER",
