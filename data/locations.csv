@@ -282,6 +282,7 @@ gavireh lajavard,Gavireh Lajavard,Gavireh Lajavard,Girdle of the Sands,emblem_gi
 gate of zulqarnain,Gate of Zulqarnain,Gavireh Lajavard,Girdle of the Sands,emblem_girdle_of_the_sands
 temir mountains,Temir Mountains,Gavireh Lajavard,Girdle of the Sands,emblem_girdle_of_the_sands
 tunigi hollow,Tunigi Hollow,Gavireh Lajavard,Girdle of the Sands,emblem_girdle_of_the_sands
+molten iron fortress,Molten Iron Fortress,Gavireh Lajavard,Girdle of the Sands,emblem_girdle_of_the_sands
 ------,------,GIRDLEOFSANDS-FARAKHKERT,GIRDLEOFSANDS,------
 realm of farakhkert,Realm of Farakhkert,Realm of Farakhkert,Girdle of the Sands,emblem_girdle_of_the_sands
 asipattravana swamp,Asipattravana Swamp,Realm of Farakhkert,Girdle of the Sands,emblem_girdle_of_the_sands
@@ -348,7 +349,11 @@ east slopes of mont automnequi,East Slopes of Mont Automnequi,Morte Region,Fonta
 fort charybdis ruins,Fort Charybdis Ruins,Morte Region,Fontaine,emblem_fontaine
 genesis of a certain micro universe,Genesis of a Certain Micro-Universe,Morte Region,Fontaine,emblem_fontaine
 tower of ipsissimus,Tower of Ipsissimus,Morte Region,Fontaine,emblem_fontaine
-------,------,FONTAINE-NOSTOI,Fontaine,------
+faded castle,Faded Castle,Sea of Bygone Eras,Fontaine,emblem_fontaine
+------,------,FONTAINE-NOSTOI-SUB,FONTAINE,------
+petrichor,Petrichor,Nostoi Region,Fontaine,emblem_fontaine
+the rusty rudder,The Rusty Rudder,Erinnyes Forest,Fontaine,emblem_fontaine
+faded theater,Faded Theater,Nostoi Region,Fontaine,emblem_fontaine
 nostoi region,Nostoi Region,Nostoi Region,Fontaine,emblem_fontaine
 ------,------,FONTAINE-SEABYGONE,Fontaine,------
 sea of bygone eras,Sea of Bygone Eras,Sea of Bygone Eras,Fontaine,emblem_fontaine
@@ -393,7 +398,7 @@ guiztli ridge,Guiztli Ridge,Eastbreeze Holiday Resort,Natlan,emblem_natlan
 huha hill,Huha Hill,Eastbreeze Holiday Resort,Natlan,emblem_natlan
 tete isle,Tete Isle,Eastbreeze Holiday Resort,Natlan,emblem_natlan
 villa guiztli,Villa Guiztli,Eastbreeze Holiday Resort,Natlan,emblem_natlan
-wavey bay,Wavey Bay,Eastbreeze Holiday Resort,Natlan,emblem_natlan
+tenochtzitoc,Tenochtzitoc,Easybreeze Holiday Resort,Natlan,emblem_natlan
 ------,------,OCHKANATLAN,NATLAN,------
 ochkanatlan,Ochkanatlan,Ochkanatlan,Natlan,emblem_natlan
 legendary tonatiuh,Legendary Tonatiuh,Ochkanatlan,Natlan,emblem_natlan
@@ -420,6 +425,22 @@ stellafruit grove,Stellafruit Grove,Nod-Krai,Nod-Krai,emblem_nod-krai
 borderland shrine of depth,Borderland Shrine of Depth,Nod-Krai,Nod-Krai,emblem_nod-krai
 moon mirror mechanism,Moon Mirror Mechanism,Nod-Krai,Nod-Krai,emblem_nod-krai
 clever little sniffer moles,Clever Little Sniffer Moles,Nod-Krai,Nod-Krai,emblem_nod-krai
+------,------,NOD-KRAI-ASHVEIL,NOD-KRAI,------
+ashveil peak,Ashveil Peak,Ashveil Peak,Nod-Krai,emblem_nod-krai
+cliffwatch camp,Cliffwatch Camp,Ashveil Peak,Nod-Krai,emblem_nod-krai
+dreadshade mire,Dreadshade Mire,Ashveil Peak,Nod-Krai,emblem_nod-krai
+favonius keep,Favonius Keep,Ashveil Peak,Nod-Krai,emblem_nod-krai
+moonchilds treasures,Moonchild's Treasures,Ashveil Peak,Nod-Krai,emblem_nod-krai
+------,------,NOD-KRAI-VOIDSEA,NOD-KRAI,------
+voidsea outlook,Voidsea Outlook,Voidsea Outlook,Nod-Krai,emblem_nod-krai
+piramida,Piramida,Voidsea Outlook,Nod-Krai,emblem_nod-krai
+east of the moon west of the sun,East of the Moon West of the Sun,Voidsea Outlook,Nod-Krai,emblem_nod-krai
+the ravens legacy,The Raven's Legacy,Voidsea Outlook,Nod-Krai,emblem_nod-krai
+------,------,NOD-KRAI-WAVECHASER,NOD-KRAI,------
+wavechaser plain,Wavechaser Plain,Wavechaser Plain,Nod-Krai,emblem_nod-krai
+pillar of embla,Pillar of Embla,Wavechaser Plain,Nod-Krai,emblem_nod-krai
+lake amsvartnir,Lake Amsvartnir,Wavechaser Plain,Nod-Krai,emblem_nod-krai
+the witch's garden,The Witch's Garden,Wavechaser Plain,Nod-Krai,emblem_nod-krai
 ------,------,LEMPO ISLE,NOD-KRAI,------
 lempo isle,Lempo Isle,Lempo Isle,Nod-Krai,emblem_nod-krai
 barrowmoss barrens,Barrowmoss Barrens,Lempo Isle,Nod-Krai,emblem_nod-krai
@@ -445,7 +466,10 @@ final night cemetery,Final Night Cemetery,Paha Isle,Nod-Krai,emblem_nod-krai
 maroon basin,Maroon Basin,Paha Isle,Nod-Krai,emblem_nod-krai
 kuuvahki experimental design bureau,Kuuvahki Experimental Design Bureau,Paha Isle,Nod-Krai,emblem_nod-krai
 ------,------,SNEZHNAYA,------,------
-------,------,SNEZHNAYA-CAPITAL,SNEZHNAYA,------
+------,------,MONDSTADT-DORNMAN,MONDSTADT,------
+dornman port,Dornman Port,Dornman Port,Mondstadt,emblem_mondstadt
+windrest peak,Windrest Peak,Dornman Port,Mondstadt,emblem_mondstadt
+temple of space,Temple of Space,Dornman Port,Mondstadt,emblem_mondstadt
 zapolyarny palace,Zapolyarny Palace,Snezhnaya,Snezhnaya,emblem_snezhnaya
 ------,------,SNEZHNAYA-MOREPSYOKOYES,SNEZHNAYA,------
 morepsokoyes,Morepsokoyes,Morepsokoyes,Snezhnaya,emblem_snezhnaya

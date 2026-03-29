@@ -1,0 +1,488 @@
+QMainWindow {
+    background: #2f3136;
+}
+
+QTabWidget::pane {
+    border: 1px solid #202225;
+    background: #36393f;
+    border-radius: 6px;
+    margin: 0px;
+}
+
+/* Sidebar styles */
+QWidget#sidebar_widget {
+    background: #2f3136;
+    border-right: 1px solid #202225;
+    min-width: 200px;
+    max-width: 200px;
+}
+
+QWidget#sidebar_widget QLabel {
+    color: #ffffff;
+    padding: 10px;
+    word-wrap: break-word;
+    text-align: center;
+}
+
+/* Sidebar button styles */
+#start_button {
+    background: #4f5660;
+    color: #ffffff;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin: 5px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+#start_button:hover {
+    background: #5d6b7a;
+}
+
+#start_button:pressed {
+    background: #3e4449;
+}
+
+/* Sidebar label styles */
+#status_label {
+    color: #b9bbbe;
+    padding: 5px;
+    margin: 5px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+#activity_label {
+    color: #b9bbbe;
+    padding: 5px;
+    margin: 5px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+}
+
+#version_label {
+    color: #b9bbbe;
+    padding: 10px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+}
+
+QTabBar::tab {
+    background: #2f3136;
+    color: #b9bbbe;
+    border: 1px solid #202225;
+    border-bottom: none;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    padding: 10px 20px;
+    margin-right: 2px;
+    min-width: 140px;
+    font-size: 12px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    text-align: center;
+}
+
+QTabBar::tab:selected {
+    background: #36393f;
+    color: #ffffff;
+    border-color: #ffffff;
+}
+
+QTabBar::tab:hover:!selected {
+    background: #40444b;
+    color: #dcddde;
+}
+
+QFrame {
+    background: #36393f;
+    border: 1px solid #202225;
+    border-radius: 4px;
+}
+
+QLabel {
+    color: #dcddde;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+QLineEdit {
+    background: #202225;
+    color: #dcddde;
+     border: 1px solid #202225;
+    border-radius: 3px;
+    padding: 6px 10px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+}
+
+QLineEdit:focus {
+    border-color: #ffffff;
+    background: #2f3136;
+}
+
+QLineEdit:hover {
+    border-color: #40444b;
+}
+
+QComboBox {
+    background: #202225;
+    color: #dcddde;
+    border: 1px solid #202225;
+    border-radius: 3px;
+    padding: 6px 10px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+}
+
+QComboBox:hover {
+    border-color: #40444b;
+}
+
+QComboBox:focus {
+    border-color: #ffffff;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 16px;
+    margin-right: 6px;
+}
+
+QComboBox QAbstractItemView {
+    background: #2f3136;
+    color: #dcddde;
+    border: 1px solid #202225;
+    border-radius: 3px;
+    outline: none;
+}
+
+QComboBox QAbstractItemView::item:selected {
+    background: #4f5660;
+    color: #ffffff;
+}
+
+QPushButton {
+    background: #4f5660;
+    color: #ffffff;
+    border: none;
+    border-radius: 3px;
+    padding: 8px 16px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+QPushButton:hover {
+    background: #5d6b7a;
+}
+
+QPushButton:pressed {
+    background: #3e4449;
+}
+
+QCheckBox {
+    color: #b9bbbe;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    spacing: 8px;
+}
+
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #40444b;
+    border-radius: 2px;
+    background: #2f3136;
+}
+
+QCheckBox::indicator:checked {
+    background: #00d4aa;
+    border-color: #00d4aa;
+    image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIgM1Y0LjVMNS41OCA5SDdMMTAgMkw5IDFMNiA2LjVMNSA1LjVMNyAySDJWM1oiIGZpbGw9IiMyZjMxMzYiLz4KPC9zdmc+);
+}
+
+QCheckBox::indicator:hover {
+    border-color: #00d4aa;
+    background: #36393f;
+}
+
+QTextEdit {
+    background: #202225;
+    color: #dcddde;
+    border: 1px solid #202225;
+    border-radius: 3px;
+    padding: 10px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 11px;
+}
+
+QTextEdit:focus {
+    border-color: #ffffff;
+}
+
+QScrollBar:vertical {
+    border: 1px solid #202225;
+    background: #2f3136;
+    width: 12px;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:vertical {
+    background: #4f5660;
+    border-radius: 5px;
+    min-height: 18px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #5d6b7a;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    border: none;
+    background: none;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+/* Main tab styles */
+#main_tab QLabel {
+    color: #ffffff;
+    padding: 10px;
+    margin: 10px;
+}
+
+/* Status frame styles */
+#status_frame {
+    background: #36393f;
+    border: 1px solid #202225;
+    border-radius: 6px;
+    margin: 10px;
+}
+
+/* Status image placeholders */
+#status_img_game_status, #status_img_current_character, #status_img_current_location, #status_img_current_activity, #status_img_uptime {
+    border: 1px solid #202225;
+    background: #2f3136;
+}
+
+/* Status labels */
+#status_game_status, #status_current_character, #status_current_location, #status_current_activity, #status_uptime {
+    color: #b9bbbe;
+    padding-left: 10px;
+}
+
+/* Log styles */
+#log_label {
+    color: #ffffff;
+    padding: 5px;
+    margin: 10px 10px 5px 10px;
+}
+
+#log_text {
+    background: #202225;
+    color: #dcddde;
+    border: 1px solid #202225;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 5px 10px 10px 10px;
+}
+
+/* Configuration tab styles */
+#config_title_label {
+    color: #ffffff;
+    padding: 10px;
+    margin: 10px;
+}
+
+#config_frame {
+    background: #36393f;
+    border: 1px solid #202225;
+    border-radius: 6px;
+    margin: 10px;
+}
+
+#user_frame {
+    background: #2f3136;
+    border: 1px solid #202225;
+    border-radius: 4px;
+    margin: 5px;
+}
+
+#user_label {
+    color: #ffffff;
+    padding: 10px;
+}
+
+#username_label, #mc_label, #wanderer_label {
+    color: #b9bbbe;
+    padding: 5px;
+}
+
+/* Configuration input styles */
+#username_entry, #wanderer_entry {
+    background: #202225;
+    color: #dcddde;
+    border: 1px solid #202225;
+    border-radius: 3px;
+    padding: 6px 10px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+}
+
+#username_entry:focus, #wanderer_entry:focus {
+    border-color: #ffffff;
+    background: #2f3136;
+}
+
+#username_entry:hover, #wanderer_entry:hover {
+    border-color: #40444b;
+}
+
+#mc_combo {
+    background: #202225;
+    color: #dcddde;
+    border: 1px solid #202225;
+    border-radius: 3px;
+    padding: 6px 10px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+}
+
+#mc_combo:hover {
+    border-color: #40444b;
+}
+
+#mc_combo:focus {
+    border-color: #ffffff;
+}
+
+#mc_combo::drop-down {
+    border: none;
+    width: 16px;
+    margin-right: 6px;
+}
+
+#mc_combo QAbstractItemView {
+    background: #2f3136;
+    color: #dcddde;
+    border: 1px solid #202225;
+    border-radius: 3px;
+    outline: none;
+}
+
+#mc_combo QAbstractItemView::item:selected {
+    background: #4f5660;
+    color: #ffffff;
+}
+
+#perf_frame {
+    background: #2f3136;
+    border: 1px solid #202225;
+    border-radius: 4px;
+    margin: 5px;
+}
+
+#perf_label {
+    color: #ffffff;
+    padding: 10px;
+}
+
+#config_status_label {
+    color: #ffffff;
+    padding: 5px;
+    margin: 5px 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #ffffff;
+    border-radius: 3px;
+}
+
+#config_save_button {
+    background: #4f5660;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+#config_save_button:hover {
+    background: #5d6b7a;
+}
+
+/* Character roster tab styles */
+#roaster_title_label {
+    color: #ffffff;
+    padding: 10px;
+    margin: 10px;
+}
+
+#roaster_frame {
+    background: #36393f;
+    border: 1px solid #202225;
+    border-radius: 6px;
+    margin: 10px;
+}
+
+#character_images_widget {
+    background: #2f3136;
+    border: 1px solid #202225;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+#instructions {
+    color: #b9bbbe;
+    padding: 5px;
+}
+
+#char_label {
+    color: #b9bbbe;
+    padding: 3px;
+    min-width: 80px;
+}
+
+#roaster_status_label {
+    color: #ffffff;
+    padding: 5px;
+    margin: 5px 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #ffffff;
+    border-radius: 3px;
+}
+
+#roaster_save_button {
+    background: #4f5660;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+#roaster_save_button:hover {
+    background: #5d6b7a;
+}
+
+/* About tab styles */
+#about_title_label {
+    color: #ffffff;
+    padding: 10px;
+    margin: 10px;
+}
+
+#info_label {
+    color: #dcddde;
+    padding: 15px;
+    margin: 10px;
+    background: #2f3136;
+    border: 1px solid #202225;
+    border-radius: 6px;
+}

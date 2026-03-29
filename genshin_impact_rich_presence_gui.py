@@ -43,13 +43,6 @@ except ImportError as e:
     print("pip install numpy psutil pypresence pywin32 pillow")
     DEPENDENCIES_OK = False
 
-# Check for tkinter availability (for fallback text mode)
-try:
-    import tkinter
-    TKINTER_AVAILABLE = True
-except ImportError:
-    TKINTER_AVAILABLE = False
-
 # Typing imports
 from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass
@@ -62,7 +55,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 
-from datatypes import ActivityType, Activity, Character, Location
+from core.datatypes import ActivityType, Activity, Character, Location
 
 # ==========================================
 # Default Configuration
@@ -407,7 +400,7 @@ class GenshinRichPresenceApp(QMainWindow):
     def _load_stylesheet(self):
         """Load external stylesheet file"""
         try:
-            stylesheet_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'styles.qss')
+            stylesheet_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'styles.qss')
             if os.path.exists(stylesheet_path):
                 with open(stylesheet_path, 'r') as f:
                     stylesheet = f.read()
@@ -663,8 +656,9 @@ class GenshinRichPresenceApp(QMainWindow):
                 with open(shared_config_path, 'r') as f:
                     shared_config = json.load(f)
                     character_images = shared_config.get('CHARACTER_IMAGES', {})
-        except Exception:
-            pass  # Silently handle config read errors
+        except Exception as e:
+            # Non-critical error - config file might not exist yet, use defaults
+            self._log(f"⚠️ Could not load character images from config: {e}")
 
         # Character image mapping widget
         self.character_images_widget = QWidget()
@@ -1019,8 +1013,8 @@ All rights reserved by miHoYo"""
             if os.path.exists(self.shared_data_file):
                 try:
                     os.remove(self.shared_data_file)
-                except:
-                    pass
+                except Exception as e:
+                    self._log(f"⚠️ Failed to remove shared data file: {e}")
 
             self.start_button.setText("Start Rich Presence")
             self.start_button.setStyleSheet("""
@@ -1078,7 +1072,17 @@ All rights reserved by miHoYo"""
             
             # Build the command
             script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'main.py')
-            command = [sys.executable, script_path]
+            # Use embedded Python explicitly - ALWAYS
+            embedded_python = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'python3.13.11_embedded', 'python.exe')
+            
+            if not os.path.exists(embedded_python):
+                self._log(f"❌ Embedded Python not found at: {embedded_python}")
+                self._log("❌ Cannot start - embedded Python is required")
+                return
+            
+            self._log(f"✅ Using embedded Python: {embedded_python}")
+            
+            command = [embedded_python, script_path]
             
             self._log(f"Starting subprocess: {' '.join(command)}")
             self._log(f"Working directory: {os.path.dirname(os.path.abspath(__file__))}")
@@ -1089,14 +1093,25 @@ All rights reserved by miHoYo"""
                 self._log(f"Error: Script not found at {script_path}")
                 return
             
-            # Start main.py as subprocess
+            # Start main.py as subprocess - capture stderr for error display
             self.main_process = subprocess.Popen(
                 command,
                 cwd=os.path.dirname(os.path.abspath(__file__)),
                 env=env,
-                # Don't capture stdout/stderr - let subprocess print directly
-                # Communication will happen via shared data file only
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,
+                universal_newlines=True
             )
+            
+            # Start thread to capture stderr output
+            stderr_thread = threading.Thread(
+                target=self._capture_subprocess_output,
+                args=(self.main_process.stderr,),
+                daemon=True
+            )
+            stderr_thread.start()
             
             self._log(f"Subprocess started with PID: {self.main_process.pid}")
             
@@ -1144,15 +1159,13 @@ All rights reserved by miHoYo"""
                                 if loop_count % 100 == 0:  # Log every 10 seconds
                                     self._log(f"⏸️ No new data (last update: {last_update})")
                     except (json.JSONDecodeError, FileNotFoundError) as e:
-                        # Silently ignore file read errors - file might be being written to
+                        # File might be being written to - log occasionally but don't spam
                         if loop_count % 50 == 0:  # Log every 5 seconds
                             self._log(f"⚠️ File read error: {e}")
-                        pass
                 else:
                     # Debug: file doesn't exist yet
                     if loop_count % 20 == 0:  # Log every 2 seconds
                         self._log("⏳ Shared data file doesn't exist yet")
-                    pass
 
                 time.sleep(0.1)
 
@@ -1166,6 +1179,19 @@ All rights reserved by miHoYo"""
             import traceback
             self._log(f"Error traceback: {traceback.format_exc()}")
             # Don't set self.running = False here - let the toggle logic handle it
+    
+    def _capture_subprocess_output(self, pipe):
+        """Capture subprocess stderr output and display in GUI log"""
+        try:
+            for line in iter(pipe.readline, ''):
+                if line:
+                    line = line.strip()
+                    if line:
+                        self._log(f"[Subprocess] {line}")
+        except Exception as e:
+            self._log(f"Error capturing subprocess output: {e}")
+        finally:
+            pipe.close()
     
     def _update_gui_from_data(self, data):
         """Update GUI elements from received data"""
@@ -1289,7 +1315,7 @@ All rights reserved by miHoYo"""
                 return None
 
             # Convert dict back to Activity object
-            from datatypes import Activity, ActivityType
+            from core.datatypes import Activity, ActivityType
             activity_type = ActivityType(activity_data.get('activity_type', 'LOADING'))
             activity_obj = Activity(activity_type, activity_data.get('activity_data'))
 
@@ -1352,7 +1378,7 @@ All rights reserved by miHoYo"""
                 pass
 
     def _ensure_image_cache_dir(self):
-        cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'image_cache')
+        cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache', 'image_cache')
         os.makedirs(cache_dir, exist_ok=True)
         return cache_dir
 

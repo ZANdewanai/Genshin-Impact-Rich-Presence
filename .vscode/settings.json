@@ -1,6 +1,11 @@
 {
+    "python.defaultInterpreterPath": "${workspaceFolder}/python3.13.11_embedded/python.exe",
+    "python.interpreter.infoVisibility": "always",
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
-    "python.formatting.provider": "none"
+    "python.formatting.provider": "none",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/python3.13.11_embedded/Lib/site-packages"
+    ]
 }

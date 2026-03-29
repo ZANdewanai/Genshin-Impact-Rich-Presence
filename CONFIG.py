@@ -6,7 +6,7 @@ Make sure these coordinates are set up properly before running the script.
 See README.md on how to determine coordinates.
 """
 
-import ps_helper
+import time
 
 USERNAME = "PlayerName"
 """
@@ -202,6 +202,21 @@ How confident the OCR should be before accepting a location name.
 
 (NOTE: This doesn't need to be too high, as incorrect names will be checked against the database)
 """
+
+BOSS_CONF_THRESH = 0.5
+"""
+How confident the OCR should be before accepting a boss name.
+
+(NOTE: This doesn't need to be too high, as incorrect names will be checked against the database)
+"""
+
+DOMAIN_CONF_THRESH = 0.5
+"""
+How confident the OCR should be before accepting a domain name.
+
+(NOTE: This doesn't need to be too high, as incorrect names will be checked against the database)
+"""
+
 INACTIVE_COOLDOWN = 5
 """
 For this many iterations after the last time any non-active activity is detected
@@ -233,6 +248,8 @@ OCR_LOC_ONE_IN = 5
 """Process location every N loops - BALANCED FREQUENCY for responsiveness vs performance"""
 OCR_BOSS_ONE_IN = 30
 """Process boss name every N loops"""
+OCR_DOMAIN_ONE_IN = 30
+"""Process domain name every N loops"""
 OCR_ENGINE = "easyocr"
 """
 OCR engine to use for text recognition.
@@ -300,26 +317,27 @@ BASE_RESOLUTION_WIDTH = 2560
 BASE_RESOLUTION_HEIGHT = 1440
 
 # Store original coordinates before scaling
+# Character number regions now use full bounding boxes (x1, y1, x2, y2) for more robust detection
 BASE_NUMBER_4P_COORD = [
-    (2484, 356),  # Char 1
-    (2484, 481),  # Char 2
-    (2484, 610),  # Char 3
-    (2484, 735),  # Char 4
+    (2480, 350, 2510, 380),  # Char 1 - centered at (2495, 365)
+    (2480, 472, 2510, 502),  # Char 2 - centered at (2495, 487)
+    (2480, 592, 2510, 622),  # Char 3 - centered at (2495, 607)
+    (2480, 717, 2510, 747),  # Char 4 - centered at (2495, 732)
 ]
 
 BASE_NAMES_4P_COORD = [
-    (2166, 320, 2365, 395),
-    (2166, 445, 2365, 520),
-    (2166, 575, 2365, 650),
-    (2166, 705, 2365, 780),
+    (2165, 320, 2362, 391),  # Character 1
+    (2165, 445, 2362, 517),  # Character 2
+    (2165, 575, 2360, 650),  # Character 3
+    (2165, 705, 2362, 778),  # Character 4
 ]
 
-BASE_BOSS_COORD = (700, 20, 1960, 80)
-BASE_LOCATION_COORD = (702, 240, 1838, 345)
-BASE_MAP_LOC_COORD = (1980, 140, 2520, 260)
-BASE_ACTIVITY_COORD = (1880, 20, 2440, 80)
-BASE_DOMAIN_COORD = (1680, 160, 2420, 260)
-BASE_PARTY_SETUP_COORD = (0, 20, 900, 100)
+BASE_ACTIVITY_COORD = (1880, 20, 2436, 77)
+BASE_BOSS_COORD = (700, 20, 1956, 77)
+BASE_DOMAIN_COORD = (1680, 160, 2416, 257)
+BASE_PARTY_SETUP_COORD = (0, 20, 896, 97)
+BASE_LOCATION_COORD = (701, 240, 1834, 342)
+BASE_MAP_LOC_COORD = (1980, 140, 2516, 257)
 
 def get_dynamic_coordinates():
     """
@@ -329,12 +347,31 @@ def get_dynamic_coordinates():
         tuple: (scaled_coords_dict, detected_resolution)
         where scaled_coords_dict contains all coordinate arrays scaled to actual window size
     """
+    # Minimum reasonable window size for Genshin (width, height)
+    MIN_WINDOW_SIZE = (800, 600)
+    
     try:
         # Get the actual Genshin window dimensions
+        from core import ps_helper
         window_rect = ps_helper.get_genshin_window_rect()
         if window_rect:
             actual_width = window_rect[2] - window_rect[0]  # right - left
             actual_height = window_rect[3] - window_rect[1]  # bottom - top
+
+            # Validate window size - must be at least minimum size
+            if actual_width < MIN_WINDOW_SIZE[0] or actual_height < MIN_WINDOW_SIZE[1]:
+                if DEBUG_MODE:
+                    print(f"Detected window too small ({actual_width}x{actual_height}), using base coordinates")
+                return {
+                    'NUMBER_4P_COORD': BASE_NUMBER_4P_COORD,
+                    'NAMES_4P_COORD': BASE_NAMES_4P_COORD,
+                    'BOSS_COORD': BASE_BOSS_COORD,
+                    'LOCATION_COORD': BASE_LOCATION_COORD,
+                    'MAP_LOC_COORD': BASE_MAP_LOC_COORD,
+                    'ACTIVITY_COORD': BASE_ACTIVITY_COORD,
+                    'DOMAIN_COORD': BASE_DOMAIN_COORD,
+                    'PARTY_SETUP_COORD': BASE_PARTY_SETUP_COORD,
+                }, (BASE_RESOLUTION_WIDTH, BASE_RESOLUTION_HEIGHT)
 
             if DEBUG_MODE:
                 print(f"Detected Genshin window size: {actual_width}x{actual_height}")
@@ -346,8 +383,8 @@ def get_dynamic_coordinates():
             # Scale all coordinate arrays
             scaled_coords = {
                 'NUMBER_4P_COORD': [
-                    (round(x * scale_x), round(y * scale_y))
-                    for x, y in BASE_NUMBER_4P_COORD
+                    (round(x1 * scale_x), round(y1 * scale_y), round(x2 * scale_x), round(y2 * scale_y))
+                    for x1, y1, x2, y2 in BASE_NUMBER_4P_COORD
                 ],
                 'NAMES_4P_COORD': [
                     tuple(round(px * scale_x) for px in name_bbox)

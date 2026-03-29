@@ -9,9 +9,9 @@ REM Change to the script directory
 cd /d "%~dp0"
 
 REM Check if embedded Python exists
-if not exist "python_embedded\python.exe" (
-    echo ERROR: Embedded Python not found at python_embedded\python.exe
-    echo Please ensure the python_embedded directory is present.
+if not exist "python3.13.11_embedded\python.exe" (
+    echo ERROR: Embedded Python not found at python3.13.11_embedded\python.exe
+    echo Please ensure the python3.13.11_embedded directory is present.
     pause
     exit /b 1
 )
@@ -25,7 +25,7 @@ if not exist "genshin_impact_rich_presence_gui.py" (
 
 REM Start the GUI with embedded Python
 echo Launching GUI...
-python_embedded\python.exe genshin_impact_rich_presence_gui.py
+python3.13.11_embedded\python.exe genshin_impact_rich_presence_gui.py
 
 REM Keep window open if there's an error
 if %errorlevel% neq 0 (

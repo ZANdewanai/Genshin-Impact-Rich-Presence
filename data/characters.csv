@@ -2,6 +2,7 @@
 aether,char_aether,Aether
 aloy,char_aloy,Aloy
 lumine,char_lumine,Lumine
+wonderland manekin,char_wonderland_manekin,Wonderland Manekin
 ------,KHAENRI'AH,------
 dainsleif,char_dainsleif,Dainsleif
 skirk,char_skirk,Skirk
@@ -29,6 +30,8 @@ razor,char_razor,Razor
 rosaria,char_rosaria,Rosaria
 sucrose,char_sucrose,Sucrose
 venti,char_venti,Venti
+varka,char_varka,Varka
+durin,char_durin,Durin
 ------,LIYUE,------
 baizhu,char_baizhu,Baizhu
 beidou,char_beidou,Beidou
@@ -52,6 +55,7 @@ yelan,char_yelan,Yelan
 yumemizuki mizuki,char_yumemizuki_mizuki,Yumemizuki Mizuki
 yun jin,char_yun_jin,Yun Jin
 zhongli,char_zhongli,Zhongli
+zibai,char_zibai,Zibai
 ------,INAZUMA,------
 arataki itto,char_arataki_itto,Arataki Itto
 ayaka,char_kamisato_ayaka,Kamisato Ayaka
@@ -116,3 +120,7 @@ flins,char_flins,Flins
 ineffa,char_ineffa,Ineffa
 lauma,char_lauma,Lauma
 nefer,char_nefer,Nefer
+illuga,char_illuga,Illuga
+columbina,char_columbina,Columbina
+jahoda,char_jahoda,Jahoda
+linnea,char_linnea,Linnea

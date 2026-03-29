@@ -102,7 +102,15 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Cache directories (runtime generated)
+cache/
+
+# Runtime config files (generated at runtime)
+shared_config.json
+gui_config.json
+
+# IDE and misc
 GrabArea.exe
-history.txt
 history.txt
 Genshin-Impact-Rich-Presence.rar

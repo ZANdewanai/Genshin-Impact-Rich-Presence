@@ -55,18 +55,18 @@ estimation ii,Ancient Watchtower | Estimation II,forgery,domain_forgery_natlan
 estimation iii,Ancient Watchtower | Estimation III,forgery,domain_forgery_natlan
 estimation iv,Ancient Watchtower | Estimation IV,forgery,domain_forgery_natlan
 ------,------,DOMAIN OF FORGERY - NOD-KRAI,------
-radiant splendor i,Lost Mooncourt | Radiant Splendor I,forgery,domain_nod_krai
-radiant splendor ii,Lost Mooncourt | Radiant Splendor II,forgery,domain_nod_krai
-radiant splendor iii,Lost Mooncourt| Radiant Splendor III,forgery,domain_nod_krai
-radiant splendor iv,Lost Mooncourt | Radiant Splendor IV,forgery,domain_nod_krai
-prayers sung i,Lost Mooncourt | Prayers Sung I,forgery,domain_nod_krai
-prayers sung ii,Lost Mooncourt | Prayers Sung II,forgery,domain_nod_krai
-prayers sung iii,Lost Mooncourt | Prayers Sung III,forgery,domain_nod_krai
-prayers sung iv,Lost Mooncourt | Prayers Sung IV,forgery,domain_nod_krai
-lunar oblation i,Lost Mooncourt | Lunar Olation I,forgery,domain_nod_krai
-lunar oblation ii,Lost Mooncourt | Lunar Olation II,forgery,domain_nod_krai
-lunar oblation iii,Lost Mooncourt | Lunar Olation III,forgery,domain_nod_krai
-lunar oblation iv,Lost Mooncourt | Lunar Olation IV,forgery,domain_nod_krai
+radiant splendor i,Lost Mooncourt | Radiant Splendor I,forgery,domain_forgery_nod_krai
+radiant splendor ii,Lost Mooncourt | Radiant Splendor II,forgery,domain_forgery_nod_krai
+radiant splendor iii,Lost Mooncourt| Radiant Splendor III,forgery,domain_forgery_nod_krai
+radiant splendor iv,Lost Mooncourt | Radiant Splendor IV,forgery,domain_forgery_nod_krai
+prayers sung i,Lost Mooncourt | Prayers Sung I,forgery,domain_forgery_nod_krai
+prayers sung ii,Lost Mooncourt | Prayers Sung II,forgery,domain_forgery_nod_krai
+prayers sung iii,Lost Mooncourt | Prayers Sung III,forgery,domain_forgery_nod_krai
+prayers sung iv,Lost Mooncourt | Prayers Sung IV,forgery,domain_forgery_nod_krai
+lunar oblation i,Lost Mooncourt | Lunar Olation I,forgery,domain_forgery_nod_krai
+lunar oblation ii,Lost Mooncourt | Lunar Olation II,forgery,domain_forgery_nod_krai
+lunar oblation iii,Lost Mooncourt | Lunar Olation III,forgery,domain_forgery_nod_krai
+lunar oblation iv,Lost Mooncourt | Lunar Olation IV,forgery,domain_forgery_nod_krai
 ------,------,DOMAINS OF BLESSING,------
 ------,------,DOMAIN OF BLESSING - MONDSTADT,------
 fires of purification i,Midsummer Courtyard | Fires of Purification I,blessing,domain_blessing_mondstadt
@@ -91,10 +91,6 @@ blessing frost i,Hidden Palace of Zhou Formula | Frost I,blessing,domain_blessin
 blessing frost ii,Hidden Palace of Zhou Formula | Frost II,blessing,domain_blessing_liyue
 blessing frost iii,Hidden Palace of Zhou Formula | Frost III,blessing,domain_blessing_liyue
 blessing frost iv,Hidden Palace of Zhou Formula | Frost IV,blessing,domain_blessing_liyue
-machine nest i,The Lost Valley | Machine Nest I,blessing,domain_blessing_liyue
-machine nest ii,The Lost Valley | Machine Nest II,blessing,domain_blessing_liyue
-machine nest iii,The Lost Valley | Machine Nest III,blessing,domain_blessing_liyue
-machine nest iv,The Lost Valley | Machine Nest IV,blessing,domain_blessing_liyue
 stone chamber i,Clear Pool and Mountain Cavern | Stone Chamber I,blessing,domain_blessing_liyue
 stone chamber ii,Clear Pool and Mountain Cavern | Stone Chamber II,blessing,domain_blessing_liyue
 stone chamber iii,Clear Pool and Mountain Cavern | Stone Chamber III,blessing,domain_blessing_liyue
@@ -104,10 +100,10 @@ unyielding ii,Ridge Watch | Unyielding II,blessing,domain_blessing_liyue
 unyielding iii,Ridge Watch | Unyielding III,blessing,domain_blessing_liyue
 unyielding iv,Ridge Watch | Unyielding IV,blessing,domain_blessing_liyue
 ------,------,DOMAIN OF BLESSING - THE CHASM,------
-moments of cessation i,The Lost Valley | Moments of Cessation I,blessing,domain_blessing_thechasm
-moments of cessation ii,The Lost Valley | Moments of Cessation II,blessing,domain_blessing_thechasm
-moments of cessation iii,The Lost Valley | Moments of Cessation III,blessing,domain_blessing_thechasm
-moments of cessation iv,The Lost Valley | Moments of Cessation IV,blessing,domain_blessing_thechasm
+machine nest chasm i,The Lost Valley | Machine Nest I,blessing,domain_blessing_thechasm
+machine nest chasm ii,The Lost Valley | Machine Nest II,blessing,domain_blessing_thechasm
+machine nest chasm iii,The Lost Valley | Machine Nest III,blessing,domain_blessing_thechasm
+machine nest chasm iv,The Lost Valley | Machine Nest IV,blessing,domain_blessing_thechasm
 ------,------,DOMAIN OF BLESSING - INAZUMA,------
 autumn hunt i,Momiji-Dyed Court | Autumn Hunt I,blessing,domain_blessing_inazuma
 autumn hunt ii,Momiji-Dyed Court | Autumn Hunt II,blessing,domain_blessing_inazuma
@@ -147,6 +143,10 @@ crumbling assembly i,Waterfall Wen | Crumbling Assembly I,blessing,domain_blessi
 crumbling assembly ii,Waterfall Wen | Crumbling Assembly II,blessing,domain_blessing_fontaine
 crumbling assembly iii,Waterfall Wen | Crumbling Assembly III,blessing,domain_blessing_fontaine
 crumbling assembly iv,Waterfall Wen | Crumbling Assembly IV,blessing,domain_blessing_fontaine
+faded theater i,Faded Theater | Trial of the Eucharist I,blessing,domain_blessing_fontaine
+faded theater ii,Faded Theater | Trial of the Eucharist II,blessing,domain_blessing_fontaine
+faded theater iii,Faded Theater | Trial of the Eucharist III,blessing,domain_blessing_fontaine
+faded theater iv,Faded Theater | Trial of the Eucharist IV,blessing,domain_blessing_fontaine
 ------,------,DOMAIN OF BLESSING - NATLAN,------
 derelict masonry i,Atocpan | Derelict Masonry Dock | Deepfire Construct I,blessing,domain_blessing_natlan
 derelict masonry ii,Atocpan | Derelict Masonry Dock | Deepfire Construct II,blessing,domain_blessing_natlan
@@ -161,14 +161,18 @@ the burning gauntlet ii,Sanctum of Rainbow Spirits | The Burning Gauntlet II,ble
 the burning gauntlet iii,Sanctum of Rainbow Spirits | The Burning Gauntlet III,blessing,domain_blessing_natlan
 the burning gauntlet iv,Sanctum of Rainbow Spirits | The Burning Gauntlet IV,blessing,domain_blessing_natlan
 ------,------,DOMAIN OF BLESSING - NOD-KRAI,------
-frostladen machinery i,Kuuvahki Experimental Design Bureau | Frostladen Machinery I,blessing,domain_nod_krai
-frostladen machinery ii,Kuuvahki Experimental Design Bureau | Frostladen Machinery II,blessing,domain_nod_krai
-frostladen machinery iii,Kuuvahki Experimental Design Bureau | Frostladen Machinery III,blessing,domain_nod_krai
-frostladen machinery iv,Kuuvahki Experimental Design Bureau | Frostladen Machinery IV,blessing,domain_nod_krai
-lightless capital i,Lightless Capital | Ebon Sanctum I,blessing,domain_nod_krai
-lightless capital ii,Lightless Capital | Ebon Sanctum II,blessing,domain_nod_krai
-lightless capital iii,Lightless Capital | Ebon Sanctum III,blessing,domain_nod_krai
-lightless capital iv,Lightless Capital | Ebon Sanctum IV,blessing,domain_nod_krai
+frostladen machinery i,Kuuvahki Experimental Design Bureau | Frostladen Machinery I,blessing,domain_blessing_nod_krai
+frostladen machinery ii,Kuuvahki Experimental Design Bureau | Frostladen Machinery II,blessing,domain_blessing_nod_krai
+frostladen machinery iii,Kuuvahki Experimental Design Bureau | Frostladen Machinery III,blessing,domain_blessing_nod_krai
+frostladen machinery iv,Kuuvahki Experimental Design Bureau | Frostladen Machinery IV,blessing,domain_blessing_nod_krai
+lightless capital i,Lightless Capital | Ebon Sanctum I,blessing,domain_blessing_nod_krai
+lightless capital ii,Lightless Capital | Ebon Sanctum II,blessing,domain_blessing_nod_krai
+lightless capital iii,Lightless Capital | Ebon Sanctum III,blessing,domain_blessing_nod_krai
+lightless capital iv,Lightless Capital | Ebon Sanctum IV,blessing,domain_blessing_nod_krai
+moonchild treasures i,Moonchild's Treasures | Glittering Melody I,blessing,domain_blessing_nod_krai
+moonchild treasures ii,Moonchild's Treasures | Glittering Melody II,blessing,domain_blessing_nod_krai
+moonchild treasures iii,Moonchild's Treasures | Glittering Melody III,blessing,domain_blessing_nod_krai
+moonchild treasures iv,Moonchild's Treasures | Glittering Melody IV,blessing,domain_blessing_nod_krai
 ------,------,DOMAIN OF MASTERY,------
 ------,------,DOMAIN OF MASTERY - MONDSTADT,------
 frosted altar i,Forsaken Rift | Frosted Altar I,mastery,domain_mastery_mondstadt
@@ -196,11 +200,6 @@ circle of embers i,Taishan Mansion | Circle of Embers I,mastery,domain_mastery_l
 circle of embers ii,Taishan Mansion | Circle of Embers II,mastery,domain_mastery_liyue
 circle of embers iii,Taishan Mansion | Circle of Embers III,mastery,domain_mastery_liyue
 circle of embers iv,Taishan Mansion | Circle of Embers IV,mastery,domain_mastery_liyue
-------,------,DOMAIN OF MASTERY - THE CHASM,------
-chamber of flowing sand i,The Lost Valley | Chamber of Flowing Sand I,mastery,domain_mastery_thechasm
-chamber of flowing sand ii,The Lost Valley | Chamber of Flowing Sand II,mastery,domain_mastery_thechasm
-chamber of flowing sand iii,The Lost Valley | Chamber of Flowing Sand III,mastery,domain_mastery_thechasm
-chamber of flowing sand iv,The Lost Valley | Chamber of Flowing Sand IV,mastery,domain_mastery_thechasm
 ------,------,DOMAIN OF MASTERY - INAZUMA,------
 reign of violet i,Violet Court | Reign of Violet I,mastery,domain_mastery_inazuma
 reign of violet ii,Violet Court | Reign of Violet II,mastery,domain_mastery_inazuma
@@ -250,19 +249,19 @@ trial by fire ii,The Burning Gauntlet | Trial by Fire II,mastery,domain_mastery_
 trial by fire iii,The Burning Gauntlet | Trial by Fire III,mastery,domain_mastery_natlan
 trial by fire iv,The Burning Gauntlet | Trial by Fire IV,mastery,domain_mastery_natlan
 ------,------,DOMAIN OF MASTERY - NOD-KRAI,------
-veil of twilight i,Veil of Twilight | Umbral Refinement I,mastery,domain_nod_krai
-veil of twilight ii,Veil of Twilight | Umbral Refinement II,mastery,domain_nod_krai
-veil of twilight iii,Veil of Twilight | Umbral Refinement III,mastery,domain_nod_krai
-veil of twilight iv,Veil of Twilight | Umbral Refinement IV,mastery,domain_nod_krai
+veil of twilight i,Veil of Twilight | Umbral Refinement I,mastery,domain_mastery_nod_krai
+veil of twilight ii,Veil of Twilight | Umbral Refinement II,mastery,domain_mastery_nod_krai
+veil of twilight iii,Veil of Twilight | Umbral Refinement III,mastery,domain_mastery_nod_krai
+veil of twilight iv,Veil of Twilight | Umbral Refinement IV,mastery,domain_mastery_nod_krai
 ------,------,TROUNCE DOMAINS,------
 ------,------,TROUNCE DOMAIN - MONDSTADT,------
-scattered ruins,Scattered Ruins,trounce,trounce_boss_mondstadt
+scattered ruins,Scattered Ruins,trounce,trounce_boss_andrius
 storming terror,Confront Stormterror | Memories: Storming Terror,trounce,trounce_boss_dvalin
 ------,------,TROUNCE DOMAIN - LIYUE,------
 earthshaking dragon,Beneath the Dragon-Queller | Memories: Earthshaking Dragon,trounce,trounce_boss_azhdaha
 the golden shadow,Enter the Golden House | Memories: The Golden Shadow,trounce,trounce_boss_childe
-stone stele records,Stone Stele Records,trounce,trounce_boss_liyue
-unresolved chess game,Unresolved Chess Game,trounce,trounce_boss_liyue
+stone stele records,Stone Stele Records,trounce,trounce_boss_lord_of_eroded_primal_fire
+unresolved chess game,Unresolved Chess Game,trounce,trounce_boss_the_game_before_the_gate
 ------,------,TROUNCE DOMAIN - INAZUMA,------
 guardian of eternity,End of the Oneiric Euthemia | Memories: Guardian of Eternity,trounce,trounce_boss_magatsu_mitake_narukami_no_mikoto
 duel to the fiery,Narukami Island: Tenshukaku | Duel to the Fiery Death,trounce,trounce_boss_signora
@@ -271,5 +270,10 @@ lucent altar of the,Joururi Workshop | Memories: Lucent Altar of the Everlasting
 too were once flawless,"The Realm of Beginnings | Memories: ""They"" Too Were Once Flawless",trounce,trounce_boss_guardian_of_apeps_oasis
 ------,------,TROUNCE DOMAIN - FONTAINE,------
 shadow of another world,Shadow of Another World,trounce,trounce_boss_all_devouring_narwhal
+the knave,The Knave | Memories: Into the Deep,trounce,trounce_boss_arlecchino
 ------,------,TROUNCE DOMAIN - NATLAN,------
 confrontation of sin,Confrontation of Sin | Memories: The Final Showdown,trounce,trounce_boss_capitano
+lord of eroded primal fire,Lord of Eroded Primal Fire,trounce,trounce_boss_lord_of_eroded_primal_fire
+the game before the gate,The Game Before the Gate,trounce,trounce_boss_the_game_before_the_gate
+------,------,TROUNCE DOMAIN - NOD-KRAI,------
+the doctor,The Doctor | Memories: The Foul and the Fallen,trounce,trounce_boss_dottore
