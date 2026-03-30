@@ -64,9 +64,6 @@ class DomainType(Enum):
     TROUNCE = 3
     LIMITED_EVENT = 4  # limited time event
     ONE_TIME = 5
-    """
-    One time domains include story quest domains.
-    """
 
     def from_str(domain_type_str: str) -> DomainType:
         """
@@ -157,14 +154,12 @@ class GamemenuType(Enum):
     CUTSCENE = 1
     SPYRAL = 2
 
-    """
-    Gamemenu   
-    """
-
     def from_str(gamemenu_type_str: str) -> GamemenuType:
         """
         NOTE: The gamemenu type values in gamemenu.csv must match the strings here.
         """
+        if not isinstance(gamemenu_type_str, str):
+            return GamemenuType.MENUS  # Default fallback for invalid input
         match gamemenu_type_str.lower():
             case "in menus":
                 return GamemenuType.MENUS
@@ -184,6 +179,7 @@ class GamemenuType(Enum):
                 return "Spyral Abyss"
             case _:
                 return "In Menus"  # Default fallback
+
 
 class Gamemenu:
     """

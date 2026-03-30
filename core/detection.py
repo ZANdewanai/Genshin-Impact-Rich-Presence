@@ -1,4 +1,5 @@
 """Detection loop and game state detection logic."""
+
 import json
 import os
 import time
@@ -12,26 +13,58 @@ import numpy as np
 from core.datatypes import Activity, ActivityType, Character, Data, DEBUG_MODE
 from CONFIG import DEBUG_CHARACTER_MODE
 from CONFIG import (
-    ACTIVE_CHARACTER_THRESH, SLEEP_PER_ITERATION,
-    OCR_CHARNAMES_ONE_IN, OCR_LOC_ONE_IN, OCR_BOSS_ONE_IN,
-    PAUSE_STATE_COOLDOWN, INACTIVE_COOLDOWN,
-    NUMBER_4P_COORD, LOCATION_COORD, BOSS_COORD, DOMAIN_COORD,
-    PARTY_SETUP_COORD, MAP_LOC_COORD, ACTIVITY_COORD,
-    ALLOWLIST, ALLOWLIST2, LOC_CONF_THRESH, NAME_CONF_THRESH,
-    GENSHIN_WINDOW_CLASS, GENSHIN_WINDOW_NAME, get_dynamic_coordinates
+    ACTIVE_CHARACTER_THRESH,
+    SLEEP_PER_ITERATION,
+    OCR_CHARNAMES_ONE_IN,
+    OCR_LOC_ONE_IN,
+    OCR_BOSS_ONE_IN,
+    PAUSE_STATE_COOLDOWN,
+    INACTIVE_COOLDOWN,
+    NUMBER_4P_COORD,
+    LOCATION_COORD,
+    BOSS_COORD,
+    DOMAIN_COORD,
+    PARTY_SETUP_COORD,
+    MAP_LOC_COORD,
+    ACTIVITY_COORD,
+    ALLOWLIST,
+    ALLOWLIST2,
+    LOC_CONF_THRESH,
+    NAME_CONF_THRESH,
+    GENSHIN_WINDOW_CLASS,
+    GENSHIN_WINDOW_NAME,
+    get_dynamic_coordinates,
 )
 from core.state import (
-    current_active_character, last_active_character,
-    current_characters, current_activity, prev_non_idle_activity, prev_location,
-    game_start_time, game_paused, game_pause_state_cooldown, game_pause_state_displayed,
-    current_timer_type, menu_start_time,
-    ingame_pause_ocr, inactive_detection_cooldown, inactive_detection_mode,
+    current_active_character,
+    last_active_character,
+    current_characters,
+    current_activity,
+    prev_non_idle_activity,
+    prev_location,
+    game_start_time,
+    game_paused,
+    game_pause_state_cooldown,
+    game_pause_state_displayed,
+    current_timer_type,
+    menu_start_time,
+    ingame_pause_ocr,
+    inactive_detection_cooldown,
+    inactive_detection_mode,
     reload_party_flag,
-    current_resolution, current_coordinates, _last_coordinate_log, _last_resolution_check,
-    _last_location_log, _last_activity_log,
-    gui_callback, shutdown_event, state_lock,
-    update_activity, set_active_character, update_character,
-    clear_all_characters
+    current_resolution,
+    current_coordinates,
+    _last_coordinate_log,
+    _last_resolution_check,
+    _last_location_log,
+    _last_activity_log,
+    gui_callback,
+    shutdown_event,
+    state_lock,
+    update_activity,
+    set_active_character,
+    update_character,
+    clear_all_characters,
 )
 import core.state as state_module
 from core.ocr_utils import capture_and_process_ocr
@@ -47,7 +80,7 @@ RESOLUTION_CHANGE_THRESHOLD = 10  # 10px threshold for resolution change
 
 # Shared config path (defined locally since it's runtime-dependent)
 script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-shared_config_path = os.path.join(script_dir, 'shared_config.json')
+shared_config_path = os.path.join(script_dir, "shared_config.json")
 
 
 def search_character_with_custom(DATA, text, custom_username, character_images=None):
@@ -64,9 +97,9 @@ def search_character_with_custom(DATA, text, custom_username, character_images=N
             mc_aether = True  # Default fallback
             try:
                 if os.path.exists(shared_config_path):
-                    with open(shared_config_path, 'r') as f:
+                    with open(shared_config_path, "r") as f:
                         config_data = json.load(f)
-                        mc_aether = config_data.get('MC_AETHER', True)
+                        mc_aether = config_data.get("MC_AETHER", True)
             except Exception:
                 pass  # Use default if config read fails
 
@@ -75,7 +108,7 @@ def search_character_with_custom(DATA, text, custom_username, character_images=N
         return Character(
             character_display_name=custom_username,
             image_key=image_key,
-            search_str=text.lower()
+            search_str=text.lower(),
         )
 
     # Fall back to database lookup for all other characters
@@ -88,7 +121,7 @@ def search_character_with_custom(DATA, text, custom_username, character_images=N
     return Character(
         character_display_name=text,
         image_key="char_unknown",  # Use a default unknown icon
-        search_str=text.lower()
+        search_str=text.lower(),
     )
 
 
@@ -107,16 +140,16 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
     character_images = {}  # Maps character names to image keys
     try:
         if os.path.exists(shared_config_path):
-            with open(shared_config_path, 'r') as f:
+            with open(shared_config_path, "r") as f:
                 shared_config = json.load(f)
-                custom_username = shared_config.get('USERNAME')
+                custom_username = shared_config.get("USERNAME")
 
                 # Support flexible character image mapping
-                if 'CHARACTER_IMAGES' in shared_config:
-                    character_images = shared_config['CHARACTER_IMAGES']
+                if "CHARACTER_IMAGES" in shared_config:
+                    character_images = shared_config["CHARACTER_IMAGES"]
                 else:
                     # Legacy support for MC_AETHER setting
-                    mc_aether = shared_config.get('MC_AETHER', True)
+                    mc_aether = shared_config.get("MC_AETHER", True)
                     traveler_image = "char_aether" if mc_aether else "char_lumine"
                     if custom_username:
                         character_images[custom_username] = traveler_image
@@ -142,8 +175,10 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
                 ALLOWLIST,
                 NAME_CONF_THRESH,
                 ActivityType.LOCATION,  # Placeholder
-                lambda text: search_character_with_custom(DATA, text, custom_username, character_images),
-                debug_key=f'CHAR_ADAPT_{char_idx}'
+                lambda text: search_character_with_custom(
+                    DATA, text, custom_username, character_images
+                ),
+                debug_key=f"CHAR_ADAPT_{char_idx}",
             )
 
             if char_data:
@@ -152,22 +187,33 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
                     # This is a validated character from the database
                     found_valid_characters_this_cycle = True
                     if DEBUG_MODE and DEBUG_CHARACTER_MODE:
-                        char_names = [char.character_display_name if char else None for char in current_characters]
-                        print(f"🔍 DEBUG: current_characters before JSON write: {char_names}")
+                        char_names = [
+                            char.character_display_name if char else None
+                            for char in current_characters
+                        ]
+                        print(
+                            f"🔍 DEBUG: current_characters before JSON write: {char_names}"
+                        )
                     if current_characters[char_idx] != char_data:
                         update_character(char_idx, char_data)
-                        print(f"✅ Detected character {char_idx + 1}: {char_data.character_display_name}")
+                        print(
+                            f"✅ Detected character {char_idx + 1}: {char_data.character_display_name}"
+                        )
                         characters_updated = True
                 else:
                     # OCR detected text but it doesn't match any known character
                     if DEBUG_MODE:
-                        print(f"⚠️ OCR detected '{char_data.character_display_name}' in slot {char_idx + 1}, but no database match found")
+                        print(
+                            f"⚠️ OCR detected '{char_data.character_display_name}' in slot {char_idx + 1}, but no database match found"
+                        )
                     # Don't update with unknown characters - keep cached if exists
             else:
                 # Only clear if we had a character before and OCR completely failed
                 if current_characters[char_idx] is not None:
                     if DEBUG_MODE:
-                        print(f"⚠️ Failed to detect character in slot {char_idx + 1}, keeping previous data")
+                        print(
+                            f"⚠️ Failed to detect character in slot {char_idx + 1}, keeping previous data"
+                        )
         else:
             # Clear unoccupied slots, but only when we have successfully detected other characters
             # This indicates we're in active gameplay and the party configuration has actually changed
@@ -176,22 +222,28 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
                 # Only clear if:
                 # 1. We have at least one successfully detected character (indicating active gameplay)
                 # 2. The slot actually has character data that needs to be cleared
-                if (detected_char_count > 0 and current_characters[char_idx] is not None):
+                if detected_char_count > 0 and current_characters[char_idx] is not None:
                     if DEBUG_MODE:
-                        print(f"🗑️ Clearing character from slot {char_idx + 1} - no longer in party")
+                        print(
+                            f"🗑️ Clearing character from slot {char_idx + 1} - no longer in party"
+                        )
                     update_character(char_idx, None)
                     characters_updated = True
 
     # If no characters were successfully detected at all, mark cache as invalid
     # This allows map location detection to run when no valid characters present
     if DEBUG_MODE:
-        print(f"DEBUG: found_valid_characters_this_cycle={found_valid_characters_this_cycle}, current_characters={current_characters}")
+        print(
+            f"DEBUG: found_valid_characters_this_cycle={found_valid_characters_this_cycle}, current_characters={current_characters}"
+        )
     if not found_valid_characters_this_cycle:
         with state_lock:
             state_module.currently_active_characters_valid = False
         if any(current_characters):
             if DEBUG_MODE:
-                print("🔄 No valid characters detected this cycle, marking cache invalid for map detection")
+                print(
+                    "🔄 No valid characters detected this cycle, marking cache invalid for map detection"
+                )
     elif found_valid_characters_this_cycle:
         with state_lock:
             state_module.currently_active_characters_valid = True
@@ -200,7 +252,9 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
 
     # Log adaptation summary
     if DEBUG_MODE and any(c != 0 for c in confidence_scores):
-        active_slots = [i for i, char in enumerate(current_characters) if char is not None]
+        active_slots = [
+            i for i, char in enumerate(current_characters) if char is not None
+        ]
         print(f"🎯 Active character slots detected: {active_slots}")
 
 
@@ -209,7 +263,11 @@ def update_coordinates_if_needed():
     Checks if Genshin window resolution has changed and updates coordinates accordingly.
     Called both for initialization and continuous monitoring.
     """
-    global current_resolution, current_coordinates, _last_coordinate_log, _last_resolution_check
+    global \
+        current_resolution, \
+        current_coordinates, \
+        _last_coordinate_log, \
+        _last_resolution_check
     global NUMBER_4P_COORD, NAMES_4P_COORD, BOSS_COORD, LOCATION_COORD
     global MAP_LOC_COORD, ACTIVITY_COORD, DOMAIN_COORD, PARTY_SETUP_COORD
 
@@ -217,21 +275,34 @@ def update_coordinates_if_needed():
         current_time = time.time()
 
         # Check if we need to monitor for resolution changes (every RESOLUTION_CHECK_INTERVAL seconds)
-        if current_resolution is not None and (current_time - _last_resolution_check) >= RESOLUTION_CHECK_INTERVAL:
+        if (
+            current_resolution is not None
+            and (current_time - _last_resolution_check) >= RESOLUTION_CHECK_INTERVAL
+        ):
             _last_resolution_check = current_time
 
             # Get current window size
             window_rect = ps_helper.get_genshin_window_rect()
             if window_rect:
-                current_window_size = (window_rect[2] - window_rect[0], window_rect[3] - window_rect[1])  # width, height
+                current_window_size = (
+                    window_rect[2] - window_rect[0],
+                    window_rect[3] - window_rect[1],
+                )  # width, height
 
                 # Check if resolution changed significantly
-                if abs(current_window_size[1] - current_resolution[1]) > RESOLUTION_CHANGE_THRESHOLD:
+                if (
+                    abs(current_window_size[1] - current_resolution[1])
+                    > RESOLUTION_CHANGE_THRESHOLD
+                ):
                     if DEBUG_MODE:
-                        print(f"Detected resolution change: {current_resolution[0]}x{current_resolution[1]} -> {current_window_size[0]}x{current_window_size[1]}")
+                        print(
+                            f"Detected resolution change: {current_resolution[0]}x{current_resolution[1]} -> {current_window_size[0]}x{current_window_size[1]}"
+                        )
 
                     # Force re-detection of coordinates
-                    current_resolution = None  # Reset to trigger re-initialization below
+                    current_resolution = (
+                        None  # Reset to trigger re-initialization below
+                    )
 
         # Initialize or re-initialize coordinates if needed
         if current_resolution is None:
@@ -243,14 +314,14 @@ def update_coordinates_if_needed():
                 current_coordinates = new_coordinates
 
                 # Update global coordinate variables
-                NUMBER_4P_COORD = new_coordinates['NUMBER_4P_COORD']
-                NAMES_4P_COORD = new_coordinates['NAMES_4P_COORD']
-                BOSS_COORD = new_coordinates['BOSS_COORD']
-                LOCATION_COORD = new_coordinates['LOCATION_COORD']
-                MAP_LOC_COORD = new_coordinates['MAP_LOC_COORD']
-                ACTIVITY_COORD = new_coordinates['ACTIVITY_COORD']
-                DOMAIN_COORD = new_coordinates['DOMAIN_COORD']
-                PARTY_SETUP_COORD = new_coordinates['PARTY_SETUP_COORD']
+                NUMBER_4P_COORD = new_coordinates["NUMBER_4P_COORD"]
+                NAMES_4P_COORD = new_coordinates["NAMES_4P_COORD"]
+                BOSS_COORD = new_coordinates["BOSS_COORD"]
+                LOCATION_COORD = new_coordinates["LOCATION_COORD"]
+                MAP_LOC_COORD = new_coordinates["MAP_LOC_COORD"]
+                ACTIVITY_COORD = new_coordinates["ACTIVITY_COORD"]
+                DOMAIN_COORD = new_coordinates["DOMAIN_COORD"]
+                PARTY_SETUP_COORD = new_coordinates["PARTY_SETUP_COORD"]
 
                 resolution_log = f"{'Updated' if _last_resolution_check > 0 else 'Initialized'} coordinates for resolution: {new_resolution[0]}x{new_resolution[1]}"
                 if resolution_log != _last_coordinate_log:
@@ -261,7 +332,9 @@ def update_coordinates_if_needed():
 
     except Exception as e:
         if DEBUG_MODE:
-            print(f"Error {'updating' if current_resolution else 'initializing'} coordinates: {e}")
+            print(
+                f"Error {'updating' if current_resolution else 'initializing'} coordinates: {e}"
+            )
 
     return False
 
@@ -270,7 +343,9 @@ def update_genshin_open_status():
     """Update pause_ocr status based on Genshin window state."""
     global ingame_pause_ocr
 
-    window_open = ps_helper.check_process_window_open(GENSHIN_WINDOW_CLASS, GENSHIN_WINDOW_NAME)
+    window_open = ps_helper.check_process_window_open(
+        GENSHIN_WINDOW_CLASS, GENSHIN_WINDOW_NAME
+    )
     genshin_active = ps_helper.check_genshin_is_foreground()
 
     if window_open and genshin_active and ingame_pause_ocr:
@@ -290,23 +365,31 @@ def process_map_text(text, data_instance):
         return ""
 
     # Handle text duplication issue - remove repeated patterns
-    cleaned_text = ' '.join(text.replace('\n', ' ').split())
+    cleaned_text = " ".join(text.replace("\n", " ").split())
 
     # Remove duplicated substrings
     words = cleaned_text.split()
-    if len(words) > 10:  # Only process if we have a lot of words (indicating possible duplication)
+    if (
+        len(words) > 10
+    ):  # Only process if we have a lot of words (indicating possible duplication)
         result_words = []
         i = 0
         while i < len(words):
             current_word = words[i]
             found_repetition = False
-            for length in range(min(8, len(words) - i - 1), 2, -1):  # Try different sequence lengths
+            for length in range(
+                min(8, len(words) - i - 1), 2, -1
+            ):  # Try different sequence lengths
                 if i + length * 2 <= len(words):
-                    seq1 = ' '.join(words[i:i + length])
-                    seq2 = ' '.join(words[i + length:i + length * 2])
-                    if seq1 == seq2 and len(seq1) > 10:  # Only remove substantial repetitions
+                    seq1 = " ".join(words[i : i + length])
+                    seq2 = " ".join(words[i + length : i + length * 2])
+                    if (
+                        seq1 == seq2 and len(seq1) > 10
+                    ):  # Only remove substantial repetitions
                         if DEBUG_MODE:
-                            print(f"🔄 MAP_LOC: Found repetition, removing duplicate sequence: '{seq1}'")
+                            print(
+                                f"🔄 MAP_LOC: Found repetition, removing duplicate sequence: '{seq1}'"
+                            )
                         i += length * 2  # Skip both occurrences
                         found_repetition = True
                         break
@@ -314,9 +397,11 @@ def process_map_text(text, data_instance):
                 result_words.append(current_word)
                 i += 1
         if result_words:
-            cleaned_text = ' '.join(result_words)
+            cleaned_text = " ".join(result_words)
         else:
-            cleaned_text = ' '.join(words)  # Fallback to original if deduplication fails
+            cleaned_text = " ".join(
+                words
+            )  # Fallback to original if deduplication fails
 
     # Split into words for better processing
     words = cleaned_text.split()
@@ -326,25 +411,56 @@ def process_map_text(text, data_instance):
     # Filter out only the most obvious OCR artifacts
     filtered_words = []
     skip_words = {
-        'd', 'that', 'are', 'of', 'the',
-        'and', 'or', 'but', 'with', 'for', 'from', 'this', 'these', 'those',
-        'menu', 'exit', 'close', 'ok', 'cancel', 'select', 'ready', 'waiting',
-        's', 't', 're', 've', 'll', 'm', 'n'  # Common OCR fragments
+        "d",
+        "that",
+        "are",
+        "of",
+        "the",
+        "and",
+        "or",
+        "but",
+        "with",
+        "for",
+        "from",
+        "this",
+        "these",
+        "those",
+        "menu",
+        "exit",
+        "close",
+        "ok",
+        "cancel",
+        "select",
+        "ready",
+        "waiting",
+        "s",
+        "t",
+        "re",
+        "ve",
+        "ll",
+        "m",
+        "n",  # Common OCR fragments
     }
 
     # Keep location-related words for pattern reconstruction
-    location_context_words = {'town', 'city', 'village'}
+    location_context_words = {"town", "city", "village"}
 
     for word in words:
         word_lower = word.lower()
         # Skip very short words, common artifacts, and UI words
-        if (len(word) < 2 or
-            word_lower in skip_words or
-            word.isdigit() or
-            (len(word) <= 3 and not word[0].isupper() and word_lower not in location_context_words)):
+        if (
+            len(word) < 2
+            or word_lower in skip_words
+            or word.isdigit()
+            or (
+                len(word) <= 3
+                and not word[0].isupper()
+                and word_lower not in location_context_words
+            )
+        ):
             continue
         # Clean up words that end with comma but are otherwise good
-        clean_word = word.rstrip(',') if word.endswith(',') and len(word) > 3 else word
+        clean_word = word.rstrip(",") if word.endswith(",") and len(word) > 3 else word
         if len(clean_word) >= 2:
             filtered_words.append(clean_word)
 
@@ -355,13 +471,15 @@ def process_map_text(text, data_instance):
     candidates = []
 
     # Pattern 1: Look for proper noun combinations (capitalized words)
-    proper_nouns = [word for word in filtered_words if word[0].isupper() and len(word) > 2]
+    proper_nouns = [
+        word for word in filtered_words if word[0].isupper() and len(word) > 2
+    ]
 
     if len(proper_nouns) >= 2:
         # Try combinations of 2-3 proper nouns
         for i in range(len(proper_nouns) - 1):
             for j in range(i + 1, min(i + 3, len(proper_nouns))):
-                combination = ' '.join(proper_nouns[i:j+1])
+                combination = " ".join(proper_nouns[i : j + 1])
                 if 5 < len(combination) < 50:  # Reasonable length for location name
                     candidates.append(combination)
 
@@ -369,14 +487,14 @@ def process_map_text(text, data_instance):
     if len(filtered_words) >= 2:
         # Try 2-word combinations
         for i in range(len(filtered_words) - 1):
-            combination = f"{filtered_words[i]} {filtered_words[i+1]}"
+            combination = f"{filtered_words[i]} {filtered_words[i + 1]}"
             if 5 < len(combination) < 40:
                 candidates.append(combination)
 
         # Try 3-word combinations if available
         if len(filtered_words) >= 3:
             for i in range(len(filtered_words) - 2):
-                combination = f"{filtered_words[i]} {filtered_words[i+1]} {filtered_words[i+2]}"
+                combination = f"{filtered_words[i]} {filtered_words[i + 1]} {filtered_words[i + 2]}"
                 if 5 < len(combination) < 50:
                     candidates.append(combination)
 
@@ -396,7 +514,9 @@ def process_map_text(text, data_instance):
         location_match = data_instance.search_location(candidate)
         if location_match:
             if DEBUG_MODE:
-                print(f"✅ MAP_LOC: Found database match for '{candidate}' -> '{location_match.location_name}'")
+                print(
+                    f"✅ MAP_LOC: Found database match for '{candidate}' -> '{location_match.location_name}'"
+                )
             return candidate
 
         # Try partial matches with database entries
@@ -405,12 +525,16 @@ def process_map_text(text, data_instance):
                 location_match = data_instance.search_location(word)
                 if location_match:
                     if DEBUG_MODE:
-                        print(f"✅ MAP_LOC: Found partial database match for '{word}' in '{candidate}' -> '{location_match.location_name}'")
+                        print(
+                            f"✅ MAP_LOC: Found partial database match for '{word}' in '{candidate}' -> '{location_match.location_name}'"
+                        )
                     return candidate
 
     # No valid location found
     if DEBUG_MODE:
-        print(f"❌ MAP_LOC: No database matches found for any candidates from '{cleaned_text}'")
+        print(
+            f"❌ MAP_LOC: No database matches found for any candidates from '{cleaned_text}'"
+        )
         print(f"❌ MAP_LOC: Tried candidates: {candidates}")
     # Return cleaned text instead of empty string to allow search_func to try fuzzy matching
     return cleaned_text
@@ -432,7 +556,7 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
             ingame_pause_ocr = True
             print("GenshinImpact.exe lost focus. Pausing OCR.")
         return 3.0  # Return sleep duration
-    
+
     # Update pause_ocr status if Genshin is back in foreground
     if ingame_pause_ocr:
         ingame_pause_ocr = False
@@ -453,7 +577,9 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
         charnumber_brightness.append(max_brightness)
 
     # Debug: Log brightness values to see what's happening
-    if DEBUG_MODE and DEBUG_CHARACTER_MODE and loop_count % 50 == 0:  # Log every 5 seconds
+    if (
+        DEBUG_MODE and DEBUG_CHARACTER_MODE and loop_count % 50 == 0
+    ):  # Log every 5 seconds
         adaptive_coords = character_region_manager.get_adaptive_number_coordinates()
         coord_strs = []
         for c in adaptive_coords:
@@ -482,7 +608,9 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
             cx = (c[0] + c[2]) // 2
             cy = (c[1] + c[3]) // 2
             coord_strs.append(f"({cx},{cy})")
-        print(f"🔍 Brightness: {charnumber_brightness} | Centers: {coord_strs} | Min: {min_brightness} | Thresh: {ACTIVE_CHARACTER_THRESH} | Active slot: {active_character} | Found: {found_active_character}")
+        print(
+            f"🔍 Brightness: {charnumber_brightness} | Centers: {coord_strs} | Min: {min_brightness} | Thresh: {ACTIVE_CHARACTER_THRESH} | Active slot: {active_character} | Found: {found_active_character}"
+        )
 
     # Dynamic sleep timing based on game state for better CPU efficiency
     if not found_active_character:
@@ -503,11 +631,16 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
             c = current_characters[new_char_idx - 1]
             if c is not None:
                 # Only print if we haven't already printed for this character
-                if not hasattr(run_detection_iteration, '_last_printed_char'):
+                if not hasattr(run_detection_iteration, "_last_printed_char"):
                     run_detection_iteration._last_printed_char = None
-                if run_detection_iteration._last_printed_char != c.character_display_name:
+                if (
+                    run_detection_iteration._last_printed_char
+                    != c.character_display_name
+                ):
                     print(f'Switched active character to "{c.character_display_name}"')
-                    run_detection_iteration._last_printed_char = c.character_display_name
+                    run_detection_iteration._last_printed_char = (
+                        c.character_display_name
+                    )
 
     # Initialize curr_game_paused - will be set to False if active character found
     curr_game_paused = True
@@ -534,7 +667,9 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
     elif character_region_manager.needs_redetection:
         # Only run intelligent redetection at specific intervals
         should_detect_characters = loop_count % OCR_CHARNAMES_ONE_IN == 0
-        character_region_manager.needs_redetection = False  # Reset immediately after use
+        character_region_manager.needs_redetection = (
+            False  # Reset immediately after use
+        )
     elif loop_count % OCR_CHARNAMES_ONE_IN == 0:
         # Normal scheduled character detection
         should_detect_characters = True
@@ -545,20 +680,25 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
         # Log adaptation status periodically for debugging
         if loop_count % 300 == 0:  # Every 5 minutes
             character_region_manager.log_status()
-        
+
         # Update found_active_character based on validated database matches
         # If no valid characters found in database, treat as not having active characters
         with state_lock:
             if not state_module.currently_active_characters_valid:
                 found_active_character = False
                 if DEBUG_MODE:
-                    print(f"🔄 No valid database characters detected this cycle, treating as no active characters (using cached display)")
+                    print(
+                        f"🔄 No valid database characters detected this cycle, treating as no active characters (using cached display)"
+                    )
             else:
                 if DEBUG_MODE:
-                    print(f"✅ Valid characters active this cycle, active character detection enabled")
+                    print(
+                        f"✅ Valid characters active this cycle, active character detection enabled"
+                    )
 
         # CAPTURE LOCATION
         if loop_count % OCR_LOC_ONE_IN == 0:
+
             def loc_text_processor(text):
                 if "mission accept" in text.lower():
                     return "COMMISSION"
@@ -570,9 +710,11 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                 ALLOWLIST,
                 LOC_CONF_THRESH,
                 ActivityType.LOCATION,
-                lambda text: DATA.search_location(text) if text != "COMMISSION" else None,
+                lambda text: (
+                    DATA.search_location(text) if text != "COMMISSION" else None
+                ),
                 text_processor=loc_text_processor,
-                debug_key='LOCATION'
+                debug_key="LOCATION",
             )
             if loc_data:
                 if loc_data == "COMMISSION":
@@ -591,29 +733,40 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                                         print(f"GUI callback error: {e}")
                 else:
                     location = loc_data
+                    should_update_location = False
                     with state_lock:
                         # Safely get current search_str if it exists
                         current_search_str = None
-                        if (hasattr(current_activity, 'activity_data') 
+                        if (
+                            hasattr(current_activity, "activity_data")
                             and current_activity.activity_data is not None
-                            and hasattr(current_activity.activity_data, 'search_str')):
-                            current_search_str = current_activity.activity_data.search_str
-                        
-                        if (current_activity.activity_type != ActivityType.LOCATION
-                            or current_search_str != location.search_str):
-                            new_activity = Activity(ActivityType.LOCATION, location)
-                            update_activity(new_activity)
+                            and hasattr(current_activity.activity_data, "search_str")
+                        ):
+                            current_search_str = (
+                                current_activity.activity_data.search_str
+                            )
+
+                        if (
+                            current_activity.activity_type != ActivityType.LOCATION
+                            or current_search_str != location.search_str
+                        ):
+                            should_update_location = True
+
+                    if should_update_location:
+                        new_activity = Activity(ActivityType.LOCATION, location)
+                        update_activity(new_activity)
+                        with state_lock:
                             prev_location = location
-                            location_log = f"Detected location: {location.location_name}"
-                            if location_log != _last_location_log:
-                                print(location_log)
-                                _last_location_log = location_log
-                                if gui_callback:
-                                    try:
-                                        gui_callback(new_activity)
-                                    except Exception as e:
-                                        if DEBUG_MODE:
-                                            print(f"GUI callback error: {e}")
+                        location_log = f"Detected location: {location.location_name}"
+                        if location_log != _last_location_log:
+                            print(location_log)
+                            _last_location_log = location_log
+                            if gui_callback:
+                                try:
+                                    gui_callback(new_activity)
+                                except Exception as e:
+                                    if DEBUG_MODE:
+                                        print(f"GUI callback error: {e}")
 
         # CAPTURE BOSS
         if loop_count % OCR_BOSS_ONE_IN == 0:
@@ -624,38 +777,48 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                 LOC_CONF_THRESH,
                 ActivityType.WORLD_BOSS,
                 DATA.search_boss,
-                debug_key='BOSS'
+                debug_key="BOSS",
             )
             if boss_data:
+                should_update_boss = False
                 with state_lock:
                     # Safely get current search_str if it exists
                     current_search_str = None
-                    if (hasattr(current_activity, 'activity_data')
+                    if (
+                        hasattr(current_activity, "activity_data")
                         and current_activity.activity_data is not None
-                        and hasattr(current_activity.activity_data, 'search_str')):
+                        and hasattr(current_activity.activity_data, "search_str")
+                    ):
                         current_search_str = current_activity.activity_data.search_str
 
-                    if (current_activity.activity_type != ActivityType.WORLD_BOSS
-                        or current_search_str != boss_data.search_str):
-                        new_activity = Activity(ActivityType.WORLD_BOSS, boss_data)
-                        update_activity(new_activity)
-                        current_timer_type = "activity"  # Boss fights use activity-specific timer
-                        boss_log = f"Detected boss: {boss_data.boss_name}"
-                        if boss_log != _last_activity_log:
-                            print(boss_log)
-                            _last_activity_log = boss_log
-                            if gui_callback:
-                                try:
-                                    gui_callback(new_activity)
-                                except Exception as e:
-                                    if DEBUG_MODE:
-                                        print(f"GUI callback error: {e}")
+                    if (
+                        current_activity.activity_type != ActivityType.WORLD_BOSS
+                        or current_search_str != boss_data.search_str
+                    ):
+                        should_update_boss = True
+
+                if should_update_boss:
+                    new_activity = Activity(ActivityType.WORLD_BOSS, boss_data)
+                    update_activity(new_activity)
+                    current_timer_type = (
+                        "activity"  # Boss fights use activity-specific timer
+                    )
+                    boss_log = f"Detected boss: {boss_data.boss_name}"
+                    if boss_log != _last_activity_log:
+                        print(boss_log)
+                        _last_activity_log = boss_log
+                        if gui_callback:
+                            try:
+                                gui_callback(new_activity)
+                            except Exception as e:
+                                if DEBUG_MODE:
+                                    print(f"GUI callback error: {e}")
 
     # Check if we should run inactive detections
     should_check_inactive = not found_active_character or (
-        found_active_character and
-        inactive_detection_cooldown == 0 and
-        inactive_detection_mode == ActivityType.MAP_LOCATION
+        found_active_character
+        and inactive_detection_cooldown == 0
+        and inactive_detection_mode == ActivityType.MAP_LOCATION
     )
 
     if should_check_inactive:
@@ -665,7 +828,10 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
             inactive_detection_cooldown -= 1
 
         # CAPTURE PARTY SETUP/OTHER TEXT
-        if inactive_detection_cooldown == 0 or inactive_detection_mode == ActivityType.PARTY_SETUP:
+        if (
+            inactive_detection_cooldown == 0
+            or inactive_detection_mode == ActivityType.PARTY_SETUP
+        ):
             party_data = capture_and_process_ocr(
                 reader,
                 PARTY_SETUP_COORD,
@@ -673,27 +839,35 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                 LOC_CONF_THRESH,
                 ActivityType.PARTY_SETUP,
                 lambda text: "party setup" in text.lower(),
-                debug_key='PARTY_SETUP'
+                debug_key="PARTY_SETUP",
             )
             if party_data:
                 curr_game_paused = False
                 inactive_detection_cooldown = INACTIVE_COOLDOWN
                 inactive_detection_mode = ActivityType.PARTY_SETUP
+                should_update_party = False
                 with state_lock:
                     if current_activity.activity_type != ActivityType.PARTY_SETUP:
-                        new_activity = Activity(ActivityType.PARTY_SETUP, prev_non_idle_activity)
-                        update_activity(new_activity)
-                        reload_party_flag = True
-                        print("Entered Party Setup")
-                        if gui_callback:
-                            try:
-                                gui_callback(new_activity)
-                            except Exception as e:
-                                if DEBUG_MODE:
-                                    print(f"GUI callback error: {e}")
+                        should_update_party = True
+                if should_update_party:
+                    new_activity = Activity(
+                        ActivityType.PARTY_SETUP, prev_non_idle_activity
+                    )
+                    update_activity(new_activity)
+                    reload_party_flag = True
+                    print("Entered Party Setup")
+                    if gui_callback:
+                        try:
+                            gui_callback(new_activity)
+                        except Exception as e:
+                            if DEBUG_MODE:
+                                print(f"GUI callback error: {e}")
 
         # CAPTURE DOMAIN
-        if inactive_detection_cooldown == 0 or inactive_detection_mode == ActivityType.DOMAIN:
+        if (
+            inactive_detection_cooldown == 0
+            or inactive_detection_mode == ActivityType.DOMAIN
+        ):
             domain_data = capture_and_process_ocr(
                 reader,
                 DOMAIN_COORD,
@@ -701,35 +875,50 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                 LOC_CONF_THRESH,
                 ActivityType.DOMAIN,
                 DATA.search_domain,
-                debug_key='DOMAIN'
+                debug_key="DOMAIN",
             )
             if domain_data:
+                should_update_domain = False
                 with state_lock:
                     # Safely get current search_str if it exists
                     current_search_str = None
-                    if (hasattr(current_activity, 'activity_data')
+                    if (
+                        hasattr(current_activity, "activity_data")
                         and current_activity.activity_data is not None
-                        and hasattr(current_activity.activity_data, 'search_str')):
+                        and hasattr(current_activity.activity_data, "search_str")
+                    ):
                         current_search_str = current_activity.activity_data.search_str
 
-                    if (current_activity.activity_type != ActivityType.DOMAIN
-                        or current_search_str != domain_data.search_str):
-                        new_activity = Activity(ActivityType.DOMAIN, domain_data)
-                        update_activity(new_activity)
-                        current_timer_type = "activity"  # Domains use activity-specific timer
-                        domain_log = f"Detected domain: {new_activity.activity_data.domain_name}"
-                        if domain_log != _last_activity_log:
-                            print(domain_log)
-                            _last_activity_log = domain_log
-                            if gui_callback:
-                                try:
-                                    gui_callback(new_activity)
-                                except Exception as e:
-                                    if DEBUG_MODE:
-                                        print(f"GUI callback error: {e}")
+                    if (
+                        current_activity.activity_type != ActivityType.DOMAIN
+                        or current_search_str != domain_data.search_str
+                    ):
+                        should_update_domain = True
+
+                if should_update_domain:
+                    new_activity = Activity(ActivityType.DOMAIN, domain_data)
+                    update_activity(new_activity)
+                    current_timer_type = (
+                        "activity"  # Domains use activity-specific timer
+                    )
+                    domain_log = (
+                        f"Detected domain: {new_activity.activity_data.domain_name}"
+                    )
+                    if domain_log != _last_activity_log:
+                        print(domain_log)
+                        _last_activity_log = domain_log
+                        if gui_callback:
+                            try:
+                                gui_callback(new_activity)
+                            except Exception as e:
+                                if DEBUG_MODE:
+                                    print(f"GUI callback error: {e}")
 
         # CAPTURE GAMEMENU
-        if inactive_detection_cooldown == 0 or inactive_detection_mode == ActivityType.GAMEMENU:
+        if (
+            inactive_detection_cooldown == 0
+            or inactive_detection_mode == ActivityType.GAMEMENU
+        ):
             try:
                 gamemenu_data = capture_and_process_ocr(
                     reader,
@@ -738,38 +927,56 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                     LOC_CONF_THRESH,
                     ActivityType.GAMEMENU,
                     DATA.search_gamemenu,
-                    debug_key='GAMEMENU'
+                    debug_key="GAMEMENU",
                 )
                 if gamemenu_data:
+                    should_update_gamemenu = False
                     with state_lock:
                         # Safely get current search_str if it exists
                         current_search_str = None
-                        if (hasattr(current_activity, 'activity_data')
+                        if (
+                            hasattr(current_activity, "activity_data")
                             and current_activity.activity_data is not None
-                            and hasattr(current_activity.activity_data, 'search_str')):
-                            current_search_str = current_activity.activity_data.search_str
+                            and hasattr(current_activity.activity_data, "search_str")
+                        ):
+                            current_search_str = (
+                                current_activity.activity_data.search_str
+                            )
 
-                        if (current_activity.activity_type != ActivityType.GAMEMENU
-                            or current_search_str != gamemenu_data.search_str):
-                            new_activity = Activity(ActivityType.GAMEMENU, gamemenu_data)
-                            update_activity(new_activity)
-                            current_timer_type = "menu"  # Activity region menus use menu timer
-                            menu_start_time = time.time()  # Start menu timer
-                            curr_game_paused = False
-                            inactive_detection_cooldown = INACTIVE_COOLDOWN
-                            inactive_detection_mode = ActivityType.GAMEMENU
-                            activity_log = f"Detected gamemenu activity: {gamemenu_data.gamemenu_name}"
-                            if activity_log != _last_activity_log:
-                                print(activity_log)
-                                _last_activity_log = activity_log
+                        if (
+                            current_activity.activity_type != ActivityType.GAMEMENU
+                            or current_search_str != gamemenu_data.search_str
+                        ):
+                            should_update_gamemenu = True
+
+                    if should_update_gamemenu:
+                        new_activity = Activity(ActivityType.GAMEMENU, gamemenu_data)
+                        update_activity(new_activity)
+                        current_timer_type = (
+                            "menu"  # Activity region menus use menu timer
+                        )
+                        menu_start_time = time.time()  # Start menu timer
+                        curr_game_paused = False
+                        inactive_detection_cooldown = INACTIVE_COOLDOWN
+                        inactive_detection_mode = ActivityType.GAMEMENU
+                        activity_log = (
+                            f"Detected gamemenu activity: {gamemenu_data.gamemenu_name}"
+                        )
+                        if activity_log != _last_activity_log:
+                            print(activity_log)
+                            _last_activity_log = activity_log
             except Exception as e:
                 if DEBUG_MODE:
                     print(f"❌ Error processing GAMEMENU detection: {e}")
                     import traceback
+
                     traceback.print_exc()
 
         # CAPTURE MAP LOCATION
-        if (inactive_detection_cooldown == 0 or inactive_detection_mode == ActivityType.MAP_LOCATION) and not found_active_character:
+        if (
+            inactive_detection_cooldown == 0
+            or inactive_detection_mode == ActivityType.MAP_LOCATION
+        ) and not found_active_character:
             if DEBUG_MODE:
                 print("DEBUG: About to capture MAP_LOC...")
             map_loc_data = capture_and_process_ocr(
@@ -780,27 +987,33 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                 ActivityType.MAP_LOCATION,
                 DATA.search_location,
                 text_processor=lambda text: process_map_text(text, DATA),
-                debug_key='MAP_LOC'
+                debug_key="MAP_LOC",
             )
             if DEBUG_MODE:
                 print(f"DEBUG: MAP_LOC capture returned: {map_loc_data}")
             if map_loc_data:
                 if DEBUG_MODE:
-                    print(f"DEBUG: About to update activity with MAP_LOC: {map_loc_data.location_name}")
+                    print(
+                        f"DEBUG: About to update activity with MAP_LOC: {map_loc_data.location_name}"
+                    )
                 # Check if we need to update (outside lock to avoid nested locking)
                 should_update = False
                 with state_lock:
                     # Safely get current search_str if it exists
                     current_search_str = None
-                    if (hasattr(current_activity, 'activity_data') 
+                    if (
+                        hasattr(current_activity, "activity_data")
                         and current_activity.activity_data is not None
-                        and hasattr(current_activity.activity_data, 'search_str')):
+                        and hasattr(current_activity.activity_data, "search_str")
+                    ):
                         current_search_str = current_activity.activity_data.search_str
-                    
-                    if (current_activity.activity_type != ActivityType.MAP_LOCATION
-                        or current_search_str != map_loc_data.search_str):
+
+                    if (
+                        current_activity.activity_type != ActivityType.MAP_LOCATION
+                        or current_search_str != map_loc_data.search_str
+                    ):
                         should_update = True
-                
+
                 if should_update:
                     new_activity = Activity(ActivityType.MAP_LOCATION, map_loc_data)
                     if DEBUG_MODE:
@@ -818,12 +1031,16 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                     location_parts = []
                     if map_loc_data.location_name:
                         location_parts.append(map_loc_data.location_name)
-                    if hasattr(map_loc_data, 'subarea') and map_loc_data.subarea:
+                    if hasattr(map_loc_data, "subarea") and map_loc_data.subarea:
                         location_parts.append(map_loc_data.subarea)
-                    if hasattr(map_loc_data, 'country') and map_loc_data.country:
+                    if hasattr(map_loc_data, "country") and map_loc_data.country:
                         location_parts.append(map_loc_data.country)
 
-                    full_location_name = ", ".join(location_parts) if location_parts else map_loc_data.location_name
+                    full_location_name = (
+                        ", ".join(location_parts)
+                        if location_parts
+                        else map_loc_data.location_name
+                    )
                     map_location_log = f"Thinking of traveling to: {full_location_name}"
                     if map_location_log != _last_location_log:
                         print(map_location_log)
@@ -838,7 +1055,10 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
     if curr_game_paused != game_paused:
         game_pause_state_cooldown = PAUSE_STATE_COOLDOWN
         game_paused = curr_game_paused
-    elif game_pause_state_cooldown == 0 and curr_game_paused != game_pause_state_displayed:
+    elif (
+        game_pause_state_cooldown == 0
+        and curr_game_paused != game_pause_state_displayed
+    ):
         if curr_game_paused:
             new_activity = Activity(ActivityType.PAUSED, prev_non_idle_activity)
             update_activity(new_activity)
@@ -854,7 +1074,9 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
 
     # Start game timer if needed
     global game_start_time
-    if (current_activity.activity_type != ActivityType.LOADING or True) and game_start_time is None:
+    if (
+        current_activity.activity_type != ActivityType.LOADING or True
+    ) and game_start_time is None:
         game_start_time = time.time()
 
     return dynamic_sleep
