@@ -19,6 +19,9 @@ imageio==2.37.0
 # GUI dependencies (verified)
 PyQt5==5.15.11
 
+# Material 3 UI (Slint - verified)
+slint==1.10.0
+
 # Windows-specific (verified)
 pywin32==311
 

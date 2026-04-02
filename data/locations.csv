@@ -1,7 +1,7 @@
 match,name,subregion,region,icon
 ------,------,------,MONDSTADT,------
 ------,------,MONDSTADT-CITY,Mondstadt,------
-mondstadt city,Mondstadt City,Mondstadt City,Mondstadt,emblem_mondstadt
+mondstadt city,Mondstadt City,Mondstadt City,Mondstadt,area_mondstadt
 cathedral of favonius,Cathedral of Favonius,Mondstadt City,Mondstadt,emblem_mondstadt
 knights of favonius headquarters,Knights of Favonius Headquarters,Mondstadt City,Mondstadt,emblem_mondstadt
 good hunter,Good Hunter Restaurant,Mondstadt City,Mondstadt,emblem_mondstadt
@@ -9,30 +9,30 @@ angels share,Angel's Share Tavern,Mondstadt City,Mondstadt,emblem_mondstadt
 with wind comes glory,With Wind Comes Glory,Mondstadt City,Mondstadt,emblem_mondstadt
 ------,------,MONDSTADT-BRIGHT,MONDSTADT,------
 brightcrown mountains,Brightcrown Mountains,Brightcrown Mountains,Mondstadt,emblem_mondstadt
-brightcrown canyon,Brightcrown Canyon,Brightcrown Mountains,Mondstadt,emblem_mondstadt
-stormterror's lair,Stormterror's Lair,Brightcrown Mountains,Mondstadt,emblem_mondstadt
+brightcrown canyon,Brightcrown Canyon,Brightcrown Mountains,Mondstadt,area_bright_crown_canyon
+stormterror's lair,Stormterror's Lair,Brightcrown Mountains,Mondstadt,area_stormterror
 ------,------,MONDSTADT-GALE,MONDSTADT,------
 galesong hill,Galesong Hill,Galesong Hill,Mondstadt,emblem_mondstadt
 cape oath,Cape Oath,Galesong Hill,Mondstadt,emblem_mondstadt
-dadaupa gorge,Dadaupa Gorge,Galesong Hill,Mondstadt,emblem_mondstadt
+dadaupa gorge,Dadaupa Gorge,Galesong Hill,Mondstadt,area_daupa_gorge
 falcon coast,Falcon Coast,Galesong Hill,Mondstadt,emblem_mondstadt
-musk reef,Musk Reef,Galesong Hill,Mondstadt,emblem_mondstadt
-windrise,Windrise,Galesong Hill,Mondstadt,emblem_mondstadt
+musk reef,Musk Reef,Galesong Hill,Mondstadt,area_muskreef
+windrise,Windrise,Galesong Hill,Mondstadt,area_windrise
 ------,------,MONDSTADT-STAR,MONDSTADT,------
 starfell valley,Starfell Valley,Starfell Valley,Mondstadt,emblem_mondstadt
-cider lake,Cider Lake,Starfell Valley,Mondstadt,emblem_mondstadt
+cider lake,Cider Lake,Starfell Valley,Mondstadt,area_ciderlake
 mondstadt,Mondstadt,Starfell Valley,Mondstadt,emblem_mondstadt
-starfell lake,Starfell Lake,Starfell Valley,Mondstadt,emblem_mondstadt
-starsnatch cliff,Starsnatch Cliff,Starfell Valley,Mondstadt,emblem_mondstadt
-stormbearer mountains,Stormbearer Mountains,Starfell Valley,Mondstadt,emblem_mondstadt
-stormbearer point,Stormbearer Point,Starfell Valley,Mondstadt,emblem_mondstadt
-thousand winds temple,Thousand Winds Temple,Starfell Valley,Mondstadt,emblem_mondstadt
-whispering woods,Whispering Woods,Starfell Valley,Mondstadt,emblem_mondstadt
+starfell lake,Starfell Lake,Starfell Valley,Mondstadt,area_starfell_lake
+starsnatch cliff,Starsnatch Cliff,Starfell Valley,Mondstadt,area_starsnatch_cliff
+stormbearer mountains,Stormbearer Mountains,Starfell Valley,Mondstadt,area_stormbearer_mountains
+stormbearer point,Stormbearer Point,Starfell Valley,Mondstadt,area_stormbearer_point
+thousand winds temple,Thousand Winds Temple,Starfell Valley,Mondstadt,area_thousand_winds_temple
+whispering woods,Whispering Woods,Starfell Valley,Mondstadt,area_whispering_woods
 ------,------,MONDSTADT-WIND,MONDSTADT,------
 windwail highland,Windwail Highland,Windwail Highland,Mondstadt,emblem_mondstadt
-dawn winery,Dawn Winery,Windwail Highland,Mondstadt,emblem_mondstadt
-springvale,Springvale,Windwail Highland,Mondstadt,emblem_mondstadt
-wolvendom,Wolvendom,Windwail Highland,Mondstadt,emblem_mondstadt
+dawn winery,Dawn Winery,Windwail Highland,Mondstadt,area_dawn_winery
+springvale,Springvale,Windwail Highland,Mondstadt,area_springvale
+wolvendom,Wolvendom,Windwail Highland,Mondstadt,area_wolvedom
 ------,------,MONDSTADT-NAMELESS,MONDSTADT,------
 nameless island,Nameless Island,Nameless Island,Mondstadt,emblem_mondstadt
 entombed city,Entombed City,Dragonspine,Mondstadt,emblem_dragonspine
@@ -138,18 +138,18 @@ mawtiyima forest,Mawtiyima Forest,The Chasm,Liyue,emblem_chasm
 ------,------,INAZUMA,------,------
 ------,------,INAZUMA-NARUKAMI,INAZUMA,------
 tenshukaku,Tenshukaku,Narukami Island,Inazuma,emblem_inazuma
-narukami island,Narukami Island,Narukami Island,Inazuma,emblem_inazuma
+narukami island,Narukami Island,Narukami Island,Inazuma,area_inazuma
 amakane island,Amakane Island,Narukami Island,Inazuma,emblem_inazuma
 araumi,Araumi,Narukami Island,Inazuma,emblem_inazuma
 byakko plain,Byakko Plain,Narukami Island,Inazuma,emblem_inazuma
 chinju forest,Chinju Forest,Narukami Island,Inazuma,emblem_inazuma
 grand narukami shrine,Grand Narukami Shrine,Narukami Island,Inazuma,emblem_inazuma
-inazuma city,Inazuma City,Narukami Island,Inazuma,emblem_inazuma
+inazuma city,Inazuma City,Narukami Island,Inazuma,area_inazuma
 jinren island,Jinren Island,Narukami Island,Inazuma,emblem_inazuma
 kamisato estate,Kamisato Estate,Narukami Island,Inazuma,emblem_inazuma
 konda village,Konda Village,Narukami Island,Inazuma,emblem_inazuma
 mt yougou,Mt. Yougou,Narukami Island,Inazuma,emblem_inazuma
-ritou,Ritou,Narukami Island,Inazuma,emblem_inazuma
+ritou,Ritou,Narukami Island,Inazuma,area_ritou
 ------,------,INAZUMA-KANNAZUKA,INAZUMA,------
 kannazuka,Kannazuka,Kannazuka,Inazuma,emblem_inazuma
 kujou encampment,Kujou Encampment,Kannazuka,Inazuma,emblem_inazuma
