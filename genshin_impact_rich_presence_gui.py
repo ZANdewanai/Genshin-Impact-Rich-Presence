@@ -9,19 +9,49 @@ import threading
 import time
 import json
 import subprocess
-import tempfile
-import shutil
-from datetime import datetime
+from pathlib import Path
 
 # Third-party imports
 try:
-    from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-                                 QLabel, QPushButton, QTextEdit, QTabWidget, QFrame, QSplitter,
-                                 QProgressBar, QCheckBox, QLineEdit, QComboBox, QSizePolicy,
-                                 QGroupBox, QFormLayout, QGridLayout, QMessageBox, QListWidget,
-                                 QStatusBar, QMenuBar, QToolBar, QAction, QSystemTrayIcon)
+    from PyQt5.QtWidgets import (
+        QApplication,
+        QMainWindow,
+        QWidget,
+        QVBoxLayout,
+        QHBoxLayout,
+        QLabel,
+        QPushButton,
+        QTextEdit,
+        QTabWidget,
+        QFrame,
+        QSplitter,
+        QProgressBar,
+        QCheckBox,
+        QLineEdit,
+        QComboBox,
+        QSizePolicy,
+        QGroupBox,
+        QFormLayout,
+        QGridLayout,
+        QMessageBox,
+        QListWidget,
+        QStatusBar,
+        QMenuBar,
+        QToolBar,
+        QAction,
+        QSystemTrayIcon,
+    )
     from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer, QRect, QSize, QPoint, QUrl
-    from PyQt5.QtGui import QFont, QPixmap, QIcon, QImage, QPalette, QColor, QDesktopServices
+    from PyQt5.QtGui import (
+        QFont,
+        QPixmap,
+        QIcon,
+        QImage,
+        QPalette,
+        QColor,
+        QDesktopServices,
+    )
+
     PYQT_AVAILABLE = True
 except ImportError:
     PYQT_AVAILABLE = False
@@ -36,6 +66,7 @@ try:
     import win32process
     from PIL import Image, ImageGrab
     import urllib.request
+
     DEPENDENCIES_OK = True
 except ImportError as e:
     print(f"Missing dependencies: {e}")
@@ -49,8 +80,6 @@ from dataclasses import dataclass
 from enum import Enum, auto
 
 # Import data types from main module to avoid duplication
-import sys
-import os
 script_dir = os.path.dirname(os.path.abspath(__file__))
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
@@ -61,8 +90,10 @@ from core.datatypes import ActivityType, Activity, Character, Location
 # Default Configuration
 # ==========================================
 
+
 class Config:
     """Configuration class for the GUI"""
+
     CONFIG_FILENAME = "gui_config.json"  # Self-contained config file
 
     def __init__(self):
@@ -72,23 +103,25 @@ class Config:
         self.GAME_RESOLUTION = 1080
         self.USE_GPU = True
         self.DISC_APP_ID = "944346292568596500"
-        self.ACTIVE_CHARACTER_THRESH = 700
+        self.ACTIVE_CHARACTER_THRESH = 720
         self.NAME_CONF_THRESH = 0.6
-        self.LOC_CONF_THRESH = 0.6
-        self.BOSS_CONF_THRESH = 0.6
-        self.DOMAIN_CONF_THRESH = 0.6
-        self.SLEEP_PER_ITERATION = 0.1
-        self.OCR_CHARNAMES_ONE_IN = 30
-        self.OCR_LOC_ONE_IN = 10
-        self.OCR_BOSS_ONE_IN = 20
-        self.OCR_DOMAIN_ONE_IN = 20
-        self.PAUSE_STATE_COOLDOWN = 5
-        self.INACTIVE_COOLDOWN = 60
-        self.ALLOWLIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' -"
-        
+        self.LOC_CONF_THRESH = 0.5
+        self.BOSS_CONF_THRESH = 0.5
+        self.DOMAIN_CONF_THRESH = 0.5
+        self.SLEEP_PER_ITERATION = 0.14
+        self.OCR_CHARNAMES_ONE_IN = 10
+        self.OCR_LOC_ONE_IN = 5
+        self.OCR_BOSS_ONE_IN = 30
+        self.OCR_DOMAIN_ONE_IN = 30
+        self.PAUSE_STATE_COOLDOWN = 2
+        self.INACTIVE_COOLDOWN = 5
+        self.ALLOWLIST = (
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' -"
+        )
+
         # Update coordinates based on resolution - defer until GUI is initialized
         # self.update_coordinates()  # Moved to after shared_data_file is set
-    
+
     def update_coordinates(self, shared_data_file=None):
         """Update screen coordinates based on resolution or use adapted coordinates from main.py
 
@@ -100,20 +133,29 @@ class Config:
 
         if shared_data_file and os.path.exists(shared_data_file):
             try:
-                with open(shared_data_file, 'r') as f:
+                with open(shared_data_file, "r") as f:
                     shared_data = json.load(f)
 
                 # Check if adapted coordinates are available
-                if 'adapted_coordinates' in shared_data:
-                    adapted_coords = shared_data['adapted_coordinates']
-                    if 'ADAPTED_NAMES_4P_COORD' in adapted_coords and 'ADAPTED_NUMBER_4P_COORD' in adapted_coords:
+                if "adapted_coordinates" in shared_data:
+                    adapted_coords = shared_data["adapted_coordinates"]
+                    if (
+                        "ADAPTED_NAMES_4P_COORD" in adapted_coords
+                        and "ADAPTED_NUMBER_4P_COORD" in adapted_coords
+                    ):
                         print(f"📍 Using adapted coordinates from shared data file")
                     else:
-                        print(f"📍 No adapted coordinates found in shared data file, using calculated coordinates")
+                        print(
+                            f"📍 No adapted coordinates found in shared data file, using calculated coordinates"
+                        )
                 else:
-                    print(f"📍 No adapted coordinates section in shared data file, using calculated coordinates")
+                    print(
+                        f"📍 No adapted coordinates section in shared data file, using calculated coordinates"
+                    )
             except Exception as e:
-                print(f"📍 Error loading shared data file: {e}, using calculated coordinates")
+                print(
+                    f"📍 Error loading shared data file: {e}, using calculated coordinates"
+                )
 
         # Base resolution (1080p)
         BASE_HEIGHT = 1080
@@ -121,8 +163,10 @@ class Config:
 
         if adapted_coords:
             # Use adapted coordinates from main.py
-            self.CHARACTER_NAME_COORDINATES = adapted_coords['ADAPTED_NAMES_4P_COORD']
-            self.CHARACTER_NUMBER_COORDINATES = adapted_coords['ADAPTED_NUMBER_4P_COORD']
+            self.CHARACTER_NAME_COORDINATES = adapted_coords["ADAPTED_NAMES_4P_COORD"]
+            self.CHARACTER_NUMBER_COORDINATES = adapted_coords[
+                "ADAPTED_NUMBER_4P_COORD"
+            ]
 
             # For other coordinates, still use calculated values since they're not adapted
             # Define base coordinates for 1080p
@@ -132,16 +176,16 @@ class Config:
             else:
                 # Scale other coordinates for different resolutions
                 self.BOSS_COORDINATES = (
-                    int(943 * scale),   # x1
-                    int(6 * scale),     # y1
+                    int(943 * scale),  # x1
+                    int(6 * scale),  # y1
                     int(1614 * scale),  # x2
-                    int(66 * scale)     # y2
+                    int(66 * scale),  # y2
                 )
                 self.LOCATION_COORDINATES = (
-                    int(702 * scale),    # x1
-                    int(240 * scale),    # y1
-                    int(1838 * scale),   # x2
-                    int(345 * scale)     # y2
+                    int(702 * scale),  # x1
+                    int(240 * scale),  # y1
+                    int(1838 * scale),  # x2
+                    int(345 * scale),  # y2
                 )
         else:
             # Use original calculated coordinates
@@ -149,10 +193,10 @@ class Config:
             if self.GAME_RESOLUTION == 1080:
                 # 1080p coordinates (base)
                 self.CHARACTER_NUMBER_COORDINATES = [
-                    (2484, 356),   # Char 1
-                    (2484, 481),   # Char 2
-                    (2484, 610),   # Char 3
-                    (2484, 735),   # Char 4
+                    (2484, 356),  # Char 1
+                    (2484, 481),  # Char 2
+                    (2484, 610),  # Char 3
+                    (2484, 735),  # Char 4
                 ]
 
                 self.CHARACTER_NAME_COORDINATES = [
@@ -170,6 +214,7 @@ class Config:
                 # Character number coordinates (for active character detection)
                 self.CHARACTER_NUMBER_COORDINATES = [
                     (int(2484 * scale), int(356 * scale)),  # Char 1
+                    (int(2484 * scale), int(481 * scale)),  # Char 2
                     (int(2484 * scale), int(610 * scale)),  # Char 3
                     (int(2484 * scale), int(735 * scale)),  # Char 4
                 ]
@@ -178,43 +223,43 @@ class Config:
                 self.CHARACTER_NAME_COORDINATES = [
                     (
                         int(2166 * scale),  # x1
-                        int(320 * scale),   # y1
+                        int(320 * scale),  # y1
                         int(2365 * scale),  # x2
-                        int(395 * scale)    # y2
+                        int(395 * scale),  # y2
                     ),
                     (
                         int(2166 * scale),
                         int(445 * scale),
                         int(2365 * scale),
-                        int(520 * scale)
+                        int(520 * scale),
                     ),
                     (
                         int(2166 * scale),
                         int(575 * scale),
                         int(2365 * scale),
-                        int(650 * scale)
+                        int(650 * scale),
                     ),
                     (
                         int(2166 * scale),
                         int(705 * scale),
                         int(2365 * scale),
-                        int(780 * scale)
+                        int(780 * scale),
                     ),
                 ]
 
                 # Other UI element coordinates
                 self.BOSS_COORDINATES = (
-                    int(943 * scale),   # x1
-                    int(6 * scale),     # y1
+                    int(943 * scale),  # x1
+                    int(6 * scale),  # y1
                     int(1614 * scale),  # x2
-                    int(66 * scale)     # y2
+                    int(66 * scale),  # y2
                 )
 
                 self.LOCATION_COORDINATES = (
-                    int(702 * scale),    # x1
-                    int(240 * scale),    # y1
-                    int(1838 * scale),   # x2
-                    int(345 * scale)     # y2
+                    int(702 * scale),  # x1
+                    int(240 * scale),  # y1
+                    int(1838 * scale),  # x2
+                    int(345 * scale),  # y2
                 )
 
         # Log the current resolution and scale factor
@@ -227,30 +272,31 @@ class Config:
             print(f"   Character numbers: {self.CHARACTER_NUMBER_COORDINATES}")
         else:
             print("📍 Using CALCULATED coordinates based on resolution")
-    
+
     def _get_config_path(self, filename: str = None) -> str:
         """Get the full path to the config file in the project directory"""
         if filename is None:
             filename = self.CONFIG_FILENAME
         return os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
-    
+
     def save_to_file(self, filename: str = None):
         """Save current configuration to a JSON file in the project directory"""
         if filename is None:
             filename = self.CONFIG_FILENAME
         config_path = self._get_config_path(filename)
         config_dict = {
-            key: value for key, value in self.__dict__.items() 
-            if not key.startswith('_') and not callable(value) and not key.isupper()
+            key: value
+            for key, value in self.__dict__.items()
+            if not key.startswith("_") and not callable(value) and not key.isupper()
         }
         try:
-            with open(config_path, 'w') as f:
+            with open(config_path, "w") as f:
                 json.dump(config_dict, f, indent=4)
             return True
         except Exception as e:
             print(f"Error saving config: {e}")
             return False
-    
+
     def load_from_file(self, filename: str = None):
         """Load configuration from a JSON file in the project directory"""
         if filename is None:
@@ -258,7 +304,7 @@ class Config:
         config_path = self._get_config_path(filename)
         if os.path.exists(config_path):
             try:
-                with open(config_path, 'r') as f:
+                with open(config_path, "r") as f:
                     config_dict = json.load(f)
                     for key, value in config_dict.items():
                         if hasattr(self, key):
@@ -271,24 +317,36 @@ class Config:
 
     def _load_shared_config(self):
         """Load configuration from current directory shared_config.json (used by main.py)"""
-        shared_config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shared_config.json')
+        shared_config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "shared_config.json"
+        )
         if os.path.exists(shared_config_path):
             try:
-                with open(shared_config_path, 'r') as f:
+                with open(shared_config_path, "r") as f:
                     shared_config = json.load(f)
                     # Update config with shared config values (these take precedence)
-                    for key in ['USERNAME', 'MC_AETHER', 'WANDERER_NAME', 'GAME_RESOLUTION', 'USE_GPU']:
+                    for key in [
+                        "USERNAME",
+                        "MC_AETHER",
+                        "WANDERER_NAME",
+                        "GAME_RESOLUTION",
+                        "USE_GPU",
+                    ]:
                         if key in shared_config:
                             setattr(self, key, shared_config[key])
-                            print(f"Loaded {key} from shared config: {shared_config[key]}")
+                            print(
+                                f"Loaded {key} from shared config: {shared_config[key]}"
+                            )
                 return True
             except Exception as e:
                 print(f"Error loading shared config: {e}")
         return False
 
+
 # ==========================================
 # Main Application
 # ==========================================
+
 
 class GenshinRichPresenceApp(QMainWindow):
     def __init__(self):
@@ -320,14 +378,14 @@ class GenshinRichPresenceApp(QMainWindow):
         self.main_process = None  # Process for main.py
         self.log_file_path = "rich_presence.log"  # Log file for main.py output
         self.last_log_position = 0  # Track where we last read in the log file
-        self.dependencies_checked = True  # Assume dependencies are OK since we're not checking
-
-        import multiprocessing
-        import subprocess
+        self.dependencies_checked = (
+            True  # Assume dependencies are OK since we're not checking
+        )
 
         # Initialize shared data file path
-        import os
-        self.shared_data_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gui_shared_data.json')
+        self.shared_data_file = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "gui_shared_data.json"
+        )
 
         # Shared data for RPC thread (updated by monitoring thread)
         self.latest_rpc_data = None
@@ -346,7 +404,7 @@ class GenshinRichPresenceApp(QMainWindow):
         # Create tab widgets first
         self.main_tab = QWidget()
         self.config_tab = QWidget()
-        self.roaster_tab = QWidget()
+        self.roster_tab = QWidget()
         self.about_tab = QWidget()
 
         # Create tab widget
@@ -384,13 +442,13 @@ class GenshinRichPresenceApp(QMainWindow):
         # Setup tab contents and add tabs to tab widget
         self._setup_main_tab()
         self._setup_config_tab()
-        self._setup_roaster_tab()
+        self._setup_roster_tab()
         self._setup_about_tab()
 
         # Add tabs to tab widget
         self.tab_widget.addTab(self.main_tab, "Main")
         self.tab_widget.addTab(self.config_tab, "Configuration")
-        self.tab_widget.addTab(self.roaster_tab, "Character Roster")
+        self.tab_widget.addTab(self.roster_tab, "Character Roster")
         self.tab_widget.addTab(self.about_tab, "About")
 
     # Remove text-based mode code as PyQt5 is available
@@ -400,9 +458,11 @@ class GenshinRichPresenceApp(QMainWindow):
     def _load_stylesheet(self):
         """Load external stylesheet file"""
         try:
-            stylesheet_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'styles.qss')
+            stylesheet_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), "resources", "styles.qss"
+            )
             if os.path.exists(stylesheet_path):
-                with open(stylesheet_path, 'r') as f:
+                with open(stylesheet_path, "r") as f:
                     stylesheet = f.read()
                 self.setStyleSheet(stylesheet)
                 self._log("✅ External stylesheet loaded successfully")
@@ -463,7 +523,7 @@ class GenshinRichPresenceApp(QMainWindow):
         version_label.setFont(QFont("Arial", 10))
         version_label.setAlignment(Qt.AlignCenter)
         sidebar_layout.addWidget(version_label)
-    
+
     def _setup_main_tab(self):
         """Setup the main tab with status information"""
         main_layout = QVBoxLayout(self.main_tab)
@@ -486,14 +546,16 @@ class GenshinRichPresenceApp(QMainWindow):
             ("Current Character:", "None"),
             ("Current Location:", "Unknown"),
             ("Current Activity:", "None"),
-            ("Uptime:", "00:00:00")
+            ("Uptime:", "00:00:00"),
         ]
 
         for i, (label, value) in enumerate(status_items):
             # Image placeholder (will be updated dynamically)
             img_label = QLabel("")
             img_label.setFixedSize(32, 32)
-            img_label.setObjectName(f"status_img_{label.lower().replace(' ', '_').replace(':', '')}")
+            img_label.setObjectName(
+                f"status_img_{label.lower().replace(' ', '_').replace(':', '')}"
+            )
             status_layout.addWidget(img_label, i, 0)
 
             # Label
@@ -504,12 +566,22 @@ class GenshinRichPresenceApp(QMainWindow):
             # Value
             value_label = QLabel(value)
             value_label.setFont(QFont("Arial", 9))
-            value_label.setObjectName(f"status_{label.lower().replace(' ', '_').replace(':', '')}")
+            value_label.setObjectName(
+                f"status_{label.lower().replace(' ', '_').replace(':', '')}"
+            )
             status_layout.addWidget(value_label, i, 2)
 
             # Store references for updating
-            setattr(self, f"status_img_{label.lower().replace(' ', '_').replace(':', '')}", img_label)
-            setattr(self, f"status_{label.lower().replace(' ', '_').replace(':', '')}", value_label)
+            setattr(
+                self,
+                f"status_img_{label.lower().replace(' ', '_').replace(':', '')}",
+                img_label,
+            )
+            setattr(
+                self,
+                f"status_{label.lower().replace(' ', '_').replace(':', '')}",
+                value_label,
+            )
 
         status_layout.setColumnStretch(2, 1)
         main_layout.addWidget(status_frame)
@@ -526,7 +598,7 @@ class GenshinRichPresenceApp(QMainWindow):
         main_layout.addWidget(self.log_text)
 
         main_layout.addStretch()
-    
+
     def _setup_config_tab(self):
         """Setup the configuration tab"""
         config_layout = QVBoxLayout(self.config_tab)
@@ -575,7 +647,9 @@ class GenshinRichPresenceApp(QMainWindow):
         self.mc_combo = QComboBox()
         self.mc_combo.setObjectName("mc_combo")
         self.mc_combo.addItems(["Aether (Male)", "Lumine (Female)"])
-        self.mc_combo.setCurrentText("Aether (Male)" if self.config.MC_AETHER else "Lumine (Female)")
+        self.mc_combo.setCurrentText(
+            "Aether (Male)" if self.config.MC_AETHER else "Lumine (Female)"
+        )
         mc_layout.addWidget(self.mc_combo)
         user_layout.addLayout(mc_layout)
 
@@ -631,10 +705,10 @@ class GenshinRichPresenceApp(QMainWindow):
         config_layout.addWidget(save_button)
 
         config_layout.addStretch()
-    
-    def _setup_roaster_tab(self):
-        """Setup the roaster tab for character image management"""
-        roaster_layout = QVBoxLayout(self.roaster_tab)
+
+    def _setup_roster_tab(self):
+        """Setup the roster tab for character image management"""
+        roaster_layout = QVBoxLayout(self.roster_tab)
 
         # Title
         title_label = QLabel("Character Roster")
@@ -651,11 +725,13 @@ class GenshinRichPresenceApp(QMainWindow):
         # Load current character images from shared config
         character_images = {}
         try:
-            shared_config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shared_config.json')
+            shared_config_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), "shared_config.json"
+            )
             if os.path.exists(shared_config_path):
-                with open(shared_config_path, 'r') as f:
+                with open(shared_config_path, "r") as f:
                     shared_config = json.load(f)
-                    character_images = shared_config.get('CHARACTER_IMAGES', {})
+                    character_images = shared_config.get("CHARACTER_IMAGES", {})
         except Exception as e:
             # Non-critical error - config file might not exist yet, use defaults
             self._log(f"⚠️ Could not load character images from config: {e}")
@@ -666,7 +742,9 @@ class GenshinRichPresenceApp(QMainWindow):
         char_images_layout = QVBoxLayout(self.character_images_widget)
 
         # Instructions
-        instructions = QLabel("Configure custom image keys for Genshin characters.\nUse this for alternate skins, Fatui versions, or other variants.\nTraveler gender is configured in 'Main Character' above.")
+        instructions = QLabel(
+            "Configure custom image keys for Genshin characters.\nUse this for alternate skins, Fatui versions, or other variants.\nTraveler gender is configured in 'Main Character' above."
+        )
         instructions.setObjectName("instructions")
         instructions.setFont(QFont("Arial", 9))
         instructions.setWordWrap(True)
@@ -708,22 +786,22 @@ class GenshinRichPresenceApp(QMainWindow):
         roaster_layout.addWidget(roaster_frame)
 
         # Status label for save feedback
-        self.roaster_status_label = QLabel("")
-        self.roaster_status_label.setObjectName("roaster_status_label")
-        self.roaster_status_label.setFont(QFont("Arial", 10, QFont.Bold))
-        self.roaster_status_label.setAlignment(Qt.AlignCenter)
-        self.roaster_status_label.setVisible(False)
-        roaster_layout.addWidget(self.roaster_status_label)
+        self.roster_status_label = QLabel("")
+        self.roster_status_label.setObjectName("roaster_status_label")
+        self.roster_status_label.setFont(QFont("Arial", 10, QFont.Bold))
+        self.roster_status_label.setAlignment(Qt.AlignCenter)
+        self.roster_status_label.setVisible(False)
+        roaster_layout.addWidget(self.roster_status_label)
 
         # Save button
         save_button = QPushButton("Save Character Settings")
         save_button.setObjectName("roaster_save_button")
         save_button.setFont(QFont("Arial", 12, QFont.Bold))
-        save_button.clicked.connect(self._save_roaster_config)
+        save_button.clicked.connect(self._save_roster_config)
         roaster_layout.addWidget(save_button)
 
         roaster_layout.addStretch()
-    
+
     def _setup_about_tab(self):
         """Setup the about tab"""
         about_layout = QVBoxLayout(self.about_tab)
@@ -759,7 +837,7 @@ All rights reserved by miHoYo"""
         about_layout.addWidget(info_label)
 
         about_layout.addStretch()
-    
+
     def _save_config(self):
         """Save configuration from UI to config object"""
         self.config.USERNAME = self.username_entry.text()
@@ -782,49 +860,65 @@ All rights reserved by miHoYo"""
             self._show_config_status("✅ Settings saved successfully!", "#2ecc71", True)
             self._log("Configuration saved successfully!")
         else:
-            self._show_config_status("❌ Error: Could not save configuration. Check permissions.", "#e74c3c", True)
+            self._show_config_status(
+                "❌ Error: Could not save configuration. Check permissions.",
+                "#e74c3c",
+                True,
+            )
             self._log("Error: Could not save configuration. Check permissions.")
             # Try to save to current directory as fallback
             try:
-                with open('config.json', 'w') as f:
-                    json.dump({
-                        'USERNAME': self.config.USERNAME,
-                        'MC_AETHER': self.config.MC_AETHER,
-                        'WANDERER_NAME': self.config.WANDERER_NAME,
-                        'GAME_RESOLUTION': self.config.GAME_RESOLUTION,
-                        'USE_GPU': self.config.USE_GPU
-                    }, f, indent=4)
-                self._show_config_status("✅ Settings saved to current directory!", "#2ecc71", True)
+                with open("config.json", "w") as f:
+                    json.dump(
+                        {
+                            "USERNAME": self.config.USERNAME,
+                            "MC_AETHER": self.config.MC_AETHER,
+                            "WANDERER_NAME": self.config.WANDERER_NAME,
+                            "GAME_RESOLUTION": self.config.GAME_RESOLUTION,
+                            "USE_GPU": self.config.USE_GPU,
+                        },
+                        f,
+                        indent=4,
+                    )
+                self._show_config_status(
+                    "✅ Settings saved to current directory!", "#2ecc71", True
+                )
                 self._log("Configuration saved to current directory instead.")
             except Exception as e:
-                self._show_config_status(f"❌ Failed to save: {str(e)}", "#e74c3c", True)
+                self._show_config_status(
+                    f"❌ Failed to save: {str(e)}", "#e74c3c", True
+                )
                 self._log(f"Failed to save configuration: {e}")
-        
+
         # Also save to shared config file for subprocess
-        shared_config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shared_config.json')
+        shared_config_file = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "shared_config.json"
+        )
         try:
             config_dict = {
-                'USERNAME': self.config.USERNAME,
-                'MC_AETHER': self.config.MC_AETHER,
-                'WANDERER_NAME': self.config.WANDERER_NAME,
-                'GAME_RESOLUTION': self.config.GAME_RESOLUTION,
-                'USE_GPU': self.config.USE_GPU
+                "USERNAME": self.config.USERNAME,
+                "MC_AETHER": self.config.MC_AETHER,
+                "WANDERER_NAME": self.config.WANDERER_NAME,
+                "GAME_RESOLUTION": self.config.GAME_RESOLUTION,
+                "USE_GPU": self.config.USE_GPU,
             }
 
             # Add character images if any
             if character_images:
-                config_dict['CHARACTER_IMAGES'] = character_images
+                config_dict["CHARACTER_IMAGES"] = character_images
 
-            with open(shared_config_file, 'w') as f:
+            with open(shared_config_file, "w") as f:
                 json.dump(config_dict, f, indent=4)
             self._log("Shared config updated for subprocess.")
         except Exception as e:
-            self._show_config_status(f"⚠️ Warning: Could not update shared config: {str(e)}", "#f39c12", True)
+            self._show_config_status(
+                f"⚠️ Warning: Could not update shared config: {str(e)}", "#f39c12", True
+            )
             self._log(f"Failed to update shared config: {e}")
-    
+
     def _show_config_status(self, message: str, color: str, temporary: bool = True):
         """Show a temporary status message in the configuration tab"""
-        if hasattr(self, 'config_status_label'):
+        if hasattr(self, "config_status_label"):
             self.config_status_label.setText(message)
             self.config_status_label.setStyleSheet(f"""
                 QLabel {{
@@ -844,9 +938,9 @@ All rights reserved by miHoYo"""
 
     def _hide_config_status(self):
         """Hide the configuration status label"""
-        if hasattr(self, 'config_status_label'):
+        if hasattr(self, "config_status_label"):
             self.config_status_label.setVisible(False)
-    
+
     def _log(self, message: str):
         """Add a message to the log"""
         # Use QTimer to ensure this runs in the main thread
@@ -854,18 +948,18 @@ All rights reserved by miHoYo"""
 
     def _add_log_message(self, message: str):
         """Add a log message to the text area (called from main thread)"""
-        if hasattr(self, 'log_text'):
+        if hasattr(self, "log_text"):
             self.log_text.append(f"[{time.strftime('%H:%M:%S')}] {message}")
             # Scroll to bottom
             cursor = self.log_text.textCursor()
             cursor.movePosition(cursor.End)
             self.log_text.setTextCursor(cursor)
-    
+
     def _start_rpc_thread(self):
         """Start the Discord RPC thread"""
         self.rpc_thread = threading.Thread(target=self._rpc_loop, daemon=True)
         self.rpc_thread.start()
-    
+
     def _rpc_loop(self):
         """Main RPC update loop - gets data from monitoring thread via shared variables"""
         rpc = None
@@ -894,15 +988,19 @@ All rights reserved by miHoYo"""
             try:
                 # Get latest data from shared variables (updated by monitoring thread)
                 current_params = None
-                if hasattr(self, 'latest_rpc_data') and self.latest_rpc_data:
+                if hasattr(self, "latest_rpc_data") and self.latest_rpc_data:
                     current_params = self.latest_rpc_data
-                    self._log(f"🔄 RPC thread got data: {current_params.get('details', 'Unknown')}")
+                    self._log(
+                        f"🔄 RPC thread got data: {current_params.get('details', 'Unknown')}"
+                    )
 
                 # Update RPC if we have new params and they're different
                 if current_params and current_params != previous_update:
                     rpc.update(**current_params)
                     previous_update = current_params
-                    self._log(f"🎮 Updated Discord RPC: {current_params.get('details', 'Unknown')}")
+                    self._log(
+                        f"🎮 Updated Discord RPC: {current_params.get('details', 'Unknown')}"
+                    )
 
                 time.sleep(1)  # Rate limit to 1 update per second
 
@@ -913,13 +1011,13 @@ All rights reserved by miHoYo"""
             except Exception as e:
                 self._log(f"Error updating RPC: {e}")
                 time.sleep(5)
-    
+
     def _get_activity_text(self, activity) -> str:
         """Convert activity type to display text"""
         # Handle both Activity objects and dict data from shared file
         if isinstance(activity, dict):
-            activity_type = activity.get('activity_type', 'LOADING')
-            activity_data = activity.get('activity_data')
+            activity_type = activity.get("activity_type", "LOADING")
+            activity_data = activity.get("activity_data")
         else:
             activity_type = activity.activity_type
             activity_data = activity.activity_data
@@ -934,25 +1032,25 @@ All rights reserved by miHoYo"""
         if activity_type == 1:  # LOADING
             return "Loading..."
         elif activity_type == 5:  # LOCATION
-            if isinstance(activity_data, dict) and 'location_name' in activity_data:
+            if isinstance(activity_data, dict) and "location_name" in activity_data:
                 return f"Exploring {activity_data['location_name']}"
-            elif hasattr(activity_data, 'location_name'):
+            elif hasattr(activity_data, "location_name"):
                 return f"Exploring {activity_data.location_name}"
             else:
                 return "Exploring"
         elif activity_type == 3:  # DOMAIN
-            if isinstance(activity_data, dict) and 'domain_name' in activity_data:
+            if isinstance(activity_data, dict) and "domain_name" in activity_data:
                 return f"In Domain: {activity_data['domain_name']}"
-            elif hasattr(activity_data, 'domain_name'):
+            elif hasattr(activity_data, "domain_name"):
                 return f"In Domain: {activity_data.domain_name}"
             else:
                 return "In Domain"
         elif activity_type == 7:  # COMMISSION
             return "Completing Commissions"
         elif activity_type == 8:  # WORLD_BOSS
-            if isinstance(activity_data, dict) and 'boss_name' in activity_data:
+            if isinstance(activity_data, dict) and "boss_name" in activity_data:
                 return f"Fighting {activity_data['boss_name']}"
-            elif hasattr(activity_data, 'boss_name'):
+            elif hasattr(activity_data, "boss_name"):
                 return f"Fighting {activity_data.boss_name}"
             else:
                 return "Fighting Boss"
@@ -961,8 +1059,6 @@ All rights reserved by miHoYo"""
         else:
             return "Unknown"
 
-
-    
     def toggle_rpc(self):
         """Toggle the Rich Presence on/off"""
         if not self.running:
@@ -985,7 +1081,9 @@ All rights reserved by miHoYo"""
                 }
             """)
             self.status_label.setText("Status: Running")
-            self.status_label.setStyleSheet("color: #2ecc71; padding: 5px; margin: 5px;")
+            self.status_label.setStyleSheet(
+                "color: #2ecc71; padding: 5px; margin: 5px;"
+            )
             self._log("Rich Presence started!")
         else:
             # Stop Rich Presence
@@ -1034,65 +1132,71 @@ All rights reserved by miHoYo"""
                 }
             """)
             self.status_label.setText("Status: Stopped")
-            self.status_label.setStyleSheet("color: #e74c3c; padding: 5px; margin: 5px;")
+            self.status_label.setStyleSheet(
+                "color: #e74c3c; padding: 5px; margin: 5px;"
+            )
             self._log("Rich Presence stopped.")
-
-
 
     def _import_main_module(self):
         """Import and setup the main module with proper path handling"""
-        import sys
-        import os
         script_dir = os.path.dirname(os.path.abspath(__file__))
         if script_dir not in sys.path:
             sys.path.insert(0, script_dir)
         import main
+
         return main
 
     def _start_main_subprocess(self):
         """Start main.py as a subprocess with shared file for data exchange"""
         try:
-            import sys
-            import os
-            
             # Set environment variables for GPU control
             env = os.environ.copy()
             if self.config.USE_GPU:
-                env['CUDA_VISIBLE_DEVICES'] = '0'
-                env['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:512'
-                env['TORCH_USE_CUDA_DSA'] = '1'
-                env['CUDA_LAUNCH_BLOCKING'] = '0'
+                env["CUDA_VISIBLE_DEVICES"] = "0"
+                env["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:512"
+                env["TORCH_USE_CUDA_DSA"] = "1"
+                env["CUDA_LAUNCH_BLOCKING"] = "0"
             else:
-                env['CUDA_VISIBLE_DEVICES'] = ''
-                env['TORCH_USE_CUDA_DSA'] = '0'
-                env['CUDA_LAUNCH_BLOCKING'] = '0'
-            
+                env["CUDA_VISIBLE_DEVICES"] = ""
+                env["TORCH_USE_CUDA_DSA"] = "0"
+                env["CUDA_LAUNCH_BLOCKING"] = "0"
+
             # Set environment variable for shared data file
-            env['GUI_SHARED_DATA_FILE'] = self.shared_data_file
-            
+            env["GUI_SHARED_DATA_FILE"] = self.shared_data_file
+
             # Build the command
-            script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'main.py')
+            script_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), "main.py"
+            )
             # Use embedded Python explicitly - ALWAYS
-            embedded_python = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'python3.13.11_embedded', 'python.exe')
-            
+            embedded_python = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "python3.13.11_embedded",
+                "python.exe",
+            )
+
             if not os.path.exists(embedded_python):
                 self._log(f"❌ Embedded Python not found at: {embedded_python}")
                 self._log("❌ Cannot start - embedded Python is required")
                 return
-            
+
             self._log(f"✅ Using embedded Python: {embedded_python}")
-            
+
             command = [embedded_python, script_path]
-            
+
             self._log(f"Starting subprocess: {' '.join(command)}")
-            self._log(f"Working directory: {os.path.dirname(os.path.abspath(__file__))}")
-            self._log(f"Environment variables set: CUDA_VISIBLE_DEVICES, PYTORCH_CUDA_ALLOC_CONF, GUI_SHARED_DATA_FILE")
-            
+            self._log(
+                f"Working directory: {os.path.dirname(os.path.abspath(__file__))}"
+            )
+            self._log(
+                f"Environment variables set: CUDA_VISIBLE_DEVICES, PYTORCH_CUDA_ALLOC_CONF, GUI_SHARED_DATA_FILE"
+            )
+
             # Check if script exists
             if not os.path.exists(script_path):
                 self._log(f"Error: Script not found at {script_path}")
                 return
-            
+
             # Start main.py as subprocess - capture stderr for error display
             self.main_process = subprocess.Popen(
                 command,
@@ -1102,29 +1206,31 @@ All rights reserved by miHoYo"""
                 stderr=subprocess.PIPE,
                 text=True,
                 bufsize=1,
-                universal_newlines=True
+                universal_newlines=True,
             )
-            
+
             # Start thread to capture stderr output
             stderr_thread = threading.Thread(
                 target=self._capture_subprocess_output,
                 args=(self.main_process.stderr,),
-                daemon=True
+                daemon=True,
             )
             stderr_thread.start()
-            
+
             self._log(f"Subprocess started with PID: {self.main_process.pid}")
-            
+
             # Start a thread to monitor subprocess output and shared data file
             self._log("🧵 Creating monitoring thread...")
-            self.main_thread = threading.Thread(target=self._monitor_main_subprocess, daemon=True)
+            self.main_thread = threading.Thread(
+                target=self._monitor_main_subprocess, daemon=True
+            )
             self.main_thread.start()
             self._log(f"🧵 Monitoring thread started: {self.main_thread.is_alive()}")
-            
+
         except Exception as e:
             self._log(f"Failed to start main subprocess: {e}")
             self.running = False
-    
+
     def _monitor_main_subprocess(self):
         """Monitor subprocess and read shared data file for GUI updates"""
         self._log("🔍 Starting subprocess monitoring thread")
@@ -1134,16 +1240,20 @@ All rights reserved by miHoYo"""
             while self.main_process and self.main_process.poll() is None:
                 loop_count += 1
                 if loop_count % 50 == 0:  # Log every 5 seconds
-                    self._log(f"🔄 Monitoring loop #{loop_count} - Process alive: {self.main_process.poll() is None}")
+                    self._log(
+                        f"🔄 Monitoring loop #{loop_count} - Process alive: {self.main_process.poll() is None}"
+                    )
 
                 # Check for updates in shared data file
                 if os.path.exists(self.shared_data_file):
                     try:
-                        with open(self.shared_data_file, 'r') as f:
+                        with open(self.shared_data_file, "r") as f:
                             data = json.load(f)
-                            if data.get('timestamp', 0) > last_update:
-                                last_update = data.get('timestamp', 0)
-                                self._log(f"📡 Received data update from subprocess - Activity: {data.get('current_activity', {}).get('activity_type', 'Unknown')}")
+                            if data.get("timestamp", 0) > last_update:
+                                last_update = data.get("timestamp", 0)
+                                self._log(
+                                    f"📡 Received data update from subprocess - Activity: {data.get('current_activity', {}).get('activity_type', 'Unknown')}"
+                                )
                                 self._log(f"📊 Full data received: {data}")
 
                                 # Update GUI
@@ -1157,7 +1267,9 @@ All rights reserved by miHoYo"""
                                     self._log("✅ RPC data prepared for RPC thread")
                             else:
                                 if loop_count % 100 == 0:  # Log every 10 seconds
-                                    self._log(f"⏸️ No new data (last update: {last_update})")
+                                    self._log(
+                                        f"⏸️ No new data (last update: {last_update})"
+                                    )
                     except (json.JSONDecodeError, FileNotFoundError) as e:
                         # File might be being written to - log occasionally but don't spam
                         if loop_count % 50 == 0:  # Log every 5 seconds
@@ -1177,13 +1289,14 @@ All rights reserved by miHoYo"""
         except Exception as e:
             self._log(f"Error monitoring subprocess: {e}")
             import traceback
+
             self._log(f"Error traceback: {traceback.format_exc()}")
             # Don't set self.running = False here - let the toggle logic handle it
-    
+
     def _capture_subprocess_output(self, pipe):
         """Capture subprocess stderr output and display in GUI log"""
         try:
-            for line in iter(pipe.readline, ''):
+            for line in iter(pipe.readline, ""):
                 if line:
                     line = line.strip()
                     if line:
@@ -1192,7 +1305,7 @@ All rights reserved by miHoYo"""
             self._log(f"Error capturing subprocess output: {e}")
         finally:
             pipe.close()
-    
+
     def _update_gui_from_data(self, data):
         """Update GUI elements from received data"""
         try:
@@ -1201,137 +1314,180 @@ All rights reserved by miHoYo"""
             # Check if labels exist
             self._log(f"🔍 Checking label existence:")
             self._log(f"  - activity_label: {hasattr(self, 'activity_label')}")
-            self._log(f"  - status_current_activity: {hasattr(self, 'status_current_activity')}")
-            self._log(f"  - status_current_location: {hasattr(self, 'status_current_location')}")
-            self._log(f"  - status_current_character: {hasattr(self, 'status_current_character')}")
+            self._log(
+                f"  - status_current_activity: {hasattr(self, 'status_current_activity')}"
+            )
+            self._log(
+                f"  - status_current_location: {hasattr(self, 'status_current_location')}"
+            )
+            self._log(
+                f"  - status_current_character: {hasattr(self, 'status_current_character')}"
+            )
             self._log(f"  - status_game_status: {hasattr(self, 'status_game_status')}")
             self._log(f"  - status_uptime: {hasattr(self, 'status_uptime')}")
 
-            if 'current_activity' in data and data['current_activity']:
-                activity_data = data['current_activity']
+            if "current_activity" in data and data["current_activity"]:
+                activity_data = data["current_activity"]
                 self._log(f"📊 Activity data: {activity_data}")
 
                 activity_text = self._get_activity_text(activity_data)
                 self._log(f"📝 Activity text: '{activity_text}'")
 
-                if hasattr(self, 'activity_label'):
+                if hasattr(self, "activity_label"):
                     self.activity_label.setText(f"Activity: {activity_text}")
                     self._log("✅ Updated activity_label")
 
-                if hasattr(self, 'status_current_activity'):
+                if hasattr(self, "status_current_activity"):
                     self.status_current_activity.setText(activity_text)
                     self._log("✅ Updated status_current_activity")
 
                 # Handle location display
-                activity_type = activity_data.get('activity_type', 'LOADING')
-                activity_details = activity_data.get('activity_data')
+                activity_type = activity_data.get("activity_type", "LOADING")
+                activity_details = activity_data.get("activity_data")
 
                 if activity_type == 5:  # LOCATION
-                    if isinstance(activity_details, dict) and 'location_name' in activity_details:
+                    if (
+                        isinstance(activity_details, dict)
+                        and "location_name" in activity_details
+                    ):
                         # Format location with subregion and region information
                         location_parts = []
-                        if activity_details.get('location_name'):
-                            location_parts.append(activity_details['location_name'])
-                        if activity_details.get('subarea'):
-                            location_parts.append(activity_details['subarea'])
-                        if activity_details.get('country'):
-                            location_parts.append(activity_details['country'])
+                        if activity_details.get("location_name"):
+                            location_parts.append(activity_details["location_name"])
+                        if activity_details.get("subarea"):
+                            location_parts.append(activity_details["subarea"])
+                        if activity_details.get("country"):
+                            location_parts.append(activity_details["country"])
 
-                        full_location_name = ", ".join(location_parts) if location_parts else activity_details['location_name']
-                        if hasattr(self, 'status_current_location'):
+                        full_location_name = (
+                            ", ".join(location_parts)
+                            if location_parts
+                            else activity_details["location_name"]
+                        )
+                        if hasattr(self, "status_current_location"):
                             self.status_current_location.setText(full_location_name)
                             self._log(f"✅ Updated location: {full_location_name}")
                 elif activity_type == 6:  # MAP_LOCATION
-                    if isinstance(activity_details, dict) and 'location_name' in activity_details:
+                    if (
+                        isinstance(activity_details, dict)
+                        and "location_name" in activity_details
+                    ):
                         # Format location with subregion and region information
                         location_parts = []
-                        if activity_details.get('location_name'):
-                            location_parts.append(activity_details['location_name'])
-                        if activity_details.get('subarea'):
-                            location_parts.append(activity_details['subarea'])
-                        if activity_details.get('country'):
-                            location_parts.append(activity_details['country'])
+                        if activity_details.get("location_name"):
+                            location_parts.append(activity_details["location_name"])
+                        if activity_details.get("subarea"):
+                            location_parts.append(activity_details["subarea"])
+                        if activity_details.get("country"):
+                            location_parts.append(activity_details["country"])
 
-                        full_location_name = ", ".join(location_parts) if location_parts else activity_details['location_name']
-                        if hasattr(self, 'status_current_location'):
-                            self.status_current_location.setText(f"Thinking of traveling to {full_location_name}")
+                        full_location_name = (
+                            ", ".join(location_parts)
+                            if location_parts
+                            else activity_details["location_name"]
+                        )
+                        if hasattr(self, "status_current_location"):
+                            self.status_current_location.setText(
+                                f"Thinking of traveling to {full_location_name}"
+                            )
                             self._log(f"✅ Updated map location: {full_location_name}")
                 elif activity_type == 3:  # DOMAIN
-                    if isinstance(activity_details, dict) and 'domain_name' in activity_details:
-                        if hasattr(self, 'status_current_location'):
-                            self.status_current_location.setText(activity_details['domain_name'])
+                    if (
+                        isinstance(activity_details, dict)
+                        and "domain_name" in activity_details
+                    ):
+                        if hasattr(self, "status_current_location"):
+                            self.status_current_location.setText(
+                                activity_details["domain_name"]
+                            )
                 else:
-                    if hasattr(self, 'status_current_location'):
+                    if hasattr(self, "status_current_location"):
                         self.status_current_location.setText("Unknown")
 
-            if 'current_characters' in data:
-                characters = data['current_characters']
-                active_char_idx = data.get('current_active_character', 0)
-                self._log(f"👥 Characters: {len(characters)} total, active: {active_char_idx}")
+            if "current_characters" in data:
+                characters = data["current_characters"]
+                active_char_idx = data.get("current_active_character", 0)
+                self._log(
+                    f"👥 Characters: {len(characters)} total, active: {active_char_idx}"
+                )
 
                 # Update character display for active character
-                if active_char_idx and 1 <= active_char_idx <= 4 and characters[active_char_idx - 1]:
+                if (
+                    active_char_idx
+                    and 1 <= active_char_idx <= 4
+                    and characters[active_char_idx - 1]
+                ):
                     char = characters[active_char_idx - 1]
                     if isinstance(char, dict):
-                        char_name = char.get('character_display_name', 'Unknown')
-                        if hasattr(self, 'status_current_character'):
+                        char_name = char.get("character_display_name", "Unknown")
+                        if hasattr(self, "status_current_character"):
                             self.status_current_character.setText(char_name)
                             self._log(f"🎭 Active character: {char_name}")
                         # Update image if available
-                        self._update_status_image("current_character", char.get('image_key'), "Characters")
+                        self._update_status_image(
+                            "current_character", char.get("image_key"), "Characters"
+                        )
                     else:
-                        if hasattr(self, 'status_current_character'):
+                        if hasattr(self, "status_current_character"):
                             self.status_current_character.setText("None")
                 else:
-                    if hasattr(self, 'status_current_character'):
+                    if hasattr(self, "status_current_character"):
                         self.status_current_character.setText("None")
 
-            if 'game_start_time' in data and data['game_start_time']:
-                uptime_seconds = int(time.time() - data['game_start_time'])
+            if "game_start_time" in data and data["game_start_time"]:
+                uptime_seconds = int(time.time() - data["game_start_time"])
                 hours, remainder = divmod(uptime_seconds, 3600)
                 minutes, seconds = divmod(remainder, 60)
                 uptime_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-                if hasattr(self, 'status_uptime'):
+                if hasattr(self, "status_uptime"):
                     self.status_uptime.setText(uptime_str)
                     self._log(f"⏰ Updated uptime: {uptime_str}")
 
-            if 'pause_ocr' in data:
-                game_status = "Paused" if data['pause_ocr'] else "Running"
-                if hasattr(self, 'status_game_status'):
+            if "pause_ocr" in data:
+                game_status = "Paused" if data["pause_ocr"] else "Running"
+                if hasattr(self, "status_game_status"):
                     self.status_game_status.setText(game_status)
                     self._log(f"🎮 Game status: {game_status}")
 
         except Exception as e:
             self._log(f"❌ Error updating GUI from data: {e}")
             import traceback
+
             self._log(f"❌ Traceback: {traceback.format_exc()}")
 
     def _prepare_rpc_data(self, data):
         """Prepare RPC data from shared data for the RPC thread"""
         try:
             # Extract activity data from shared file
-            activity_data = data.get('current_activity')
+            activity_data = data.get("current_activity")
             if not activity_data:
                 return None
 
             # Convert dict back to Activity object
             from core.datatypes import Activity, ActivityType
-            activity_type = ActivityType(activity_data.get('activity_type', 'LOADING'))
-            activity_obj = Activity(activity_type, activity_data.get('activity_data'))
+
+            activity_type = ActivityType(activity_data.get("activity_type", "LOADING"))
+            activity_obj = Activity(activity_type, activity_data.get("activity_data"))
 
             # Get current activity params
             current_params = activity_obj.to_update_params_dict()
 
             # Add character info if available
-            characters = data.get('current_characters', [])
-            active_char_idx = data.get('current_active_character', 0)
-            if active_char_idx and 1 <= active_char_idx <= 4 and characters[active_char_idx - 1]:
+            characters = data.get("current_characters", [])
+            active_char_idx = data.get("current_active_character", 0)
+            if (
+                active_char_idx
+                and 1 <= active_char_idx <= 4
+                and characters[active_char_idx - 1]
+            ):
                 char = characters[active_char_idx - 1]
-                current_params["small_image"] = char.get('image_key')
-                current_params["small_text"] = f"Playing as {char.get('character_display_name', 'Unknown')}"
+                current_params["small_image"] = char.get("image_key")
+                current_params["small_text"] = (
+                    f"Playing as {char.get('character_display_name', 'Unknown')}"
+                )
 
             # Add start time if available
-            start_time = data.get('game_start_time')
+            start_time = data.get("game_start_time")
             if start_time:
                 current_params["start"] = start_time
 
@@ -1341,30 +1497,29 @@ All rights reserved by miHoYo"""
             self._log(f"❌ Error preparing RPC data: {e}")
             return None
 
-    def _ensure_image_cache_dir(self):
-        cache_dir = os.path.join(os.getenv('APPDATA'), 'GenshinImpactRichPresence', 'images')
-        os.makedirs(cache_dir, exist_ok=True)
     def _check_for_coordinate_updates(self):
         """Check for updated coordinates from shared data file and update if necessary"""
         if os.path.exists(self.shared_data_file):
             try:
-                with open(self.shared_data_file, 'r') as f:
+                with open(self.shared_data_file, "r") as f:
                     shared_data = json.load(f)
 
                 # Check if adapted coordinates are available and different from current
-                if 'adapted_coordinates' in shared_data:
-                    adapted_coords = shared_data['adapted_coordinates']
+                if "adapted_coordinates" in shared_data:
+                    adapted_coords = shared_data["adapted_coordinates"]
 
-                    if ('ADAPTED_NAMES_4P_COORD' in adapted_coords and
-                        'ADAPTED_NUMBER_4P_COORD' in adapted_coords):
-
-                        new_name_coords = adapted_coords['ADAPTED_NAMES_4P_COORD']
-                        new_number_coords = adapted_coords['ADAPTED_NUMBER_4P_COORD']
+                    if (
+                        "ADAPTED_NAMES_4P_COORD" in adapted_coords
+                        and "ADAPTED_NUMBER_4P_COORD" in adapted_coords
+                    ):
+                        new_name_coords = adapted_coords["ADAPTED_NAMES_4P_COORD"]
+                        new_number_coords = adapted_coords["ADAPTED_NUMBER_4P_COORD"]
 
                         # Check if coordinates have changed
                         coords_changed = (
-                            new_name_coords != self.config.CHARACTER_NAME_COORDINATES or
-                            new_number_coords != self.config.CHARACTER_NUMBER_COORDINATES
+                            new_name_coords != self.config.CHARACTER_NAME_COORDINATES
+                            or new_number_coords
+                            != self.config.CHARACTER_NUMBER_COORDINATES
                         )
 
                         if coords_changed:
@@ -1378,13 +1533,24 @@ All rights reserved by miHoYo"""
                 pass
 
     def _ensure_image_cache_dir(self):
-        cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache', 'image_cache')
+        cache_dir = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "cache", "image_cache"
+        )
         os.makedirs(cache_dir, exist_ok=True)
         return cache_dir
 
-    def _try_boss_subfolders(self, image_key: str, cache_dir: str, image_path: str) -> Optional[str]:
+    def _try_boss_subfolders(
+        self, image_key: str, cache_dir: str, image_path: str
+    ) -> Optional[str]:
         """Try downloading from boss subfolders"""
-        subfolders = ["hypostasis", "regisvine", "animal", "mechanical_construct", "elemental", "person_and_mechanical"]
+        subfolders = [
+            "hypostasis",
+            "regisvine",
+            "animal",
+            "mechanical_construct",
+            "elemental",
+            "person_and_mechanical",
+        ]
         for subfolder in subfolders:
             try:
                 boss_url = f"https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/main/resources/assets/images/bosses/{subfolder}/{image_key}.png"
@@ -1394,7 +1560,9 @@ All rights reserved by miHoYo"""
                 continue
         return None
 
-    def _download_image(self, image_key: str, category: str = "Characters") -> Optional[str]:
+    def _download_image(
+        self, image_key: str, category: str = "Characters"
+    ) -> Optional[str]:
         """Download an image from GitHub if not cached"""
         if image_key in self.image_cache:
             return self.image_cache[image_key]
@@ -1408,10 +1576,7 @@ All rights reserved by miHoYo"""
             return image_path
 
         # Map category to correct folder name
-        folder_map = {
-            "Characters": "characters",
-            "Bosses": "bosses"
-        }
+        folder_map = {"Characters": "characters", "Bosses": "bosses"}
         folder = folder_map.get(category, category.lower())
 
         # Download from GitHub with correct folder
@@ -1431,14 +1596,18 @@ All rights reserved by miHoYo"""
             except Exception as e2:
                 # For bosses, try specific subfolders
                 if category == "Bosses":
-                    boss_path = self._try_boss_subfolders(image_key, cache_dir, image_path)
+                    boss_path = self._try_boss_subfolders(
+                        image_key, cache_dir, image_path
+                    )
                     if boss_path:
                         self.image_cache[image_key] = boss_path
                         return boss_path
                 print(f"Failed to download image {image_key}: {e2}")
                 return None
 
-    def _update_status_image(self, status_key: str, image_key: str, category: str = "Characters"):
+    def _update_status_image(
+        self, status_key: str, image_key: str, category: str = "Characters"
+    ):
         """Update the image for a status item"""
         from PyQt5.QtGui import QPixmap, QImage
 
@@ -1455,18 +1624,29 @@ All rights reserved by miHoYo"""
                     pil_image = pil_image.resize((32, 32), Image.Resampling.LANCZOS)
 
                     # Determine format based on image mode
-                    if pil_image.mode in ('RGBA', 'LA') or (pil_image.mode == 'P' and 'transparency' in pil_image.info):
-                        pil_image = pil_image.convert('RGBA')
+                    if pil_image.mode in ("RGBA", "LA") or (
+                        pil_image.mode == "P" and "transparency" in pil_image.info
+                    ):
+                        pil_image = pil_image.convert("RGBA")
                         qimage_format = QImage.Format_RGBA8888
                     else:
-                        pil_image = pil_image.convert('RGB')
+                        pil_image = pil_image.convert("RGB")
                         qimage_format = QImage.Format_RGB888
 
                     # Convert PIL image to QPixmap
-                    qimage = QImage(pil_image.tobytes(), pil_image.width, pil_image.height, qimage_format)
+                    qimage = QImage(
+                        pil_image.tobytes(),
+                        pil_image.width,
+                        pil_image.height,
+                        qimage_format,
+                    )
                     pixmap = QPixmap.fromImage(qimage)
 
-                    img_label.setPixmap(pixmap.scaled(32, 32, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                    img_label.setPixmap(
+                        pixmap.scaled(
+                            32, 32, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                        )
+                    )
                     img_label.setText("")
                 except Exception as e:
                     print(f"Failed to load image {image_key}: {e}")
@@ -1478,29 +1658,13 @@ All rights reserved by miHoYo"""
         else:
             img_label.setPixmap(QPixmap())
             img_label.setText("")
-        # Update activity text
-        activity_text = self._get_activity_text(activity)
-
-        # Update activity text in sidebar
-        self.activity_label.setText(f"Activity: {activity_text}")
-
-        # Update status display fields using shared data (this will be updated by _update_gui_from_data)
-        # The actual data comes from the subprocess via shared file
-        self.status_current_activity.setText(activity_text)
-
-        # Location and character info will be updated by _update_gui_from_data when shared file is read
-
 
     def _add_character_image_entry(self):
         """Add a new character image entry field"""
         from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 
         char_name, ok = QInputDialog.getText(
-            self,
-            "Add Character",
-            "Enter character name:",
-            QLineEdit.Normal,
-            ""
+            self, "Add Character", "Enter character name:", QLineEdit.Normal, ""
         )
 
         if ok and char_name.strip():
@@ -1508,7 +1672,9 @@ All rights reserved by miHoYo"""
 
             # Check if already exists
             if char_name in self.char_image_entries:
-                QMessageBox.warning(self, "Duplicate", f"Character '{char_name}' already exists!")
+                QMessageBox.warning(
+                    self, "Duplicate", f"Character '{char_name}' already exists!"
+                )
                 return
 
             # Create new entry
@@ -1549,7 +1715,9 @@ All rights reserved by miHoYo"""
                     background-color: #c0392b;
                 }
             """)
-            remove_btn.clicked.connect(lambda: self._remove_character_image_entry(char_layout, char_name))
+            remove_btn.clicked.connect(
+                lambda: self._remove_character_image_entry(char_layout, char_name)
+            )
             char_layout.addWidget(remove_btn)
 
             # Insert before the "Add Character" button
@@ -1581,8 +1749,8 @@ All rights reserved by miHoYo"""
 
         self._log(f"Removed character image entry for: {char_name}")
 
-    def _save_roaster_config(self):
-        """Save character image configuration from roaster tab"""
+    def _save_roster_config(self):
+        """Save character image configuration from roster tab"""
         # Collect character image mappings
         character_images = {}
         for char_name, entry in self.char_image_entries.items():
@@ -1591,8 +1759,8 @@ All rights reserved by miHoYo"""
                 character_images[char_name] = image_key
 
         # Show saving status
-        self.roaster_status_label.setText("💾 Saving character settings...")
-        self.roaster_status_label.setStyleSheet("""
+        self.roster_status_label.setText("💾 Saving character settings...")
+        self.roster_status_label.setStyleSheet("""
             QLabel {
                 color: #f39c12;
                 padding: 5px;
@@ -1602,28 +1770,30 @@ All rights reserved by miHoYo"""
                 border-radius: 3px;
             }
         """)
-        self.roaster_status_label.setVisible(True)
+        self.roster_status_label.setVisible(True)
 
         # Save to shared config file for subprocess
-        shared_config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shared_config.json')
+        shared_config_file = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "shared_config.json"
+        )
         try:
             # Load existing config
             if os.path.exists(shared_config_file):
-                with open(shared_config_file, 'r') as f:
+                with open(shared_config_file, "r") as f:
                     config_dict = json.load(f)
             else:
                 config_dict = {}
 
             # Update character images
-            config_dict['CHARACTER_IMAGES'] = character_images
+            config_dict["CHARACTER_IMAGES"] = character_images
 
             # Save updated config
-            with open(shared_config_file, 'w') as f:
+            with open(shared_config_file, "w") as f:
                 json.dump(config_dict, f, indent=4)
 
             # Show success
-            self.roaster_status_label.setText("✅ Character settings saved!")
-            self.roaster_status_label.setStyleSheet("""
+            self.roster_status_label.setText("✅ Character settings saved!")
+            self.roster_status_label.setStyleSheet("""
                 QLabel {
                     color: #2ecc71;
                     padding: 5px;
@@ -1636,11 +1806,11 @@ All rights reserved by miHoYo"""
             self._log("Character image settings saved successfully!")
 
             # Hide after 3 seconds
-            QTimer.singleShot(3000, lambda: self.roaster_status_label.setVisible(False))
+            QTimer.singleShot(3000, lambda: self.roster_status_label.setVisible(False))
 
         except Exception as e:
-            self.roaster_status_label.setText(f"❌ Error: {str(e)}")
-            self.roaster_status_label.setStyleSheet("""
+            self.roster_status_label.setText(f"❌ Error: {str(e)}")
+            self.roster_status_label.setStyleSheet("""
                 QLabel {
                     color: #e74c3c;
                     padding: 5px;
@@ -1653,7 +1823,7 @@ All rights reserved by miHoYo"""
             self._log(f"Failed to save character settings: {e}")
 
             # Hide after 5 seconds for errors
-            QTimer.singleShot(5000, lambda: self.roaster_status_label.setVisible(False))
+            QTimer.singleShot(5000, lambda: self.roster_status_label.setVisible(False))
 
     def closeEvent(self, event):
         """Handle window closing"""
@@ -1684,11 +1854,12 @@ All rights reserved by miHoYo"""
         self.rpc_thread = None
 
         # Stop coordinate update timer
-        if hasattr(self, 'coordinate_update_timer'):
+        if hasattr(self, "coordinate_update_timer"):
             self.coordinate_update_timer.stop()
 
         self._log("✅ Application cleanup complete")
         event.accept()
+
 
 if __name__ == "__main__":
     # Check if we have the required dependencies for GUI mode

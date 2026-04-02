@@ -220,11 +220,11 @@ def discord_rpc_loop(current_activity_ref, current_characters_ref, game_start_ti
                 rpc.close()
                 rpc = None
                 continue
-            except Exception as e:
+            except (OSError, RuntimeError) as e:
                 print("Error updating Discord RPC:")
                 print(e)
 
-        except Exception as e:
+        except (OSError, RuntimeError, TypeError) as e:
             print(f"ERROR in Discord RPC loop: {e}")
             import traceback
             traceback.print_exc()

@@ -181,23 +181,6 @@ class Reader:
     def readtext(self, image, **kwargs):
         return self.engine.readtext(image, **kwargs)
 
-# Monkey patch for seamless integration
-def patch_main_for_multi_ocr():
-    """Apply monkey patches to main.py for multi-OCR support"""
-    try:
-        # This would be called from main.py to enable multi-OCR support
-        # For now, just ensure the OCR functions are available globally
-        import builtins
-
-        # Make ocr_readtext available as a global function
-        builtins.ocr_readtext = ocr_readtext
-        builtins.Reader = Reader
-
-        print("Multi-OCR support enabled")
-
-    except Exception as e:
-        print(f"Could not patch main.py: {e}")
-
 if __name__ == "__main__":
     # Test the OCR engines
     print("Testing Available OCR Engines...")

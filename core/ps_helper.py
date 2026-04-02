@@ -60,7 +60,7 @@ def check_process_window_open(window_class=None, window_caption=None):
         hwnd = _hwnd_cache[window_caption]
     else:
         hwnd = win32gui.FindWindow(window_class, window_caption)
-        if hwnd != 0: # don't cache invalid handles
+        if hwnd != 0:  # don't cache invalid handles
             _hwnd_cache[window_caption] = hwnd
 
     try:
@@ -127,3 +127,13 @@ def get_genshin_window_rect():
 
     except Exception:
         return None
+
+
+def get_screen_resolution():
+    """Get the primary screen resolution (width, height)."""
+    try:
+        width = ctypes.windll.user32.GetSystemMetrics(0)
+        height = ctypes.windll.user32.GetSystemMetrics(1)
+        return (width, height)
+    except Exception:
+        return (2560, 1440)  # Default fallback

@@ -4,6 +4,7 @@ import json
 import os
 import time
 import threading
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from core import ps_helper
@@ -30,6 +31,8 @@ from CONFIG import (
     ALLOWLIST,
     ALLOWLIST2,
     LOC_CONF_THRESH,
+    BOSS_CONF_THRESH,
+    DOMAIN_CONF_THRESH,
     NAME_CONF_THRESH,
     GENSHIN_WINDOW_CLASS,
     GENSHIN_WINDOW_NAME,
@@ -64,7 +67,6 @@ from core.state import (
     update_activity,
     set_active_character,
     update_character,
-    clear_all_characters,
 )
 import core.state as state_module
 from core.ocr_utils import capture_and_process_ocr
@@ -79,8 +81,8 @@ RESOLUTION_CHECK_INTERVAL = 60  # Check every 60 seconds like GUI
 RESOLUTION_CHANGE_THRESHOLD = 10  # 10px threshold for resolution change
 
 # Shared config path (defined locally since it's runtime-dependent)
-script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-shared_config_path = os.path.join(script_dir, "shared_config.json")
+script_dir = Path(__file__).resolve().parent.parent
+shared_config_path = script_dir / "shared_config.json"
 
 
 def search_character_with_custom(DATA, text, custom_username, character_images=None):
@@ -96,7 +98,7 @@ def search_character_with_custom(DATA, text, custom_username, character_images=N
             # Read MC_AETHER from shared config if available, otherwise use CONFIG default
             mc_aether = True  # Default fallback
             try:
-                if os.path.exists(shared_config_path):
+                if shared_config_path.exists():
                     with open(shared_config_path, "r") as f:
                         config_data = json.load(f)
                         mc_aether = config_data.get("MC_AETHER", True)
@@ -139,7 +141,7 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
     custom_username = None
     character_images = {}  # Maps character names to image keys
     try:
-        if os.path.exists(shared_config_path):
+        if shared_config_path.exists():
             with open(shared_config_path, "r") as f:
                 shared_config = json.load(f)
                 custom_username = shared_config.get("USERNAME")
@@ -154,7 +156,7 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
                     if custom_username:
                         character_images[custom_username] = traveler_image
 
-    except Exception as e:
+    except (OSError, RuntimeError, ValueError) as e:
         if DEBUG_MODE:
             print(f"⚠️ Config read error: {e}")
         # Continue with defaults - non-critical error
@@ -258,7 +260,7 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
         print(f"🎯 Active character slots detected: {active_slots}")
 
 
-def update_coordinates_if_needed():
+def update_coordinates_if_needed(character_region_manager=None):
     """
     Checks if Genshin window resolution has changed and updates coordinates accordingly.
     Called both for initialization and continuous monitoring.
@@ -323,6 +325,12 @@ def update_coordinates_if_needed():
                 DOMAIN_COORD = new_coordinates["DOMAIN_COORD"]
                 PARTY_SETUP_COORD = new_coordinates["PARTY_SETUP_COORD"]
 
+                # Reset character region manager with new coordinates
+                if character_region_manager and hasattr(
+                    character_region_manager, "init_from_coordinates"
+                ):
+                    character_region_manager.init_from_coordinates()
+
                 resolution_log = f"{'Updated' if _last_resolution_check > 0 else 'Initialized'} coordinates for resolution: {new_resolution[0]}x{new_resolution[1]}"
                 if resolution_log != _last_coordinate_log:
                     print(resolution_log)
@@ -330,7 +338,7 @@ def update_coordinates_if_needed():
 
                 return True
 
-    except Exception as e:
+    except (OSError, RuntimeError, ValueError) as e:
         if DEBUG_MODE:
             print(
                 f"Error {'updating' if current_resolution else 'initializing'} coordinates: {e}"
@@ -339,24 +347,15 @@ def update_coordinates_if_needed():
     return False
 
 
-def update_genshin_open_status():
-    """Update pause_ocr status based on Genshin window state."""
-    global ingame_pause_ocr
-
-    window_open = ps_helper.check_process_window_open(
-        GENSHIN_WINDOW_CLASS, GENSHIN_WINDOW_NAME
-    )
-    genshin_active = ps_helper.check_genshin_is_foreground()
-
-    if window_open and genshin_active and ingame_pause_ocr:
-        ingame_pause_ocr = False
-        print("GenshinImpact.exe resumed. Resuming OCR.")
-    elif (not window_open or not genshin_active) and not ingame_pause_ocr:
-        ingame_pause_ocr = True
-        if not window_open:
-            print("GenshinImpact.exe minimized/closed. Pausing OCR.")
-        else:
-            print("GenshinImpact.exe lost focus. Pausing OCR.")
+def _get_current_search_str():
+    """Safely extract search_str from current_activity."""
+    if (
+        hasattr(current_activity, "activity_data")
+        and current_activity.activity_data is not None
+        and hasattr(current_activity.activity_data, "search_str")
+    ):
+        return current_activity.activity_data.search_str
+    return None
 
 
 def process_map_text(text, data_instance):
@@ -572,9 +571,12 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
         image = ImageGrab.grab(bbox=(x1, y1, x2, y2))
         # Convert to numpy array and find max brightness (brightest pixel)
         img_array = np.array(image)
+        image.close()
         # Use max brightness to detect the white number regardless of background
         max_brightness = int(img_array.max())
         charnumber_brightness.append(max_brightness)
+        # Explicitly free memory
+        del img_array
 
     # Debug: Log brightness values to see what's happening
     if (
@@ -620,8 +622,14 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
         # Actively playing - use normal fast timing
         dynamic_sleep = SLEEP_PER_ITERATION  # 140ms when actively playing
 
-    if found_active_character and active_character + 1 != current_active_character:
-        if current_activity.activity_type == ActivityType.LOADING:
+    with state_lock:
+        _active_char_matches = (
+            found_active_character and active_character + 1 != current_active_character
+        )
+        _is_loading = current_activity.activity_type == ActivityType.LOADING
+
+    if _active_char_matches:
+        if _is_loading:
             # Signal that we've loaded
             pass  # Handled below
 
@@ -647,10 +655,13 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
 
     if found_active_character:
         curr_game_paused = False  # Active character found, so game is not paused
-        inactive_detection_cooldown = 0  # reset anti-domain read cooldown
-        inactive_detection_mode = None  # reset inactive detection mode
+        with state_lock:
+            inactive_detection_cooldown = 0  # reset anti-domain read cooldown
+            inactive_detection_mode = None  # reset inactive detection mode
 
-        if current_activity.is_idle():
+        with state_lock:
+            _is_idle = current_activity.is_idle()
+        if _is_idle:
             # Restore previous activity once an active character is detected.
             with state_lock:
                 current_activity = prev_non_idle_activity
@@ -658,10 +669,14 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
     # CAPTURE PARTY MEMBERS (ADAPTIVE)
     should_detect_characters = False
 
+    with state_lock:
+        _has_missing_chars = len([a for a in current_characters if a is None]) > 0
+
     if reload_party_flag:
+        with state_lock:
+            reload_party_flag = False
         should_detect_characters = True
-        reload_party_flag = False
-    elif len([a for a in current_characters if a is None]) > 0:
+    elif _has_missing_chars:
         # Only run if we have missing characters AND it's the right timing
         should_detect_characters = loop_count % OCR_CHARNAMES_ONE_IN == 0
     elif character_region_manager.needs_redetection:
@@ -728,27 +743,16 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                             if gui_callback:
                                 try:
                                     gui_callback(new_activity)
-                                except Exception as e:
+                                except (RuntimeError, TypeError) as e:
                                     if DEBUG_MODE:
                                         print(f"GUI callback error: {e}")
                 else:
                     location = loc_data
                     should_update_location = False
                     with state_lock:
-                        # Safely get current search_str if it exists
-                        current_search_str = None
-                        if (
-                            hasattr(current_activity, "activity_data")
-                            and current_activity.activity_data is not None
-                            and hasattr(current_activity.activity_data, "search_str")
-                        ):
-                            current_search_str = (
-                                current_activity.activity_data.search_str
-                            )
-
                         if (
                             current_activity.activity_type != ActivityType.LOCATION
-                            or current_search_str != location.search_str
+                            or _get_current_search_str() != location.search_str
                         ):
                             should_update_location = True
 
@@ -764,7 +768,7 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                             if gui_callback:
                                 try:
                                     gui_callback(new_activity)
-                                except Exception as e:
+                                except (RuntimeError, TypeError) as e:
                                     if DEBUG_MODE:
                                         print(f"GUI callback error: {e}")
 
@@ -774,7 +778,7 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                 reader,
                 BOSS_COORD,
                 ALLOWLIST,
-                LOC_CONF_THRESH,
+                BOSS_CONF_THRESH,
                 ActivityType.WORLD_BOSS,
                 DATA.search_boss,
                 debug_key="BOSS",
@@ -782,27 +786,19 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
             if boss_data:
                 should_update_boss = False
                 with state_lock:
-                    # Safely get current search_str if it exists
-                    current_search_str = None
-                    if (
-                        hasattr(current_activity, "activity_data")
-                        and current_activity.activity_data is not None
-                        and hasattr(current_activity.activity_data, "search_str")
-                    ):
-                        current_search_str = current_activity.activity_data.search_str
-
                     if (
                         current_activity.activity_type != ActivityType.WORLD_BOSS
-                        or current_search_str != boss_data.search_str
+                        or _get_current_search_str() != boss_data.search_str
                     ):
                         should_update_boss = True
 
                 if should_update_boss:
                     new_activity = Activity(ActivityType.WORLD_BOSS, boss_data)
                     update_activity(new_activity)
-                    current_timer_type = (
-                        "activity"  # Boss fights use activity-specific timer
-                    )
+                    with state_lock:
+                        current_timer_type = (
+                            "activity"  # Boss fights use activity-specific timer
+                        )
                     boss_log = f"Detected boss: {boss_data.boss_name}"
                     if boss_log != _last_activity_log:
                         print(boss_log)
@@ -815,23 +811,25 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                                     print(f"GUI callback error: {e}")
 
     # Check if we should run inactive detections
+    with state_lock:
+        _inactive_cooldown = inactive_detection_cooldown
+        _inactive_mode = inactive_detection_mode
+
     should_check_inactive = not found_active_character or (
         found_active_character
-        and inactive_detection_cooldown == 0
-        and inactive_detection_mode == ActivityType.MAP_LOCATION
+        and _inactive_cooldown == 0
+        and _inactive_mode == ActivityType.MAP_LOCATION
     )
 
     if should_check_inactive:
         curr_game_paused = True  # Set False later if domain/party setup detected.
 
-        if inactive_detection_cooldown > 0:
-            inactive_detection_cooldown -= 1
+        with state_lock:
+            if inactive_detection_cooldown > 0:
+                inactive_detection_cooldown -= 1
 
         # CAPTURE PARTY SETUP/OTHER TEXT
-        if (
-            inactive_detection_cooldown == 0
-            or inactive_detection_mode == ActivityType.PARTY_SETUP
-        ):
+        if _inactive_cooldown == 0 or _inactive_mode == ActivityType.PARTY_SETUP:
             party_data = capture_and_process_ocr(
                 reader,
                 PARTY_SETUP_COORD,
@@ -843,8 +841,9 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
             )
             if party_data:
                 curr_game_paused = False
-                inactive_detection_cooldown = INACTIVE_COOLDOWN
-                inactive_detection_mode = ActivityType.PARTY_SETUP
+                with state_lock:
+                    inactive_detection_cooldown = INACTIVE_COOLDOWN
+                    inactive_detection_mode = ActivityType.PARTY_SETUP
                 should_update_party = False
                 with state_lock:
                     if current_activity.activity_type != ActivityType.PARTY_SETUP:
@@ -854,7 +853,8 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                         ActivityType.PARTY_SETUP, prev_non_idle_activity
                     )
                     update_activity(new_activity)
-                    reload_party_flag = True
+                    with state_lock:
+                        reload_party_flag = True
                     print("Entered Party Setup")
                     if gui_callback:
                         try:
@@ -864,15 +864,12 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                                 print(f"GUI callback error: {e}")
 
         # CAPTURE DOMAIN
-        if (
-            inactive_detection_cooldown == 0
-            or inactive_detection_mode == ActivityType.DOMAIN
-        ):
+        if _inactive_cooldown == 0 or _inactive_mode == ActivityType.DOMAIN:
             domain_data = capture_and_process_ocr(
                 reader,
                 DOMAIN_COORD,
                 ALLOWLIST,
-                LOC_CONF_THRESH,
+                DOMAIN_CONF_THRESH,
                 ActivityType.DOMAIN,
                 DATA.search_domain,
                 debug_key="DOMAIN",
@@ -880,27 +877,19 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
             if domain_data:
                 should_update_domain = False
                 with state_lock:
-                    # Safely get current search_str if it exists
-                    current_search_str = None
-                    if (
-                        hasattr(current_activity, "activity_data")
-                        and current_activity.activity_data is not None
-                        and hasattr(current_activity.activity_data, "search_str")
-                    ):
-                        current_search_str = current_activity.activity_data.search_str
-
                     if (
                         current_activity.activity_type != ActivityType.DOMAIN
-                        or current_search_str != domain_data.search_str
+                        or _get_current_search_str() != domain_data.search_str
                     ):
                         should_update_domain = True
 
                 if should_update_domain:
                     new_activity = Activity(ActivityType.DOMAIN, domain_data)
                     update_activity(new_activity)
-                    current_timer_type = (
-                        "activity"  # Domains use activity-specific timer
-                    )
+                    with state_lock:
+                        current_timer_type = (
+                            "activity"  # Domains use activity-specific timer
+                        )
                     domain_log = (
                         f"Detected domain: {new_activity.activity_data.domain_name}"
                     )
@@ -915,10 +904,7 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                                     print(f"GUI callback error: {e}")
 
         # CAPTURE GAMEMENU
-        if (
-            inactive_detection_cooldown == 0
-            or inactive_detection_mode == ActivityType.GAMEMENU
-        ):
+        if _inactive_cooldown == 0 or _inactive_mode == ActivityType.GAMEMENU:
             try:
                 gamemenu_data = capture_and_process_ocr(
                     reader,
@@ -932,50 +918,39 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                 if gamemenu_data:
                     should_update_gamemenu = False
                     with state_lock:
-                        # Safely get current search_str if it exists
-                        current_search_str = None
-                        if (
-                            hasattr(current_activity, "activity_data")
-                            and current_activity.activity_data is not None
-                            and hasattr(current_activity.activity_data, "search_str")
-                        ):
-                            current_search_str = (
-                                current_activity.activity_data.search_str
-                            )
-
                         if (
                             current_activity.activity_type != ActivityType.GAMEMENU
-                            or current_search_str != gamemenu_data.search_str
+                            or _get_current_search_str() != gamemenu_data.search_str
                         ):
                             should_update_gamemenu = True
 
                     if should_update_gamemenu:
                         new_activity = Activity(ActivityType.GAMEMENU, gamemenu_data)
                         update_activity(new_activity)
-                        current_timer_type = (
-                            "menu"  # Activity region menus use menu timer
-                        )
-                        menu_start_time = time.time()  # Start menu timer
+                        with state_lock:
+                            current_timer_type = (
+                                "menu"  # Activity region menus use menu timer
+                            )
+                            menu_start_time = time.time()  # Start menu timer
                         curr_game_paused = False
-                        inactive_detection_cooldown = INACTIVE_COOLDOWN
-                        inactive_detection_mode = ActivityType.GAMEMENU
+                        with state_lock:
+                            inactive_detection_cooldown = INACTIVE_COOLDOWN
+                            inactive_detection_mode = ActivityType.GAMEMENU
                         activity_log = (
                             f"Detected gamemenu activity: {gamemenu_data.gamemenu_name}"
                         )
                         if activity_log != _last_activity_log:
                             print(activity_log)
-                            _last_activity_log = activity_log
-            except Exception as e:
+            except (OSError, RuntimeError) as e:
+                print(f"❌ Error processing GAMEMENU detection: {e}")
                 if DEBUG_MODE:
-                    print(f"❌ Error processing GAMEMENU detection: {e}")
                     import traceback
 
                     traceback.print_exc()
 
         # CAPTURE MAP LOCATION
         if (
-            inactive_detection_cooldown == 0
-            or inactive_detection_mode == ActivityType.MAP_LOCATION
+            _inactive_cooldown == 0 or _inactive_mode == ActivityType.MAP_LOCATION
         ) and not found_active_character:
             if DEBUG_MODE:
                 print("DEBUG: About to capture MAP_LOC...")
@@ -999,18 +974,9 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                 # Check if we need to update (outside lock to avoid nested locking)
                 should_update = False
                 with state_lock:
-                    # Safely get current search_str if it exists
-                    current_search_str = None
-                    if (
-                        hasattr(current_activity, "activity_data")
-                        and current_activity.activity_data is not None
-                        and hasattr(current_activity.activity_data, "search_str")
-                    ):
-                        current_search_str = current_activity.activity_data.search_str
-
                     if (
                         current_activity.activity_type != ActivityType.MAP_LOCATION
-                        or current_search_str != map_loc_data.search_str
+                        or _get_current_search_str() != map_loc_data.search_str
                     ):
                         should_update = True
 
@@ -1024,8 +990,9 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                     with state_lock:
                         prev_location = map_loc_data
                     curr_game_paused = False
-                    inactive_detection_cooldown = INACTIVE_COOLDOWN
-                    inactive_detection_mode = ActivityType.MAP_LOCATION
+                    with state_lock:
+                        inactive_detection_cooldown = INACTIVE_COOLDOWN
+                        inactive_detection_mode = ActivityType.MAP_LOCATION
 
                     # Format location with subregion and region information
                     location_parts = []
@@ -1049,23 +1016,31 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
         return 0.1  # Inactive mode sleep
 
     # Update pause state
-    if game_pause_state_cooldown > 0:
-        game_pause_state_cooldown -= 1
+    should_pause = False
+    should_resume = False
+    with state_lock:
+        if game_pause_state_cooldown > 0:
+            game_pause_state_cooldown -= 1
 
-    if curr_game_paused != game_paused:
-        game_pause_state_cooldown = PAUSE_STATE_COOLDOWN
-        game_paused = curr_game_paused
-    elif (
-        game_pause_state_cooldown == 0
-        and curr_game_paused != game_pause_state_displayed
-    ):
-        if curr_game_paused:
-            new_activity = Activity(ActivityType.PAUSED, prev_non_idle_activity)
-            update_activity(new_activity)
-            print("Game paused.")
-        else:
-            print("Game resumed.")
-        game_pause_state_displayed = curr_game_paused
+        if curr_game_paused != game_paused:
+            game_pause_state_cooldown = PAUSE_STATE_COOLDOWN
+            game_paused = curr_game_paused
+        elif (
+            game_pause_state_cooldown == 0
+            and curr_game_paused != game_pause_state_displayed
+        ):
+            if curr_game_paused:
+                should_pause = True
+            else:
+                should_resume = True
+            game_pause_state_displayed = curr_game_paused
+
+    if should_pause:
+        new_activity = Activity(ActivityType.PAUSED, prev_non_idle_activity)
+        update_activity(new_activity)
+        print("Game paused.")
+    elif should_resume:
+        print("Game resumed.")
 
     # Update prev_non_idle_activity if needed
     with state_lock:
@@ -1074,9 +1049,8 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
 
     # Start game timer if needed
     global game_start_time
-    if (
-        current_activity.activity_type != ActivityType.LOADING or True
-    ) and game_start_time is None:
-        game_start_time = time.time()
+    with state_lock:
+        if game_start_time is None:
+            game_start_time = time.time()
 
     return dynamic_sleep

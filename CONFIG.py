@@ -80,14 +80,15 @@ Common resolutions (for reference):
 # ______________________________________________________________#
 
 NUMBER_4P_COORD = [
-    (2484, 356),  # Char 1
-    (2484, 481),  # Char 2
-    (2484, 610),  # Char 3
-    (2484, 735),  # Char 4
+    (2484, 356, 2514, 386),  # Char 1 - 30x30 box centered at original point
+    (2484, 481, 2514, 511),  # Char 2
+    (2484, 610, 2514, 640),  # Char 3
+    (2484, 735, 2514, 765),  # Char 4
 ]
 """
-List containing coordinates of single pixels. 
-Each pixel should be the white part of the character number box (1, 2, 3, 4) to the right of the character name.
+List containing bounding box coordinates for character number detection.
+Each box should cover the white part of the character number box (1, 2, 3, 4) to the right of the character name.
+Format: (top_left_x, top_left_y, bottom_right_x, bottom_right_y)
 
 This is used to determine which character is active and whether the game is paused.
 """
@@ -380,6 +381,7 @@ BASE_PARTY_SETUP_COORD = (0, 20, 896, 97)
 BASE_LOCATION_COORD = (701, 240, 1834, 342)
 BASE_MAP_LOC_COORD = (1980, 140, 2516, 257)
 
+
 def get_dynamic_coordinates():
     """
     Detects the actual Genshin Impact window size and returns scaled coordinates.
@@ -390,10 +392,11 @@ def get_dynamic_coordinates():
     """
     # Minimum reasonable window size for Genshin (width, height)
     MIN_WINDOW_SIZE = (800, 600)
-    
+
     try:
         # Get the actual Genshin window dimensions
         from core import ps_helper
+
         window_rect = ps_helper.get_genshin_window_rect()
         if window_rect:
             actual_width = window_rect[2] - window_rect[0]  # right - left
@@ -402,16 +405,18 @@ def get_dynamic_coordinates():
             # Validate window size - must be at least minimum size
             if actual_width < MIN_WINDOW_SIZE[0] or actual_height < MIN_WINDOW_SIZE[1]:
                 if DEBUG_MODE:
-                    print(f"Detected window too small ({actual_width}x{actual_height}), using base coordinates")
+                    print(
+                        f"Detected window too small ({actual_width}x{actual_height}), using base coordinates"
+                    )
                 return {
-                    'NUMBER_4P_COORD': BASE_NUMBER_4P_COORD,
-                    'NAMES_4P_COORD': BASE_NAMES_4P_COORD,
-                    'BOSS_COORD': BASE_BOSS_COORD,
-                    'LOCATION_COORD': BASE_LOCATION_COORD,
-                    'MAP_LOC_COORD': BASE_MAP_LOC_COORD,
-                    'ACTIVITY_COORD': BASE_ACTIVITY_COORD,
-                    'DOMAIN_COORD': BASE_DOMAIN_COORD,
-                    'PARTY_SETUP_COORD': BASE_PARTY_SETUP_COORD,
+                    "NUMBER_4P_COORD": BASE_NUMBER_4P_COORD,
+                    "NAMES_4P_COORD": BASE_NAMES_4P_COORD,
+                    "BOSS_COORD": BASE_BOSS_COORD,
+                    "LOCATION_COORD": BASE_LOCATION_COORD,
+                    "MAP_LOC_COORD": BASE_MAP_LOC_COORD,
+                    "ACTIVITY_COORD": BASE_ACTIVITY_COORD,
+                    "DOMAIN_COORD": BASE_DOMAIN_COORD,
+                    "PARTY_SETUP_COORD": BASE_PARTY_SETUP_COORD,
                 }, (BASE_RESOLUTION_WIDTH, BASE_RESOLUTION_HEIGHT)
 
             if DEBUG_MODE:
@@ -423,20 +428,60 @@ def get_dynamic_coordinates():
 
             # Scale all coordinate arrays
             scaled_coords = {
-                'NUMBER_4P_COORD': [
-                    (round(x1 * scale_x), round(y1 * scale_y), round(x2 * scale_x), round(y2 * scale_y))
+                "NUMBER_4P_COORD": [
+                    (
+                        round(x1 * scale_x),
+                        round(y1 * scale_y),
+                        round(x2 * scale_x),
+                        round(y2 * scale_y),
+                    )
                     for x1, y1, x2, y2 in BASE_NUMBER_4P_COORD
                 ],
-                'NAMES_4P_COORD': [
-                    tuple(round(px * scale_x) for px in name_bbox)
-                    for name_bbox in BASE_NAMES_4P_COORD
+                "NAMES_4P_COORD": [
+                    (
+                        round(x1 * scale_x),
+                        round(y1 * scale_y),
+                        round(x2 * scale_x),
+                        round(y2 * scale_y),
+                    )
+                    for x1, y1, x2, y2 in BASE_NAMES_4P_COORD
                 ],
-                'BOSS_COORD': tuple(round(px * scale_x) for px in BASE_BOSS_COORD),
-                'LOCATION_COORD': tuple(round(px * scale_x) for px in BASE_LOCATION_COORD),
-                'MAP_LOC_COORD': tuple(round(px * scale_x) for px in BASE_MAP_LOC_COORD),
-                'ACTIVITY_COORD': tuple(round(px * scale_x) for px in BASE_ACTIVITY_COORD),
-                'DOMAIN_COORD': tuple(round(px * scale_x) for px in BASE_DOMAIN_COORD),
-                'PARTY_SETUP_COORD': tuple(round(px * scale_x) for px in BASE_PARTY_SETUP_COORD),
+                "BOSS_COORD": (
+                    round(BASE_BOSS_COORD[0] * scale_x),
+                    round(BASE_BOSS_COORD[1] * scale_y),
+                    round(BASE_BOSS_COORD[2] * scale_x),
+                    round(BASE_BOSS_COORD[3] * scale_y),
+                ),
+                "LOCATION_COORD": (
+                    round(BASE_LOCATION_COORD[0] * scale_x),
+                    round(BASE_LOCATION_COORD[1] * scale_y),
+                    round(BASE_LOCATION_COORD[2] * scale_x),
+                    round(BASE_LOCATION_COORD[3] * scale_y),
+                ),
+                "MAP_LOC_COORD": (
+                    round(BASE_MAP_LOC_COORD[0] * scale_x),
+                    round(BASE_MAP_LOC_COORD[1] * scale_y),
+                    round(BASE_MAP_LOC_COORD[2] * scale_x),
+                    round(BASE_MAP_LOC_COORD[3] * scale_y),
+                ),
+                "ACTIVITY_COORD": (
+                    round(BASE_ACTIVITY_COORD[0] * scale_x),
+                    round(BASE_ACTIVITY_COORD[1] * scale_y),
+                    round(BASE_ACTIVITY_COORD[2] * scale_x),
+                    round(BASE_ACTIVITY_COORD[3] * scale_y),
+                ),
+                "DOMAIN_COORD": (
+                    round(BASE_DOMAIN_COORD[0] * scale_x),
+                    round(BASE_DOMAIN_COORD[1] * scale_y),
+                    round(BASE_DOMAIN_COORD[2] * scale_x),
+                    round(BASE_DOMAIN_COORD[3] * scale_y),
+                ),
+                "PARTY_SETUP_COORD": (
+                    round(BASE_PARTY_SETUP_COORD[0] * scale_x),
+                    round(BASE_PARTY_SETUP_COORD[1] * scale_y),
+                    round(BASE_PARTY_SETUP_COORD[2] * scale_x),
+                    round(BASE_PARTY_SETUP_COORD[3] * scale_y),
+                ),
             }
 
             return scaled_coords, (actual_width, actual_height)
@@ -449,28 +494,29 @@ def get_dynamic_coordinates():
 
     # Fallback to base coordinates if detection fails
     return {
-        'NUMBER_4P_COORD': BASE_NUMBER_4P_COORD,
-        'NAMES_4P_COORD': BASE_NAMES_4P_COORD,
-        'BOSS_COORD': BASE_BOSS_COORD,
-        'LOCATION_COORD': BASE_LOCATION_COORD,
-        'MAP_LOC_COORD': BASE_MAP_LOC_COORD,
-        'ACTIVITY_COORD': BASE_ACTIVITY_COORD,
-        'DOMAIN_COORD': BASE_DOMAIN_COORD,
-        'PARTY_SETUP_COORD': BASE_PARTY_SETUP_COORD,
+        "NUMBER_4P_COORD": BASE_NUMBER_4P_COORD,
+        "NAMES_4P_COORD": BASE_NAMES_4P_COORD,
+        "BOSS_COORD": BASE_BOSS_COORD,
+        "LOCATION_COORD": BASE_LOCATION_COORD,
+        "MAP_LOC_COORD": BASE_MAP_LOC_COORD,
+        "ACTIVITY_COORD": BASE_ACTIVITY_COORD,
+        "DOMAIN_COORD": BASE_DOMAIN_COORD,
+        "PARTY_SETUP_COORD": BASE_PARTY_SETUP_COORD,
     }, (BASE_RESOLUTION_WIDTH, BASE_RESOLUTION_HEIGHT)
+
 
 # Initialize coordinates on import
 DYNAMIC_COORDINATES, DETECTED_RESOLUTION = get_dynamic_coordinates()
 
 # Make coordinates available globally
-NUMBER_4P_COORD = DYNAMIC_COORDINATES['NUMBER_4P_COORD']
-NAMES_4P_COORD = DYNAMIC_COORDINATES['NAMES_4P_COORD']
-BOSS_COORD = DYNAMIC_COORDINATES['BOSS_COORD']
-LOCATION_COORD = DYNAMIC_COORDINATES['LOCATION_COORD']
-MAP_LOC_COORD = DYNAMIC_COORDINATES['MAP_LOC_COORD']
-ACTIVITY_COORD = DYNAMIC_COORDINATES['ACTIVITY_COORD']
-DOMAIN_COORD = DYNAMIC_COORDINATES['DOMAIN_COORD']
-PARTY_SETUP_COORD = DYNAMIC_COORDINATES['PARTY_SETUP_COORD']
-    
+NUMBER_4P_COORD = DYNAMIC_COORDINATES["NUMBER_4P_COORD"]
+NAMES_4P_COORD = DYNAMIC_COORDINATES["NAMES_4P_COORD"]
+BOSS_COORD = DYNAMIC_COORDINATES["BOSS_COORD"]
+LOCATION_COORD = DYNAMIC_COORDINATES["LOCATION_COORD"]
+MAP_LOC_COORD = DYNAMIC_COORDINATES["MAP_LOC_COORD"]
+ACTIVITY_COORD = DYNAMIC_COORDINATES["ACTIVITY_COORD"]
+DOMAIN_COORD = DYNAMIC_COORDINATES["DOMAIN_COORD"]
+PARTY_SETUP_COORD = DYNAMIC_COORDINATES["PARTY_SETUP_COORD"]
+
 if __name__ == "__main__":
     print("This is a config file. It is not meant to be run.")

@@ -106,6 +106,9 @@ venv.bak/
 # Cache directories (runtime generated)
 cache/
 
+# Debug images (generated at runtime)
+debug_images/
+
 # Runtime config files (generated at runtime)
 shared_config.json
 gui_config.json

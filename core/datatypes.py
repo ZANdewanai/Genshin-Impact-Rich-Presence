@@ -152,7 +152,7 @@ class Location:
 class GamemenuType(Enum):
     MENUS = 0
     CUTSCENE = 1
-    SPYRAL = 2
+    SPIRAL = 2
 
     def from_str(gamemenu_type_str: str) -> GamemenuType:
         """
@@ -165,18 +165,19 @@ class GamemenuType(Enum):
                 return GamemenuType.MENUS
             case "in a cutscene":
                 return GamemenuType.CUTSCENE
-            case "spyral abyss":
-                return GamemenuType.SPYRAL
+            case "spyral abyss" | "spiral abyss":
+                return GamemenuType.SPIRAL
             case _:
                 return GamemenuType.MENUS  # Default fallback for unrecognized types
+
     def __str__(self) -> str:
         match self.name:
             case "MENUS":
                 return "In Menus"
             case "CUTSCENE":
                 return "In a Cutscene"
-            case "SPYRAL":
-                return "Spyral Abyss"
+            case "SPIRAL":
+                return "Spiral Abyss"
             case _:
                 return "In Menus"  # Default fallback
 
@@ -204,6 +205,8 @@ class Gamemenu:
             and self.gamemenu_type == other.gamemenu_type
             and self.image_key == other.image_key
         )
+
+
 class ActivityType(Enum):
     LOADING = auto()
     """
@@ -247,11 +250,15 @@ class ActivityType(Enum):
     """
     activity_data: 'Gamemenu' object
     """
+
+
 class Activity:
     def __init__(
         self,
         activity_type: ActivityType,
-        activity_data: Union[Activity, Boss, Character, Domain, Location, GameMenu, None, bool],
+        activity_data: Union[
+            Activity, Boss, Character, Domain, Location, Gamemenu, None, bool
+        ],
     ):
         self.activity_type = activity_type
         """
@@ -272,7 +279,11 @@ class Activity:
         """
         Idle activities are activity states where no active character can be found.
         """
-        return self.activity_type in [ActivityType.PAUSED, ActivityType.PARTY_SETUP, ActivityType.GAMEMENU]
+        return self.activity_type in [
+            ActivityType.PAUSED,
+            ActivityType.PARTY_SETUP,
+            ActivityType.GAMEMENU,
+        ]
 
     def to_update_params_dict(self) -> dict:
         """
@@ -338,12 +349,22 @@ class Activity:
                 location_parts = []
                 if self.activity_data.location_name:
                     location_parts.append(self.activity_data.location_name)
-                if hasattr(self.activity_data, 'subarea') and self.activity_data.subarea:
+                if (
+                    hasattr(self.activity_data, "subarea")
+                    and self.activity_data.subarea
+                ):
                     location_parts.append(self.activity_data.subarea)
-                if hasattr(self.activity_data, 'country') and self.activity_data.country:
+                if (
+                    hasattr(self.activity_data, "country")
+                    and self.activity_data.country
+                ):
                     location_parts.append(self.activity_data.country)
 
-                full_location_name = ", ".join(location_parts) if location_parts else self.activity_data.location_name
+                full_location_name = (
+                    ", ".join(location_parts)
+                    if location_parts
+                    else self.activity_data.location_name
+                )
 
                 return {
                     "details": f"Exploring {full_location_name}",
@@ -361,12 +382,22 @@ class Activity:
                 location_parts = []
                 if self.activity_data.location_name:
                     location_parts.append(self.activity_data.location_name)
-                if hasattr(self.activity_data, 'subarea') and self.activity_data.subarea:
+                if (
+                    hasattr(self.activity_data, "subarea")
+                    and self.activity_data.subarea
+                ):
                     location_parts.append(self.activity_data.subarea)
-                if hasattr(self.activity_data, 'country') and self.activity_data.country:
+                if (
+                    hasattr(self.activity_data, "country")
+                    and self.activity_data.country
+                ):
                     location_parts.append(self.activity_data.country)
 
-                full_location_name = ", ".join(location_parts) if location_parts else self.activity_data.location_name
+                full_location_name = (
+                    ", ".join(location_parts)
+                    if location_parts
+                    else self.activity_data.location_name
+                )
 
                 return {
                     "details": f"Thinking of traveling to {full_location_name}",
@@ -393,6 +424,7 @@ class Activity:
                     "large_image": self.activity_data.image_key,
                     "large_text": self.activity_data.boss_name,
                 }
+
     def __eq__(self, other: Activity) -> bool:
         if not isinstance(other, Activity):
             return False
@@ -411,26 +443,26 @@ class Data(PatternMatchingEventHandler):
     Inherits `PatternMatchingEventHandler` to listen for changes in CSV files in `data/`.
     """
 
-    bosses: list[Boss] = []
-    characters: list[Character] = []
-    domains: list[Domain] = []
-    locations: list[Location] = []
-    gamemenus: list[Gamemenu] = []
-
-    bosses_shortest_search = 0
-    characters_shortest_search = 0
-    domains_shortest_search = 0
-    locations_shortest_search = 0
-    gamemenus_shortest_search = 0
-
-    party_capture_cache = {}
-    world_boss_capture_cache = {}
-    domain_capture_cache = {}
-    location_capture_cache = {}
-    gamemenu_capture_cache = {}
-
     def __init__(self):
         super().__init__(patterns=["*.csv"])  # init PatternMatchingEventHandler
+
+        self.bosses: list[Boss] = []
+        self.characters: list[Character] = []
+        self.domains: list[Domain] = []
+        self.locations: list[Location] = []
+        self.gamemenus: list[Gamemenu] = []
+
+        self.bosses_shortest_search = 0
+        self.characters_shortest_search = 0
+        self.domains_shortest_search = 0
+        self.locations_shortest_search = 0
+        self.gamemenus_shortest_search = 0
+
+        self.party_capture_cache = {}
+        self.world_boss_capture_cache = {}
+        self.domain_capture_cache = {}
+        self.location_capture_cache = {}
+        self.gamemenu_capture_cache = {}
 
         self._last_modified = time.time()
         """
@@ -444,6 +476,8 @@ class Data(PatternMatchingEventHandler):
                 reader = csv.reader(csvfile, delimiter=",")
                 self.characters = []
                 for row in reader:
+                    if not row or row[0] == "------":
+                        continue
                     c = Character(*row)
                     if (MC_AETHER and c.search_str == "aether") or (
                         not MC_AETHER and c.search_str == "lumine"
@@ -458,7 +492,8 @@ class Data(PatternMatchingEventHandler):
                     self.characters.append(c)
 
                 self.characters_shortest_search = min(
-                    [len(character.search_str) for character in self.characters]
+                    [len(character.search_str) for character in self.characters],
+                    default=0,
                 )
                 print(f"Loaded characters.csv: {len(self.characters)} characters")
         except Exception as e:
@@ -467,9 +502,11 @@ class Data(PatternMatchingEventHandler):
         try:
             with open("data/domains.csv", "r") as csvfile:
                 reader = csv.reader(csvfile, delimiter=",")
-                self.domains = [Domain(*row) for row in reader]
+                self.domains = [
+                    Domain(*row) for row in reader if row and row[0] != "------"
+                ]
                 self.domains_shortest_search = min(
-                    [len(domain.search_str) for domain in self.domains]
+                    [len(domain.search_str) for domain in self.domains], default=0
                 )
                 print(f"Loaded domains.csv: {len(self.domains)} domains")
         except Exception as e:
@@ -478,9 +515,11 @@ class Data(PatternMatchingEventHandler):
         try:
             with open("data/locations.csv", "r") as csvfile:
                 reader = csv.reader(csvfile, delimiter=",", escapechar="\\")
-                self.locations = [Location(*row) for row in reader]
+                self.locations = [
+                    Location(*row) for row in reader if row and row[0] != "------"
+                ]
                 self.locations_shortest_search = min(
-                    [len(location.search_str) for location in self.locations]
+                    [len(location.search_str) for location in self.locations], default=0
                 )
                 print(f"Loaded locations.csv: {len(self.locations)} locations")
         except Exception as e:
@@ -489,9 +528,11 @@ class Data(PatternMatchingEventHandler):
         try:
             with open("data/gamemenus.csv", "r") as csvfile:
                 reader = csv.reader(csvfile, delimiter=",", escapechar="\\")
-                self.gamemenus = [Gamemenu(*row) for row in reader]
+                self.gamemenus = [
+                    Gamemenu(*row) for row in reader if row and row[0] != "------"
+                ]
                 self.gamemenus_shortest_search = min(
-                    [len(gamemenu.search_str) for gamemenu in self.gamemenus]
+                    [len(gamemenu.search_str) for gamemenu in self.gamemenus], default=0
                 )
                 print(f"Loaded gamemenus.csv: {len(self.gamemenus)} gamemenus")
         except Exception as e:
@@ -500,9 +541,11 @@ class Data(PatternMatchingEventHandler):
         try:
             with open("data/bosses.csv", "r") as csvfile:
                 reader = csv.reader(csvfile, delimiter=",")
-                self.bosses = [Boss(*row) for row in reader]
+                self.bosses = [
+                    Boss(*row) for row in reader if row and row[0] != "------"
+                ]
                 self.bosses_shortest_search = min(
-                    [len(boss.search_str) for boss in self.bosses]
+                    [len(boss.search_str) for boss in self.bosses], default=0
                 )
                 print(f"Loaded bosses.csv: {len(self.bosses)} bosses")
         except Exception as e:
@@ -557,7 +600,7 @@ class Data(PatternMatchingEventHandler):
         charname_match.sort(key=lambda c: len(c.search_str), reverse=True)
         if DEBUG_MODE and len(charname_match) > 1:
             print(
-                f'WARN: Multiple characters matched for "{charname_text}": {[c.character_name for c in charname_match]}'
+                f'WARN: Multiple characters matched for "{charname_text}": {[c.character_display_name for c in charname_match]}'
             )
             print("Picking longest match")
         if len(charname_match) > 0:
@@ -626,8 +669,12 @@ class Data(PatternMatchingEventHandler):
             for location in self.locations:
                 # Calculate similarity ratio using difflib
                 # Compare both directions (OCR vs CSV and CSV vs OCR)
-                ratio1 = difflib.SequenceMatcher(None, location.search_str.lower(), loc_text.lower()).ratio()
-                ratio2 = difflib.SequenceMatcher(None, loc_text.lower(), location.search_str.lower()).ratio()
+                ratio1 = difflib.SequenceMatcher(
+                    None, location.search_str.lower(), loc_text.lower()
+                ).ratio()
+                ratio2 = difflib.SequenceMatcher(
+                    None, loc_text.lower(), location.search_str.lower()
+                ).ratio()
 
                 # Use the higher ratio and require 75% similarity
                 similarity = max(ratio1, ratio2)
@@ -674,19 +721,15 @@ class Data(PatternMatchingEventHandler):
         if gamemenu_text.lower() in self.gamemenu_capture_cache:
             return self.gamemenu_capture_cache[gamemenu_text.lower()]
 
-        # First try: Find all matches (prioritize longer, more specific matches)
-        all_matches = []
-
-        # Primary search: CSV entry is substring of OCR text
-        primary_matches = [g for g in self.gamemenus if g.search_str in gamemenu_text.lower()]
-        all_matches.extend(primary_matches)
-
-        # Fallback search: Case-insensitive substring matching
-        fallback_matches = [g for g in self.gamemenus if g.search_str.lower() in gamemenu_text.lower() and g not in all_matches]
-        all_matches.extend(fallback_matches)
+        # Find all matches (prioritize longer, more specific matches)
+        all_matches = [
+            g for g in self.gamemenus if g.search_str in gamemenu_text.lower()
+        ]
 
         # Sort by length (longest first) to prioritize more specific matches
-        gamemenu_match = sorted(all_matches, key=lambda g: len(g.search_str), reverse=True)
+        gamemenu_match = sorted(
+            all_matches, key=lambda g: len(g.search_str), reverse=True
+        )
 
         gm = None
 
@@ -727,10 +770,12 @@ class Data(PatternMatchingEventHandler):
                 try:
                     with open("data/bosses.csv", "r") as csvfile:
                         reader = csv.reader(csvfile, delimiter=",")
-                        temp = [Boss(*row) for row in reader]
+                        temp = [
+                            Boss(*row) for row in reader if row and row[0] != "------"
+                        ]
                         self.bosses = temp
                         self.bosses_shortest_search = min(
-                            [len(boss.search_str) for boss in self.bosses]
+                            [len(boss.search_str) for boss in self.bosses], default=0
                         )
                         self.world_boss_capture_cache.clear()  # Clear cache when CSV is reloaded
                         print(
@@ -744,6 +789,8 @@ class Data(PatternMatchingEventHandler):
                         reader = csv.reader(csvfile, delimiter=",")
                         temp = []
                         for row in reader:
+                            if not row or row[0] == "------":
+                                continue
                             c = Character(*row)
                             if (MC_AETHER and c.search_str == "aether") or (
                                 not MC_AETHER and c.search_str == "lumine"
@@ -759,7 +806,11 @@ class Data(PatternMatchingEventHandler):
 
                         self.characters = temp
                         self.characters_shortest_search = min(
-                            [len(character.search_str) for character in self.characters]
+                            [
+                                len(character.search_str)
+                                for character in self.characters
+                            ],
+                            default=0,
                         )
                         self.party_capture_cache.clear()  # Clear cache when CSV is reloaded
                         print(
@@ -771,10 +822,13 @@ class Data(PatternMatchingEventHandler):
                 try:
                     with open("data/domains.csv", "r") as csvfile:
                         reader = csv.reader(csvfile, delimiter=",")
-                        temp = [Domain(*row) for row in reader]
+                        temp = [
+                            Domain(*row) for row in reader if row and row[0] != "------"
+                        ]
                         self.domains = temp
                         self.domains_shortest_search = min(
-                            [len(domain.search_str) for domain in self.domains]
+                            [len(domain.search_str) for domain in self.domains],
+                            default=0,
                         )
                         self.domain_capture_cache.clear()  # Clear cache when CSV is reloaded
                         print(
@@ -786,10 +840,15 @@ class Data(PatternMatchingEventHandler):
                 try:
                     with open("data/locations.csv", "r") as csvfile:
                         reader = csv.reader(csvfile, delimiter=",", escapechar="\\")
-                        temp = [Location(*row) for row in reader]
+                        temp = [
+                            Location(*row)
+                            for row in reader
+                            if row and row[0] != "------"
+                        ]
                         self.locations = temp
                         self.locations_shortest_search = min(
-                            [len(location.search_str) for location in self.locations]
+                            [len(location.search_str) for location in self.locations],
+                            default=0,
                         )
                         self.location_capture_cache.clear()  # Clear cache when CSV is reloaded
                         print(
@@ -801,10 +860,15 @@ class Data(PatternMatchingEventHandler):
                 try:
                     with open("data/gamemenus.csv", "r") as csvfile:
                         reader = csv.reader(csvfile, delimiter=",", escapechar="\\")
-                        temp = [Gamemenu(*row) for row in reader]
+                        temp = [
+                            Gamemenu(*row)
+                            for row in reader
+                            if row and row[0] != "------"
+                        ]
                         self.gamemenus = temp
                         self.gamemenus_shortest_search = min(
-                            [len(gamemenu.search_str) for gamemenu in self.gamemenus]
+                            [len(gamemenu.search_str) for gamemenu in self.gamemenus],
+                            default=0,
                         )
                         self.gamemenu_capture_cache.clear()  # Clear cache when CSV is reloaded
                         print(

@@ -1,4 +1,5 @@
 """Global state management for the Genshin Impact Rich Presence application."""
+
 import threading
 from typing import Optional, Callable
 
@@ -71,10 +72,6 @@ inactive_detection_mode: Optional[ActivityType] = None
 reload_party_flag = False
 """Set to True after party setup screen is detected."""
 
-# Character cache management
-_no_active_character_counter = 0
-"""Counter for consecutive iterations without an active character."""
-
 # Coordinate tracking
 current_resolution = None
 current_coordinates = None
@@ -83,7 +80,6 @@ _last_resolution_check = 0
 
 # Anti-spam tracking for logs
 _last_location_log = None
-_last_character_logs = [None, None, None, None]  # One for each character slot
 _last_activity_log = None
 _last_detection_log = None
 
@@ -97,11 +93,11 @@ gui_callback: Optional[Callable] = None
 
 # Global variables for GUI communication
 _gui_shared_state = {
-    'current_activity': None,
-    'current_active_character': 0,
-    'current_characters': [None, None, None, None],
-    'game_start_time': None,
-    'pause_ocr': False
+    "current_activity": None,
+    "current_active_character": 0,
+    "current_characters": [None, None, None, None],
+    "game_start_time": None,
+    "pause_ocr": False,
 }
 _gui_state_lock = threading.Lock()
 
@@ -122,11 +118,11 @@ def get_gui_state():
     """Get current state for GUI"""
     with state_lock:
         return {
-            'current_activity': current_activity,
-            'current_active_character': current_active_character,
-            'current_characters': current_characters,
-            'game_start_time': game_start_time,
-            'pause_ocr': ingame_pause_ocr
+            "current_activity": current_activity,
+            "current_active_character": current_active_character,
+            "current_characters": current_characters,
+            "game_start_time": game_start_time,
+            "pause_ocr": ingame_pause_ocr,
         }
 
 
@@ -134,19 +130,21 @@ def get_gui_state():
 # State Accessors (for use with closures in RPC thread)
 # =============================================================================
 
+
 def get_current_activity():
     """Get current activity (for RPC thread)."""
     with state_lock:
         if DEBUG_MODE:
-            print(f"DEBUG get_current_activity: returning {current_activity} (type={current_activity.activity_type})")
+            print(
+                f"DEBUG get_current_activity: returning {current_activity} (type={current_activity.activity_type})"
+            )
         return current_activity
 
 
 def get_current_characters():
     """Get current characters (for RPC thread)."""
     with state_lock:
-        # Return the actual list so RPC thread sees updates
-        return current_characters
+        return current_characters.copy()
 
 
 def get_game_start_time():
@@ -161,15 +159,10 @@ def get_current_timer_type():
         return current_timer_type
 
 
-def get_last_active_character():
-    """Get last active character (for RPC thread)."""
-    with state_lock:
-        return last_active_character
-
-
 # =============================================================================
 # State Updaters
 # =============================================================================
+
 
 def update_activity(activity: Activity):
     """Update current activity thread-safely."""
@@ -193,6 +186,7 @@ def set_active_character(idx: int):
         last_active_character = idx
         if DEBUG_MODE:
             print(f"DEBUG set_active_character: set to {idx}")
+
 
 def get_last_active_character():
     """Get the last active character index."""
@@ -221,5 +215,6 @@ def reset_game_start_time():
     """Reset the game start timer."""
     global game_start_time
     import time
+
     with state_lock:
         game_start_time = time.time()
