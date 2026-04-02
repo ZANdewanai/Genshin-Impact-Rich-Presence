@@ -13,17 +13,16 @@ export component GenshinM3App inherits Window {
     property <string> log-text: "";
     property <bool> rpc-running: false;
     
-    // Force preferred size
     preferred-width: 900px;
     preferred-height: 700px;
     
-    // Sidebar
+    /* Sidebar */
     Rectangle {
         x: 0px;
         y: 0px;
         width: 220px;
         height: parent.height;
-        background: #6750A4; // Primary
+        background: #6750A4;
         
         VerticalBox {
             padding: 16px;
@@ -32,23 +31,19 @@ export component GenshinM3App inherits Window {
             Text {
                 text: "Genshin Impact\nRich Presence";
                 font-size: 18px;
-                font-weight: 700;
+                font-weight: 700px;
                 color: white;
             }
             
             Button {
                 text: rpc-running ? "Stop" : "Start Rich Presence";
                 clicked => {
-                    if (rpc-running) {
-                        self.stop-rpc();
-                    } else {
-                        self.start-rpc();
-                    }
+                    self.stop-rpc();
                 }
             }
             
             Text {
-                text: "Status: " + (rpc-running ? "Running" : "Stopped");
+                text: rpc-running ? "Status: Running" : "Status: Stopped";
                 color: white;
             }
             
@@ -60,7 +55,7 @@ export component GenshinM3App inherits Window {
         }
     }
     
-    // Main content
+    /* Main content */
     Rectangle {
         x: 220px;
         y: 0px;
@@ -68,7 +63,7 @@ export component GenshinM3App inherits Window {
         height: parent.height;
         background: #FFFBFE;
         
-        // Main Tab
+        /* Main Tab */
         if (current-tab == "main") {
             VerticalBox {
                 padding: 24px;
@@ -77,10 +72,9 @@ export component GenshinM3App inherits Window {
                 Text {
                     text: "Status";
                     font-size: 24px;
-                    font-weight: 700;
+                    font-weight: 700px;
                 }
                 
-                // Status Card
                 Rectangle {
                     background: #E7E0EC;
                     padding: 16px;
@@ -90,22 +84,22 @@ export component GenshinM3App inherits Window {
                         spacing: 8px;
                         
                         HorizontalBox {
-                            Text { text: "Game:"; font-weight: 700; }
+                            Text { text: "Game:"; font-weight: 700px; }
                             Text { text: game-status; }
                         }
                         
                         HorizontalBox {
-                            Text { text: "Character:"; font-weight: 700; }
+                            Text { text: "Character:"; font-weight: 700px; }
                             Text { text: current-character; }
                         }
                         
                         HorizontalBox {
-                            Text { text: "Location:"; font-weight: 700; }
+                            Text { text: "Location:"; font-weight: 700px; }
                             Text { text: current-location; }
                         }
                         
                         HorizontalBox {
-                            Text { text: "Uptime:"; font-weight: 700; }
+                            Text { text: "Uptime:"; font-weight: 700px; }
                             Text { text: uptime; }
                         }
                     }
@@ -125,7 +119,7 @@ export component GenshinM3App inherits Window {
                 Text {
                     text: "Activity Log";
                     font-size: 18px;
-                    font-weight: 700;
+                    font-weight: 700px;
                 }
                 
                 Rectangle {
@@ -143,7 +137,7 @@ export component GenshinM3App inherits Window {
             }
         }
         
-        // Config Tab
+        /* Config Tab */
         if (current-tab == "config") {
             VerticalBox {
                 padding: 24px;
@@ -152,7 +146,7 @@ export component GenshinM3App inherits Window {
                 Text {
                     text: "Configuration";
                     font-size: 24px;
-                    font-weight: 700;
+                    font-weight: 700px;
                 }
                 
                 Rectangle {
@@ -165,20 +159,17 @@ export component GenshinM3App inherits Window {
                         
                         Text {
                             text: "User Settings";
-                            font-weight: 700;
+                            font-weight: 700px;
                         }
                         
-                        Text { text: "Username:"; }
-                        Text { text: "(configure in CONFIG.py)"; }
-                        
-                        Text { text: "GPU Acceleration:"; }
-                        Text { text: "(configure in CONFIG.py)"; }
+                        Text { text: "Username: (configure in CONFIG.py)"; }
+                        Text { text: "GPU Acceleration: (configure in CONFIG.py)"; }
                     }
                 }
             }
         }
         
-        // About Tab
+        /* About Tab */
         if (current-tab == "about") {
             VerticalBox {
                 padding: 24px;
@@ -187,7 +178,7 @@ export component GenshinM3App inherits Window {
                 Text {
                     text: "About";
                     font-size: 24px;
-                    font-weight: 700;
+                    font-weight: 700px;
                 }
                 
                 Rectangle {
@@ -200,7 +191,7 @@ export component GenshinM3App inherits Window {
                         
                         Text {
                             text: "Genshin Impact Rich Presence";
-                            font-weight: 700;
+                            font-weight: 700px;
                         }
                         
                         Text { text: "v4.0 Material 3 UI"; }
@@ -217,7 +208,7 @@ export component GenshinM3App inherits Window {
         }
     }
     
-    // Navigation
+    /* Navigation */
     HorizontalBox {
         x: 220px;
         y: parent.height - 64px;
