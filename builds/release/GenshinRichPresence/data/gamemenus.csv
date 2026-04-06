@@ -1,0 +1,120 @@
+------,------,MENUS,------
+mailbox,Looking at the Mailbox,In Menus,menu_mailbox
+friends,Looking at their Friend List,In Menus,menu_friends
+settings,Looking at the Settings,In Menus,menu_settings
+wish,Wishing Upon a Star,In Menus,menu_wish
+battle pass,Looking at the Battle Pass/Gnostic Hymn,In Menus,menu_battlepass
+shop,Looking at the Shop,In Menus,menu_shop
+general goods,Looking at a Merchant's General Goods Shop,In Menus,menu_shop
+souvenir shop,Looking at a Merchant's Souvenir Shop,In Menus,menu_shop
+restaurant,Looking at a Merchant's Restaurant Shop,In Menus,menu_shop
+blacksmith,Looking at a Merchant's Blacksmith Shop,In Menus,menu_shop
+card shop,Investing in the Card Shop,In Menus,menu_shop
+achievements,Looking at their Achievements,In Menus,menu_achievements
+dressing room,Changing a Character's Outfit,In Menus,menu_dressing_room
+coop,Checking the Co-op Mode,In Menus,menu_co-op
+co op,Checking the Co-op Mode,In Menus,menu_co-op
+co-op,Checking the Co-op Mode,In Menus,menu_co-op
+cook,Currently Cooking!,In Menus,menu_cooking
+process,Currently Processing Ingredients,In Menus,menu_cooking
+forge,Currently Forging Materials,In Menus,menu_forge
+craft,Currently Crafting Materials,In Menus,menu_crafting
+convert,Currently Converting Materials,In Menus,menu_crafting
+mystic offering,Currently Offering artifacts for a great cause - Mystic Offering,In Menus,menu_crafting
+Lightgleaner's Journer,Checking their Antique Memento Camera's Gallery,In Menus,menu_camera
+------,------,ARCHIVE,------
+archive,Browsing through the Archives,In Menus,menu_archive
+living beings,Researching Teyvat's Living Beings,In Menus,menu_archive_living_beings
+equipment,Researching Teyvat's Equipments,In Menus,menu_archive_equipment
+books,Researching Teyvat's Books,In Menus,menu_archive_books
+travel log,Remembering their Travels with the Travel Log,In Menus,menu_archive_travel_log
+geography,Studying Teyvat's Geography,In Menus,menu_archive_geography
+------,------,QUESTS,------
+world,Looking at the World Quests,In Menus,menu_world_quests
+commission,Looking at the Commission Quests,In Menus,menu_commission_quests
+story,Looking at the Story Quests,In Menus,menu_story_quests
+archon,Looking at the Archon Quests,In Menus,menu_archon_quests
+progress,Looking at their Current Quests,In Menus,menu_current_quests
+hangout,Looking at the Hangout Events,In Menus,menu_hangout_event
+valiant chronicles local legend,Looking at Valiant Chronicles - Local Legend,In Menus,icon_valiant_chronicles
+------,------,SPYRAL,------
+floor 1,Floor 1 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 2,Floor 2 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 3,Floor 3 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 4,Floor 4 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 5,Floor 5 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 6,Floor 6 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 7,Floor 7 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 8,Floor 8 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
+floor 9,Floor 9 - Abyssal Moon Spire,Spyral Abyss,spiral_abyss
+floor 10,Floor 10 - Abyssal Moon Spire,Spyral Abyss,spiral_abyss
+floor 11,Floor 11 - Abyssal Moon Spire,Spyral Abyss,spiral_abyss
+floor 12,Floor 12 - Abyssal Moon Spire,Spyral Abyss,spiral_abyss
+------,------,INVENTORY,------
+weapons,Looking at their Weapons,In Menus,menu_inventory_weapons
+artifacts,Looking at their Artifacts,In Menus,menu_inventory_artifacts
+dev,Looking at their Character Development Items,In Menus,menu_inventory_development
+food,Looking at their Food Stock,In Menus,menu_inventory_food
+materials,Looking at their Materials or Researching them in the archives,In Menus,menu_inventory_materials
+gadget,Looking at their Gadgets,In Menus,menu_inventory_gadgets
+quest,Looking at their Quest Items,In Menus,menu_inventory_quests
+precious,Looking at their Precious Items,In Menus,menu_inventory_precious
+furnishings,Looking at their Furnishings,In Menus,menu_inventory_furnishings
+character archive,Looking at the Character Archive,In Menus,menu_character_archive
+------,------,TUTORIALS,------
+all,Looking at All the Tutorials,In Menus,menu_tutorial
+elements,Looking at the Element Tutorials,In Menus,menu_tutorial
+enemies,Looking at the Enemy Tutorials,In Menus,menu_tutorial
+system,Looking at the System Tutorials,In Menus,menu_tutorial
+advent,Looking at the Adventure Tutorials,In Menus,menu_tutorial
+------,------,CUTSCENE,------
+auto,Currently in a Cutscene,In a Cutscene,ui_cutscene
+playing,Currently in a Cutscene,In a Cutscene,ui_cutscene
+------,------,COMMISSIONS-EXPLORATION-REPUTATION,------
+mondstadt bounties,Checking Mondstadt's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
+mondstadt requests,Checking Mondstadt's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
+mondstadt world exploration,Checking Mondstadt's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
+mondstadt mondstadt quests,Checking Mondstadt's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
+reputation reward mondstadt,Checking Mondstadt's Reputation Rewards,Reputation in Teyvat,icon_reputation
+liyue bounties,Checking Liyue's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
+liyue requests,Checking Liyue's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
+liyue world exploration,Checking Liyue's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
+liyue liyue quests,Checking Liyue's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
+reputation reward liyue,Checking Liyue's Reputation Rewards,Reputation in Teyvat,icon_reputation
+inazuma bounties,Checking Inazuma's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
+inazuma requests,Checking Inazuma's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
+inazuma world exploration,Checking Inazuma's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
+inazuma inazuma quests,Checking Inazuma's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
+reputation reward inazuma,Checking Inazuma's Reputation Rewards,Reputation in Teyvat,icon_reputation
+sumeru bounties,Checking Sumeru's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
+sumeru requests,Checking Sumeru's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
+sumeru world exploration,Checking Sumeru's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
+sumeru sumeru quests,Checking Sumeru's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
+reputation reward sumeru,Checking Sumeru's Reputation Rewards,Reputation in Teyvat,icon_reputation
+fontaine bounties,Checking Fontaine's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
+fontaine requests,Checking Fontaine's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
+fontaine world exploration,Checking Fontaine's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
+fontaine fontaine quests,Checking Fontaine's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
+reputation reward fontaine,Checking Fontaine's Reputation Rewards,Reputation in Teyvat,icon_reputation
+natlan bounties,Checking Natlan's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
+natlan requests,Checking Natlan's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
+natlan world exploration,Checking Natlan's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
+natlan natlan quests,Checking Natlan's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
+reputation reward natlan,Checking Natlan's Reputation Rewards,Reputation in Teyvat,icon_reputation
+snezhnaya bounties,Checking Snezhnaya's Bounties to improve their Reputation,Reputation in Teyvat,icon_reputation
+snezhnaya requests,Checking Snezhnaya's Requests to improve their Reputation,Reputation in Teyvat,icon_reputation
+snezhnaya world exploration,Checking Snezhnaya's Exploration progress to improve their Reputation,Reputation in Teyvat,icon_reputation
+snezhnaya snezhnaya quests,Checking Snezhnaya's Quests Completion to improve their Reputation,Reputation in Teyvat,icon_reputation
+reputation reward snezhnaya,Checking Snezhnaya's Reputation Rewards,Reputation in Teyvat,icon_reputation
+------,------,OTHER,------
+------,------,OTHER-TREE,------
+frostbearing tree,Checking the Frost Bearing Tree,Snow-Covered Path - Dragonspine,tree_frostbearing
+frostbearing tree's gratitude,Checking the Rewards from the Frost Bearing Tree,Snow-Covered Path - Dragonspine,tree_frostbearing
+sacred sakura,Sacred Sakura's Favor,Grand Narukami Shrine - Inazuma,tree_sakura
+sacred sakura's favor,Checking the Rewards from the Sacred Sakura's Favor Tree,Grand Narukami Shrine - Inazuma,tree_sakura
+tree of dreams vanarana,Tree of Dreams Vanarana,Vanarana - Sumeru,tree_dreams
+vanarana's favor,Checking the Rewards from the Tree of Dreams Vanarana,Vanarana - Sumeru,tree_dreams
+fountain of lucine,Fountain of Lucine,Court of Fontaine - Fontaine,fountain_lucine
+tonas flames restitution,Checking the Rewards from offering at the Tablet of Tona,in Menus,tablet_tonas_Flame
+tona's flame's restitution,Checking the Rewards from offering at the Tablet of Tona,in Menus,tablet_tonas_Flame
+tona's flame, Tona's Flame,Stadium of the Sacred Flame - Natlan,tablet_tonas_flame
