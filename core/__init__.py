@@ -7,7 +7,7 @@ from core.state import (
     update_activity, set_active_character, update_character,
     get_current_activity, get_current_characters, get_game_start_time,
     get_current_timer_type, get_last_active_character,
-    reset_game_start_time,
+    reset_game_start_time, write_gui_shared_data,
 )
 from core.ocr_utils import capture_and_process_ocr, calculate_keyword_match_score, calculate_location_confidence
 from core.character_detection import CharacterRegionManager
@@ -30,7 +30,7 @@ __all__ = [
     'update_activity', 'set_active_character', 'update_character',
     'get_current_activity', 'get_current_characters', 'get_game_start_time',
     'get_current_timer_type', 'get_last_active_character',
-    'reset_game_start_time',
+    'reset_game_start_time', 'write_gui_shared_data',
     # OCR
     'capture_and_process_ocr', 'calculate_keyword_match_score', 'calculate_location_confidence',
     # Character detection

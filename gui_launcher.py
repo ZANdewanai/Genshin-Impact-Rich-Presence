@@ -23,6 +23,7 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("Genshin Impact Rich Presence")
 
+    app.setStyle("Fusion")
     apply_material3_style(app)
 
     window = MainWindow()

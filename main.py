@@ -23,8 +23,9 @@ if script_dir not in sys.path:
 
 # VERIFY: Must run with embedded Python only
 expected_embedded = os.path.join(script_dir, "python3.13.11_embedded", "python.exe")
-if sys.executable != expected_embedded:
-    print("❌ ERROR: This application must run with the embedded Python interpreter.")
+# Case-insensitive comparison for Windows paths
+if sys.executable.lower() != expected_embedded.lower():
+    print("[ERROR] This application must run with the embedded Python interpreter.")
     print(f"   Current: {sys.executable}")
     print(f"   Expected: {expected_embedded}")
     print("")
@@ -36,7 +37,7 @@ if sys.executable != expected_embedded:
     input("Press Enter to exit...")
     sys.exit(1)
 
-print(f"✅ Using embedded Python: {sys.executable}")
+print(f"[OK] Using embedded Python: {sys.executable}")
 
 # Import core modules
 from core import (
@@ -56,6 +57,7 @@ from core import (
     get_current_timer_type,
     get_last_active_character,
     reset_game_start_time,
+    write_gui_shared_data,
     # Character detection
     CharacterRegionManager,
     # Discord RPC
@@ -162,40 +164,40 @@ def handle_adaptive_character_commands():
 
         if command == "reset_char_positions":
             character_region_manager.reset_to_base_positions()
-            print("✅ Character positions reset to base coordinates")
+            print("[OK] Character positions reset to base coordinates")
             sys.exit(0)
         elif command == "log_char_status":
             character_region_manager.log_status()
             sys.exit(0)
         elif command == "disable_char_adaptation":
             character_region_manager.adaptation_enabled = False
-            print("🔒 Character adaptation disabled")
+            print("[LOCKED] Character adaptation disabled")
             sys.exit(0)
         elif command == "enable_char_adaptation":
             character_region_manager.adaptation_enabled = True
-            print("🔓 Character adaptation enabled")
+            print("[UNLOCKED] Character adaptation enabled")
             sys.exit(0)
         elif command == "test_char_adaptation":
-            print("🧪 Testing character adaptation system...")
+            print("[TEST] Testing character adaptation system...")
             occupied_slots, confidence_scores = (
                 character_region_manager.detect_occupied_slots()
             )
             character_region_manager.log_status()
-            print(f"🎯 Test Results: Occupied slots: {occupied_slots}")
-            print(f"📊 Confidence scores: {[round(c, 2) for c in confidence_scores]}")
+            print(f"[RESULT] Test Results: Occupied slots: {occupied_slots}")
+            print(f"[DATA] Confidence scores: {[round(c, 2) for c in confidence_scores]}")
             sys.exit(0)
 
 
 handle_adaptive_character_commands()
 
 # Print adaptive system status
-print("🎯 Character Adaptive OCR System Status:")
+print("Character Adaptive OCR System Status:")
 print(f"   Adaptation enabled: {character_region_manager.adaptation_enabled}")
 print(f"   Max vertical shift: {character_region_manager.max_vertical_shift}px")
 print(f"   Movement step: {character_region_manager.movement_step}px")
 print(f"   Base coordinates: {character_region_manager.base_name_positions}")
-print("✅ Adaptive character detection system initialized!")
-print("💡 Use command line arguments to control the system:")
+print("[OK] Adaptive character detection system initialized!")
+print("Use command line arguments to control the system:")
 print("   python main.py reset_char_positions")
 print("   python main.py log_char_status")
 print("   python main.py disable_char_adaptation")
@@ -312,14 +314,18 @@ while not shutdown_event.is_set():
             reader, DATA, character_region_manager, loop_count
         )
     except Exception as e:
-        print(f"❌ Error in detection iteration: {e}")
+        print(f"[ERROR] Error in detection iteration: {e}")
         if DEBUG_MODE:
             import traceback
 
             traceback.print_exc()
         sleep_duration = 1.0  # Use longer sleep on error to avoid spamming
 
-    # Write data to shared file for GUI if environment variable is set
+    # Write data to shared file for GUI every 5 iterations (approx every 0.7 seconds)
+    if loop_count % 5 == 0:
+        write_gui_shared_data()
+
+    # Write data to shared file for GUI if environment variable is set (legacy support)
     shared_file = os.getenv("GUI_SHARED_DATA_FILE")
     if shared_file:
         try:
@@ -400,10 +406,10 @@ while not shutdown_event.is_set():
                 json.dump(data_to_write, f, default=str)
 
             if DEBUG_MODE:
-                print(f"✅ Wrote shared data to {shared_file}")
+                print(f"[OK] Wrote shared data to {shared_file}")
         except Exception as e:
             if DEBUG_MODE:
-                print(f"❌ Error writing to shared file: {e}")
+                print(f"[ERROR] Error writing to shared file: {e}")
 
     time.sleep(sleep_duration)
     loop_count += 1

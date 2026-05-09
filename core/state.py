@@ -1,5 +1,7 @@
 """Global state management for the Genshin Impact Rich Presence application."""
 
+import os
+import json
 import threading
 from typing import Optional, Callable
 
@@ -218,3 +220,56 @@ def reset_game_start_time():
 
     with state_lock:
         game_start_time = time.time()
+
+
+# =============================================================================
+# GUI Shared Data File
+# =============================================================================
+
+def _get_shared_data_path():
+    """Get path to GUI shared data file."""
+    return os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "gui_shared_data.json"
+    )
+
+
+def write_gui_shared_data():
+    """Write current state to shared data file for GUI."""
+    try:
+        data = {
+            "active_characters": [],
+            "location": "Unknown",
+            "activity": "None",
+            "timestamp": None,
+        }
+        
+        with state_lock:
+            # Get active characters
+            chars = []
+            for char in current_characters:
+                if char is not None:
+                    chars.append(char.display_name)
+            data["active_characters"] = chars if chars else ["None"]
+            
+            # Get location from current activity
+            if current_activity and hasattr(current_activity, 'location') and current_activity.location:
+                data["location"] = current_activity.location.name
+            elif prev_location:
+                data["location"] = prev_location.name
+            
+            # Get activity description
+            if current_activity and hasattr(current_activity, 'description'):
+                data["activity"] = current_activity.description
+            elif current_activity:
+                data["activity"] = str(current_activity.activity_type.value)
+            
+            data["timestamp"] = game_start_time
+        
+        # Write to file
+        shared_path = _get_shared_data_path()
+        with open(shared_path, "w") as f:
+            json.dump(data, f, indent=2)
+            
+    except Exception as e:
+        if DEBUG_MODE:
+            print(f"DEBUG: Failed to write shared data: {e}")

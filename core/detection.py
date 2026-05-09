@@ -158,7 +158,7 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
 
     except (OSError, RuntimeError, ValueError) as e:
         if DEBUG_MODE:
-            print(f"⚠️ Config read error: {e}")
+            print(f"[WARNING] Config read error: {e}")
         # Continue with defaults - non-critical error
 
     # Update character data for occupied slots
@@ -194,19 +194,19 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
                             for char in current_characters
                         ]
                         print(
-                            f"🔍 DEBUG: current_characters before JSON write: {char_names}"
+                            f"[DEBUG] current_characters before JSON write: {char_names}"
                         )
                     if current_characters[char_idx] != char_data:
                         update_character(char_idx, char_data)
                         print(
-                            f"✅ Detected character {char_idx + 1}: {char_data.character_display_name}"
+                            f"[OK] Detected character {char_idx + 1}: {char_data.character_display_name}"
                         )
                         characters_updated = True
                 else:
                     # OCR detected text but it doesn't match any known character
                     if DEBUG_MODE:
                         print(
-                            f"⚠️ OCR detected '{char_data.character_display_name}' in slot {char_idx + 1}, but no database match found"
+                            f"[WARNING] OCR detected '{char_data.character_display_name}' in slot {char_idx + 1}, but no database match found"
                         )
                     # Don't update with unknown characters - keep cached if exists
             else:
@@ -214,7 +214,7 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
                 if current_characters[char_idx] is not None:
                     if DEBUG_MODE:
                         print(
-                            f"⚠️ Failed to detect character in slot {char_idx + 1}, keeping previous data"
+                            f"[WARNING] Failed to detect character in slot {char_idx + 1}, keeping previous data"
                         )
         else:
             # Clear unoccupied slots, but only when we have successfully detected other characters
@@ -227,7 +227,7 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
                 if detected_char_count > 0 and current_characters[char_idx] is not None:
                     if DEBUG_MODE:
                         print(
-                            f"🗑️ Clearing character from slot {char_idx + 1} - no longer in party"
+                            f"[CLEAR] Clearing character from slot {char_idx + 1} - no longer in party"
                         )
                     update_character(char_idx, None)
                     characters_updated = True
@@ -244,20 +244,20 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
         if any(current_characters):
             if DEBUG_MODE:
                 print(
-                    "🔄 No valid characters detected this cycle, marking cache invalid for map detection"
+                    "[REFRESH] No valid characters detected this cycle, marking cache invalid for map detection"
                 )
     elif found_valid_characters_this_cycle:
         with state_lock:
             state_module.currently_active_characters_valid = True
         if DEBUG_MODE:
-            print("🔄 Valid characters detected this cycle, marking as active")
+            print("[REFRESH] Valid characters detected this cycle, marking as active")
 
     # Log adaptation summary
     if DEBUG_MODE and any(c != 0 for c in confidence_scores):
         active_slots = [
             i for i, char in enumerate(current_characters) if char is not None
         ]
-        print(f"🎯 Active character slots detected: {active_slots}")
+        print(f"[ACTIVE] Active character slots detected: {active_slots}")
 
 
 def update_coordinates_if_needed(character_region_manager=None):
@@ -387,7 +387,7 @@ def process_map_text(text, data_instance):
                     ):  # Only remove substantial repetitions
                         if DEBUG_MODE:
                             print(
-                                f"🔄 MAP_LOC: Found repetition, removing duplicate sequence: '{seq1}'"
+                                f"[FILTER] MAP_LOC: Found repetition, removing duplicate sequence: '{seq1}'"
                             )
                         i += length * 2  # Skip both occurrences
                         found_repetition = True
@@ -514,7 +514,7 @@ def process_map_text(text, data_instance):
         if location_match:
             if DEBUG_MODE:
                 print(
-                    f"✅ MAP_LOC: Found database match for '{candidate}' -> '{location_match.location_name}'"
+                    f"[OK] MAP_LOC: Found database match for '{candidate}' -> '{location_match.location_name}'"
                 )
             return candidate
 
@@ -525,16 +525,16 @@ def process_map_text(text, data_instance):
                 if location_match:
                     if DEBUG_MODE:
                         print(
-                            f"✅ MAP_LOC: Found partial database match for '{word}' in '{candidate}' -> '{location_match.location_name}'"
+                            f"[OK] MAP_LOC: Found partial database match for '{word}' in '{candidate}' -> '{location_match.location_name}'"
                         )
                     return candidate
 
     # No valid location found
     if DEBUG_MODE:
         print(
-            f"❌ MAP_LOC: No database matches found for any candidates from '{cleaned_text}'"
+            f"[ERROR] MAP_LOC: No database matches found for any candidates from '{cleaned_text}'"
         )
-        print(f"❌ MAP_LOC: Tried candidates: {candidates}")
+        print(f"[ERROR] MAP_LOC: Tried candidates: {candidates}")
     # Return cleaned text instead of empty string to allow search_func to try fuzzy matching
     return cleaned_text
 
@@ -588,9 +588,9 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
             cx = (c[0] + c[2]) // 2
             cy = (c[1] + c[3]) // 2
             coord_strs.append(f"({cx},{cy})")
-        print(f"🔍 Active Character Debug - Brightness: {charnumber_brightness}")
-        print(f"🔍 Active Character Debug - Threshold: {ACTIVE_CHARACTER_THRESH}")
-        print(f"🔍 Active Character Debug - Adaptive Centers: {coord_strs}")
+        print(f"[DEBUG] Active Character Debug - Brightness: {charnumber_brightness}")
+        print(f"[DEBUG] Active Character Debug - Threshold: {ACTIVE_CHARACTER_THRESH}")
+        print(f"[DEBUG] Active Character Debug - Adaptive Centers: {coord_strs}")
 
     # Find the slot with minimum brightness (active character has darker background)
     min_brightness = min(charnumber_brightness)
@@ -611,7 +611,7 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
             cy = (c[1] + c[3]) // 2
             coord_strs.append(f"({cx},{cy})")
         print(
-            f"🔍 Brightness: {charnumber_brightness} | Centers: {coord_strs} | Min: {min_brightness} | Thresh: {ACTIVE_CHARACTER_THRESH} | Active slot: {active_character} | Found: {found_active_character}"
+            f"[DEBUG] Brightness: {charnumber_brightness} | Centers: {coord_strs} | Min: {min_brightness} | Thresh: {ACTIVE_CHARACTER_THRESH} | Active slot: {active_character} | Found: {found_active_character}"
         )
 
     # Dynamic sleep timing based on game state for better CPU efficiency
@@ -703,12 +703,12 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                 found_active_character = False
                 if DEBUG_MODE:
                     print(
-                        f"🔄 No valid database characters detected this cycle, treating as no active characters (using cached display)"
+                        f"[INFO] No valid database characters detected this cycle, treating as no active characters (using cached display)"
                     )
             else:
                 if DEBUG_MODE:
                     print(
-                        f"✅ Valid characters active this cycle, active character detection enabled"
+                        f"[OK] Valid characters active this cycle, active character detection enabled"
                     )
 
         # CAPTURE LOCATION
@@ -942,7 +942,7 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                         if activity_log != _last_activity_log:
                             print(activity_log)
             except (OSError, RuntimeError) as e:
-                print(f"❌ Error processing GAMEMENU detection: {e}")
+                print(f"[ERROR] Error processing GAMEMENU detection: {e}")
                 if DEBUG_MODE:
                     import traceback
 

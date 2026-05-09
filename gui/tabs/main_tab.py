@@ -1,85 +1,108 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QLabel, QFrame, QTextEdit
+from PyQt5.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QGroupBox,
+    QTextEdit,
+    QPushButton,
+)
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
+
+FONT_FAMILY = "Segoe UI"
 
 
 class MainTab:
     def __init__(self, main_window):
         self.main_window = main_window
         self.widget = QWidget()
+        
+        # Store references to value labels for updating
+        self.value_labels = {}
 
         layout = QVBoxLayout(self.widget)
+        layout.setSpacing(16)
+        layout.setContentsMargins(16, 16, 16, 16)
 
-        title_label = QLabel("Genshin Impact Rich Presence")
-        title_label.setFont(QFont("Arial", 18, QFont.Bold))
-        layout.addWidget(title_label)
+        status_group = QGroupBox("Status")
+        status_layout = QVBoxLayout(status_group)
+        status_layout.setSpacing(12)
 
-        status_frame = QFrame()
-        status_frame.setObjectName("status_frame")
-        status_frame.setFrameStyle(QFrame.Box)
-        status_layout = QGridLayout(status_frame)
+        status_header = QHBoxLayout()
 
-        status_items = [
-            ("Game Status:", "Not running"),
-            ("Current Character:", "None"),
-            ("Current Location:", "Unknown"),
-            ("Current Activity:", "None"),
-            ("Uptime:", "00:00:00"),
+        main_window.status_dot = QLabel()
+        main_window.status_dot.setFixedSize(14, 14)
+        main_window.status_dot.setStyleSheet(
+            "background-color: #f44336; border-radius: 7px;"
+        )
+        status_header.addWidget(main_window.status_dot)
+
+        main_window.status_text = QLabel("Stopped")
+        main_window.status_text.setFont(QFont(FONT_FAMILY, 16, QFont.Bold))
+        main_window.status_text.setStyleSheet("color: #e0e0e0;")
+        status_header.addWidget(main_window.status_text)
+
+        status_header.addStretch()
+
+        main_window.start_button = QPushButton("Start Rich Presence")
+        main_window.start_button.setCursor(Qt.PointingHandCursor)
+        main_window.start_button.setMinimumWidth(160)
+        main_window.start_button.clicked.connect(main_window.toggle_rpc)
+        status_header.addWidget(main_window.start_button)
+
+        status_layout.addLayout(status_header)
+
+        layout.addWidget(status_group)
+
+        details_group = QGroupBox("Current Activity")
+        details_layout = QVBoxLayout(details_group)
+        details_layout.setSpacing(12)
+
+        detail_items = [
+            ("Character:", "None", "character"),
+            ("Location:", "Unknown", "location"),
+            ("Activity:", "None", "activity"),
         ]
 
-        for i, (label, value) in enumerate(status_items):
-            img_label = QLabel("")
-            img_label.setFixedSize(32, 32)
-            img_label.setObjectName(
-                f"status_img_{label.lower().replace(' ', '_').replace(':', '')}"
-            )
-            status_layout.addWidget(img_label, i, 0)
+        for label_text, value_text, key in detail_items:
+            row = QHBoxLayout()
+            label = QLabel(label_text)
+            label.setFont(QFont(FONT_FAMILY, 11, QFont.Bold))
+            label.setStyleSheet("color: #bb86fc;")
+            label.setFixedWidth(90)
+            row.addWidget(label)
+            
+            value = QLabel(value_text)
+            value.setFont(QFont(FONT_FAMILY, 11))
+            value.setStyleSheet("color: #e0e0e0;")
+            value.setWordWrap(True)
+            self.value_labels[key] = value
+            row.addWidget(value, 1)
+            
+            details_layout.addLayout(row)
 
-            lbl = QLabel(label)
-            lbl.setFont(QFont("Arial", 10, QFont.Bold))
-            status_layout.addWidget(lbl, i, 1)
+        layout.addWidget(details_group)
 
-            value_label = QLabel(value)
-            value_label.setFont(QFont("Arial", 9))
-            value_label.setObjectName(
-                f"status_{label.lower().replace(' ', '_').replace(':', '')}"
-            )
-            status_layout.addWidget(value_label, i, 2)
-
-            setattr(
-                self,
-                f"status_img_{label.lower().replace(' ', '_').replace(':', '')}",
-                img_label,
-            )
-            setattr(
-                self,
-                f"status_{label.lower().replace(' ', '_').replace(':', '')}",
-                value_label,
-            )
-
-        status_layout.setColumnStretch(2, 1)
-        layout.addWidget(status_frame)
-
-        log_label = QLabel("Activity Log:")
-        log_label.setObjectName("log_label")
-        log_label.setFont(QFont("Arial", 12, QFont.Bold))
-        layout.addWidget(log_label)
+        log_group = QGroupBox("Activity Log")
+        log_layout = QVBoxLayout(log_group)
+        log_layout.setContentsMargins(12, 16, 12, 12)
 
         self.log_text = QTextEdit()
-        self.log_text.setObjectName("log_text")
-        self.log_text.setMaximumHeight(150)
         self.log_text.setReadOnly(True)
-        layout.addWidget(self.log_text)
+        self.log_text.setMaximumHeight(180)
+        log_layout.addWidget(self.log_text)
 
+        layout.addWidget(log_group)
+        
         layout.addStretch()
 
     def update_log(self, text):
         self.log_text.setPlainText(text)
+        self.log_text.moveCursor(self.log_text.textCursor().End)
 
-    def update_status(self, key, value):
-        attr = f"status_{key}"
-        if hasattr(self, attr):
-            getattr(self, attr).setText(value)
-
-    @property
-    def get_widget(self):
-        return self.widget
+    def update_activity(self, character, location, activity):
+        """Update the activity display with current data"""
+        self.value_labels["character"].setText(str(character))
+        self.value_labels["location"].setText(str(location))
+        self.value_labels["activity"].setText(str(activity))
