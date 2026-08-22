@@ -262,17 +262,6 @@ If issues persist:
 **Legacy Settings Migration**: User settings previously in CONFIG.py are now configured through the GUI interface for better user experience.
 
 ---
-
-## 🛣️ Future Roadmap
-
-### Planned Improvements
-
-- 🔗 **Dynamic Asset Loading**: Replace hardcoded Discord image assets with dynamic links for better maintainability
-- 🌐 **Multi-Language Support**: Extend OCR support beyond English text
-- 📱 **System Tray Integration**: Minimize to system tray for less intrusive monitoring
-- ⚡ **Performance Optimizations**: Further reduce CPU usage and improve detection speed
-- 🔄 **Auto-Updates**: Implement automatic update checking and installation
-- 📊 **Advanced Statistics**: Add detailed usage statistics and performance metrics
 ### Contributing
 
 We welcome contributions! See our [GitHub Issues](https://github.com/ZANdewanai/Genshin-Impact-Rich-Presence/issues) for planned features and bug reports.
