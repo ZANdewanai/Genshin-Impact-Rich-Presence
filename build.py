@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Genshin Impact Rich Presence - Build Script
 Creates a release build with GUI and backend
@@ -48,13 +48,13 @@ def build_release():
     copy_file(PROJECT_ROOT / "main.py", RELEASE_DIR)
     copy_file(PROJECT_ROOT / "CONFIG.py", RELEASE_DIR)
     copy_file(PROJECT_ROOT / "clear_discord.py", RELEASE_DIR)
-    copy_file(PROJECT_ROOT / "gui_launcher.py", RELEASE_DIR)
+    copy_file(PROJECT_ROOT / "webview_launcher.py", RELEASE_DIR)
     copy_file(PROJECT_ROOT / "shared_config.json", RELEASE_DIR)
     copy_file(PROJECT_ROOT / "gui_config.json", RELEASE_DIR)
 
     # Directories
     print("\n2. Copying directories...")
-    copy_dir(PROJECT_ROOT / "gui", RELEASE_DIR / "gui")
+    copy_dir(PROJECT_ROOT / "gui" / "dist", RELEASE_DIR / "gui" / "dist")
     copy_dir(PROJECT_ROOT / "core", RELEASE_DIR / "core")
     copy_dir(PROJECT_ROOT / "icons", RELEASE_DIR / "icons")
     copy_dir(
@@ -65,7 +65,7 @@ def build_release():
     print("\n3. Creating launcher...")
     launcher = """@echo off
 cd /d "%~dp0"
-python3.13.11_embedded\\python.exe gui_launcher.py
+python3.13.11_embedded\\python.exe webview_launcher.py
 pause
 """
     with open(RELEASE_DIR / "start.bat", "w") as f:

@@ -1,4 +1,4 @@
-# Genshin Impact Rich Presence v2.6
+# Genshin Impact Rich Presence v3.0
 
 ![Screenshot](resources/assets/Screenshot.png) ![Screenshot](resources/assets/Screenshot2.png) ![Screenshot](resources/assets/Screenshot3.png)
 
@@ -29,12 +29,12 @@ This Discord Rich Presence doesn't tamper with Genshin Impact game files in any 
 
 #### Direct GUI Launch:
 ```bash
-python_embedded\python.exe genshin_impact_rich_presence_gui.py
+python3.13.11_embedded\python.exe webview_launcher.py
 ```
 
 #### Console Mode (Limited):
 ```bash
-python_embedded\python.exe main.py
+python3.13.11_embedded\python.exe main.py
 ```
 > **⚠️ Note**: Console mode provides OCR detection and logging but **does not include Discord Rich Presence**. Use the GUI for full functionality including Discord integration.
 
@@ -45,7 +45,7 @@ python_embedded\python.exe main.py
 ### 1. System Requirements
 
 - **Windows 10/11**
-- **Python 3.11+** (embedded version included in `python_embedded/`)
+- **Embedded Python 3.13** (included in `python3.13.11_embedded/`)
 - **NVIDIA GPU** recommended (with recent drivers >525 for best OCR performance)
 - **Genshin Impact** with English text language
 
@@ -54,7 +54,7 @@ python_embedded\python.exe main.py
 **Most users don't need to edit any config files!** The GUI handles all user configuration:
 
 1. Launch the GUI using `start_gui.bat`
-2. Use the **Configuration** tab to set:
+2. Use the **Settings** tab to set:
    - **Username**: Your Genshin Impact username
    - **Main Character**: Aether or Lumine
    - **Wanderer Name**: Your custom Wanderer name (if renamed)
@@ -78,22 +78,22 @@ For advanced users who need manual configuration, edit [CONFIG.py](CONFIG.py):
 
 ### 4. GPU Acceleration (Recommended)
 
-The application uses EasyOCR for text recognition. GPU acceleration significantly improves performance:
+The application uses RapidOCR for text recognition. GPU acceleration significantly improves performance:
 
 - **Enabled by default** in both GUI and CONFIG.py
-- Requires CUDA-compatible NVIDIA drivers
-- The embedded Python includes PyTorch with CUDA support
+- Uses ONNX Runtime with DirectML support on Windows
+- The embedded Python includes ONNX Runtime for GPU acceleration
 - Can be toggled in the GUI's Configuration tab
 
 ### 5. Start the Application
 
 #### GUI Mode (Recommended):
-- **Double-click `start_gui.bat`** or run `python_embedded\python.exe genshin_impact_rich_presence_gui.py`
+- **Double-click `start_gui.bat`** or run `python3.13.11_embedded\python.exe webview_launcher.py`
 - Click "Start Rich Presence" in the GUI
 - Monitor activity in real-time through the GUI
 
 #### Console Mode (Limited):
-- Run `python_embedded\python.exe main.py`
+- Run `python3.13.11_embedded\python.exe main.py`
 - View OCR detection status in the console window
 
 **Console mode provides:**
@@ -121,14 +121,34 @@ The `.csv` data files have a hot-reload feature, so you don't need to restart th
 
 ```
 ├── start_gui.bat                    # 🚀 Quick launcher for GUI (recommended)
+├── start_gui.ps1                   # 🚀 PowerShell launcher for GUI
+├── start_embedded.bat               # 🖥️ Console mode launcher
+├── start_embedded.ps1              # 🖥️ PowerShell console launcher
 ├── main.py                          # Console version of the application
-├── genshin_impact_rich_presence_gui.py  # 🖥️ GUI version (recommended)
+├── webview_launcher.py              # 🖥️ GUI version entry point
 ├── CONFIG.py                        # ⚙️ Configuration file (mostly legacy)
-├── datatypes.py                     # 📋 Data type definitions
-├── ocr_engine.py                    # 🔍 OCR processing engine
-├── ps_helper.py                     # 🛠️ Process helper utilities
-├── shared_config.json               # 🔄 GUI-main communication file
-├── gui_shared_data.json             # 📊 Real-time data sharing (runtime only)
+├── core/                           # � Core application modules
+│   ├── __init__.py
+│   ├── detection.py               # Main detection loop
+│   ├── discord_rpc.py             # Discord Rich Presence integration
+│   ├── ocr_engine.py              # OCR processing engine
+│   ├── ocr_utils.py               # OCR utilities
+│   ├── character_detection.py     # Adaptive character detection
+│   ├── datatypes.py               # Data type definitions
+│   ├── state.py                   # Global state management
+│   └── ps_helper.py               # Process helper utilities
+├── gui/                            # 🖥️ GUI application modules
+│   ├── __init__.py
+│   ├── main_window.py             # Main GUI window
+│   ├── config.py                  # GUI configuration
+│   ├── styles.py                  # GUI styling
+│   └── tabs/                      # GUI tabs
+│       ├── main_tab.py            # Status tab
+│       ├── config_tab.py          # Settings tab
+│       └── about_tab.py           # About tab
+├── shared_config.json              # 🔄 GUI-main communication file (runtime)
+├── gui_shared_data.json            # 📊 Real-time data sharing (runtime only)
+├── gui_config.json                # ⚙️ GUI persistent configuration (runtime)
 ├── data/                           # 📊 Game data files
 │   ├── characters.csv              # Character database
 │   ├── locations.csv               # Location database
@@ -136,20 +156,17 @@ The `.csv` data files have a hot-reload feature, so you don't need to restart th
 │   ├── bosses.csv                  # Boss database
 │   ├── gamemenus.csv               # Game menu database
 │   └── README.md                   # Data file documentation
-├── DEV_resources/                  # 🛠️ Development resources
-│   ├── configure coordinates.md    # Coordinate configuration guide
-│   ├── for_debugging/              # Debug utilities
-│   └── docs/                       # Documentation
-├── requirements.txt                # 📦 Python dependencies
-├── python_embedded/                # 🐍 Embedded Python environment (2GB+)
-├── easyocr_cache/                  # 💾 OCR model cache
+├── tools/                          # 🛠️ Development tools
+│   └── download_icons_embedded.bat
+├── requirements.txt                # 📦 Python dependencies (for reference)
+├── python3.13.11_embedded/        # 🐍 Embedded Python environment (2GB+)
 ├── resources/                      # 🎨 Assets and screenshots
-│   ├── assets/                     # Images and icons
-│   └── styles.qss                  # GUI styling
-├── styles.qss                      # Additional GUI styles
-├── configure coordinates.md        # Coordinate configuration guide
+│   └── assets/                     # Images and icons
+├── docs/                           # 📚 Documentation
+│   ├── PATCH_NOTES.md              # Version history
+│   ├── INDEV_RELEASE_NOTES.md      # Development notes
+│   └── configure coordinates.md    # Coordinate configuration guide
 ├── LICENSE                         # Project license
-├── PATCH_NOTES.md                  # Version history and updates
 └── README.md                       # This file
 ```
 
@@ -159,7 +176,7 @@ The `.csv` data files have a hot-reload feature, so you don't need to restart th
 
 **First, test if OCR is working:**
 ```bash
-python_embedded\python.exe DEV_resources\for_debugging\test_imagegrab.py
+python3.13.11_embedded\python.exe tools\test_imagegrab.py
 ```
 
 **What to check:**
@@ -191,7 +208,7 @@ python_embedded\python.exe DEV_resources\for_debugging\test_imagegrab.py
 #### ❌ **"Application won't start"**
 - ✅ Use `start_gui.bat` instead of running Python directly
 - ✅ Ensure no antivirus is blocking the application
-- ✅ Check that `python_embedded\` folder exists and is intact
+- ✅ Check that `python3.13.11_embedded\` folder exists and is intact
 - ✅ Try running as administrator
 
 #### ❌ **"Poor performance / lag"**
@@ -233,7 +250,7 @@ If issues persist:
 
 ## 📈 Recent Updates (v3.0indev)
 
-- ✨ **New GUI Interface**: Modern PyQt5-based GUI with real-time monitoring
+- ✨ **New GUI Interface**: Modern React-based desktop GUI (pywebview) with real-time monitoring
 - 🎯 **Adaptive Character Detection**: Automatically adjusts to UI layout changes
 - 🚀 **One-Click Launcher**: `start_gui.bat` for instant GUI startup
 - ⚙️ **GUI-Based Configuration**: No more manual config file editing for most users

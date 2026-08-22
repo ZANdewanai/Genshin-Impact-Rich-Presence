@@ -3,6 +3,7 @@ aether,char_aether,Aether
 aloy,char_aloy,Aloy
 lumine,char_lumine,Lumine
 wonderland manekin,char_wonderland_manekin,Wonderland Manekin
+wonderland manekina,char_wonderland_manekina,Wonderland Manekina
 ------,KHAENRI'AH,------
 dainsleif,char_dainsleif,Dainsleif
 skirk,char_skirk,Skirk
@@ -23,6 +24,7 @@ jean,char_jean,Jean
 kaeya,char_kaeya,Kaeya
 klee,char_klee,Klee
 lisa,char_lisa,Lisa
+lohen,char_lohen,Lohen
 mika,char_mika,Mika
 mona,char_mona,Mona
 noelle,char_noelle,Noelle
@@ -106,6 +108,9 @@ sigewinne,char_sigewinne,Sigewinne
 wriothesley,char_wriothesley,Wriothesley
 ------,SNEZHNAYA,------
 tartaglia,char_tartaglia,Tartaglia
+odette,char_odette,Odette
+alyosha,char_alyosha,Alyosha
+sandrone,char_sandrone,Sandrone
 ------,NATLAN,------
 kachina,char_kachina,Kachina
 kinich,char_kinich,Kinich
@@ -124,3 +129,5 @@ illuga,char_illuga,Illuga
 columbina,char_columbina,Columbina
 jahoda,char_jahoda,Jahoda
 linnea,char_linnea,Linnea
+nicole,char_nicole,Nicole
+prune,char_prune,Prune

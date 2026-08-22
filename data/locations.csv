@@ -3,6 +3,7 @@ match,name,subregion,region,icon
 ------,------,MONDSTADT-CITY,Mondstadt,------
 mondstadt city,Mondstadt City,Mondstadt City,Mondstadt,area_mondstadt
 cathedral of favonius,Cathedral of Favonius,Mondstadt City,Mondstadt,emblem_mondstadt
+favonius cathedral,Favonius Cathedral,Mondstadt City,Mondstadt,emblem_mondstadt
 knights of favonius headquarters,Knights of Favonius Headquarters,Mondstadt City,Mondstadt,emblem_mondstadt
 good hunter,Good Hunter Restaurant,Mondstadt City,Mondstadt,emblem_mondstadt
 angels share,Angel's Share Tavern,Mondstadt City,Mondstadt,emblem_mondstadt
@@ -61,6 +62,8 @@ wangshu inn,Wangshu Inn,Bishui Plain,Liyue,emblem_liyue
 wangshu inn-balcony,Wangshu Inn - Balcony,Bishui Plain,Liyue,emblem_liyue
 wangshu inn-rooftop,Wangshu Inn - Rooftop,Bishui Plain,Liyue,emblem_liyue
 wuwang hill,Wuwang Hill,Bishui Plain,Liyue,emblem_liyue
+cavern of stone and prickly pears,Cavern of Stone and Prickly Pears,Bishui Plain,Liyue,emblem_liyue
+cavern of tranquil light,Cavern of Tranquil Light,Bishui Plain,Liyue,emblem_liyue
 ------,------,LYUE-LISHA,Liyue,------
 lisha,Lisha,Lisha,Liyue,emblem_liyue
 dunyu ruins,Dunyu Ruins,Lisha,Liyue,emblem_liyue
@@ -76,7 +79,9 @@ jueyun karst,Jueyun Karst,Minlin,Liyue,emblem_liyue
 mt aozang,Mt. Aozang,Minlin,Liyue,emblem_liyue
 mt hulao,Mt. Hulao,Minlin,Liyue,emblem_liyue
 nantianmen,Nantianmen,Minlin,Liyue,emblem_liyue
+qingyun peak,Qingyun Peak,Minlin,Liyue,emblem_liyue
 tianqiu valley,Tianqiu Valley,Minlin,Liyue,emblem_liyue
+cuijue slope,Cuijue Slope,Minlin,Liyue,emblem_liyue
 ------,------,LYUE-QIONGJI,Liyue,------
 qiongji estuary,Qiongji Estuary,Qiongji Estuary,Liyue,emblem_liyue
 luhua pool,Luhua Pool,Qiongji Estuary,Liyue,emblem_liyue
@@ -93,27 +98,30 @@ mingyun village,Mingyun Village,Qiongji Estuary,Liyue,emblem_liyue
 yaoguang shoal,Yaoguang Shoal,Qiongji Estuary,Liyue,emblem_liyue
 ------,------,LYUE-CHENYU,Liyue,------
 chenyu vale,Chenyu Vale,Chenyu Vale,Liyue,emblem_liyue
+------,------,CHENYU-SOUTHERN,Liyue,------
+adeptus repose,Adeptus's Repose,Chenyu Vale,Liyue,emblem_liyue
+chizhang wall,Chizhang Wall,Chenyu Vale,Liyue,emblem_liyue
+lingshu courtyard,Lingshu Courtyard,Chenyu Vale,Liyue,emblem_liyue
+mt xuanlian,Mt. Xuanlian,Chenyu Vale,Liyue,emblem_liyue
+teatree slopes,Teatree Slopes,Chenyu Vale,Liyue,emblem_liyue
+yaodie valley,Yaodie Valley,Chenyu Vale,Liyue,emblem_liyue
+------,------,CHENYU-UPPER,Liyue,------
 mt yaojun,Mt. Yaojun,Chenyu Vale,Liyue,emblem_liyue
 yilong wharf,Yilong Wharf,Chenyu Vale,Liyue,emblem_liyue
 qiaoying village,Qiaoying Village,Chenyu Vale,Liyue,emblem_liyue
 yilong port,Yilong Port,Chenyu Vale,Liyue,emblem_liyue
-chizhang wall,Chizhang Wall,Chenyu Vale,Liyue,emblem_liyue
-mt xuanlian,Mt. Xuanlian,Chenyu Vale,Liyue,emblem_liyue
 tea seed orchard,Tea Seed Orchard,Chenyu Vale,Liyue,emblem_liyue
-youting valley,Youting Valley,Chenyu Vale,Liyue,emblem_liyue
 jadeplume terrace,Jadeplume Terrace,Chenyu Vale,Liyue,emblem_liyue
 chizhang terrace,Chizhang Terrace,Chenyu Vale,Liyue,emblem_liyue
-teatree slopes,Teatree Slopes,Chenyu Vale,Liyue,emblem_liyue
 heizhou lagoon,Heizhou Lagoon,Chenyu Vale,Liyue,emblem_liyue
-adeptus repose,Adeptus's Repose,Chenyu Vale,Liyue,emblem_liyue
-lingshu courtyard,Lingshu Courtyard,Chenyu Vale,Liyue,emblem_liyue
-yaodie valley,Yaodie Valley,Chenyu Vale,Liyue,emblem_liyue
 chenlong cleft,Chenlong Cleft,Chenyu Vale,Liyue,emblem_liyue
 jademouth,Jademouth,Chenyu Vale,Liyue,emblem_liyue
 mt lingmeng,Mt. Lingmeng,Chenyu Vale,Liyue,emblem_liyue
 mt mingyuan,Mt. Mingyuan,Chenyu Vale,Liyue,emblem_liyue
 carps rest,Carp's Rest,Chenyu Vale,Liyue,emblem_liyue
 chiwang terrace,Chiwang Terrace,Chenyu Vale,Liyue,emblem_liyue
+youting valley,Youting Valley,Chenyu Vale,Liyue,emblem_liyue
+mt laixin,Mt. Laixin,Chenyu Vale,Liyue,emblem_liyue
 ------,------,CHASM,LYUE,------
 ------,------,CHASM-SURFACE,LYUE,------
 the chasm,The Chasm,The Chasm,Liyue,emblem_chasm
@@ -143,13 +151,21 @@ amakane island,Amakane Island,Narukami Island,Inazuma,emblem_inazuma
 araumi,Araumi,Narukami Island,Inazuma,emblem_inazuma
 byakko plain,Byakko Plain,Narukami Island,Inazuma,emblem_inazuma
 chinju forest,Chinju Forest,Narukami Island,Inazuma,emblem_inazuma
-grand narukami shrine,Grand Narukami Shrine,Narukami Island,Inazuma,emblem_inazuma
+pseudonatant loci,Pseudonatant Loci,Chinju Forest,Inazuma,emblem_inazuma
+ritou island,Ritou Island,Narukami Island,Inazuma,area_ritou
+------,------,INAZUMA-CITY,INAZUMA,------
 inazuma city,Inazuma City,Narukami Island,Inazuma,area_inazuma
+hanamizaka,Hanamizaka,Inazuma City,Inazuma,emblem_inazuma
+------,------,INAZUMA-RITOU,INAZUMA,------
+ritou,Ritou,Narukami Island,Inazuma,area_ritou
+ritou road,Ritou Road,Narukami Island,Inazuma,area_ritou
+grand narukami shrine,Grand Narukami Shrine,Narukami Island,Inazuma,emblem_inazuma
 jinren island,Jinren Island,Narukami Island,Inazuma,emblem_inazuma
 kamisato estate,Kamisato Estate,Narukami Island,Inazuma,emblem_inazuma
 konda village,Konda Village,Narukami Island,Inazuma,emblem_inazuma
 mt yougou,Mt. Yougou,Narukami Island,Inazuma,emblem_inazuma
 ritou,Ritou,Narukami Island,Inazuma,area_ritou
+chihu rock,Chihu Rock,Narukami Island,Inazuma,emblem_inazuma
 ------,------,INAZUMA-KANNAZUKA,INAZUMA,------
 kannazuka,Kannazuka,Kannazuka,Inazuma,emblem_inazuma
 kujou encampment,Kujou Encampment,Kannazuka,Inazuma,emblem_inazuma
@@ -163,12 +179,14 @@ jakotsu mine,Jakotsu Mine,Yashiori Island,Inazuma,emblem_inazuma
 musoujin gorge,Musoujin Gorge,Yashiori Island,Inazuma,emblem_inazuma
 nazuchi beach,Nazuchi Beach,Yashiori Island,Inazuma,emblem_inazuma
 serpents head,Serpent's Head,Yashiori Island,Inazuma,emblem_inazuma
+ceremonial site lost in night's dim light,Ceremonial Site Lost in Night's Dim Light,Yashiori Island,Inazuma,emblem_inazuma
 ------,------,INAZUMA-WATATSUMI,INAZUMA,------
 watatsumi island,Watatsumi Island,Watatsumi Island,Inazuma,emblem_inazuma
 bourou village,Bourou Village,Watatsumi Island,Inazuma,emblem_inazuma
 mouun shrine,Mouun Shrine,Watatsumi Island,Inazuma,emblem_inazuma
 sangonomiya shrine,Sangonomiya Shrine,Watatsumi Island,Inazuma,emblem_inazuma
 suigetsu pool,Suigetsu Pool,Watatsumi Island,Inazuma,emblem_inazuma
+sanctuary of surasthana,Sanctuary of Surasthana,Watatsumi Island,Inazuma,emblem_inazuma
 ------,------,INAZUMA-SEIRAI,INAZUMA,------
 seirai island,Seirai Island,Seirai Island,Inazuma,emblem_inazuma
 seiraimaru,Seiraimaru,Seirai Island,Inazuma,emblem_inazuma
@@ -185,6 +203,7 @@ mt kanna,Mt. Kanna,Tsurumi Island,Inazuma,emblem_inazuma
 oina beach,Oina Beach,Tsurumi Island,Inazuma,emblem_inazuma
 shirikoro peak,Shirikoro Peak,Tsurumi Island,Inazuma,emblem_inazuma
 wakukau shoal,Wakukau Shoal,Tsurumi Island,Inazuma,emblem_inazuma
+mawtiyima forest,Mawtiyima Forest,Tsurumi Island,Inazuma,emblem_inazuma
 ------,------,ENKANOMIYA,INAZUMA,------
 enkanomiya,Enkanomiya,Enkanomiya,Inazuma,emblem_enkanomiya
 dainichi mikoshi,Dainichi Mikoshi,Enkanomiya,Inazuma,emblem_enkanomiya
@@ -195,10 +214,12 @@ the serpents bowels,The Serpent's Bowels,Enkanomiya,Inazuma,emblem_enkanomiya
 the serpents heart,The Serpent's Heart,Enkanomiya,Inazuma,emblem_enkanomiya
 yachimatahikos locus,Yachimatahiko's Locus,Enkanomiya,Inazuma,emblem_enkanomiya
 yachimatahimes locus,Yachimatahime's Locus,Enkanomiya,Inazuma,emblem_enkanomiya
+the moon bathed deep,The Moon-Bathed Deep,Enkanomiya,Inazuma,emblem_enkanomiya
+the pearlescent palace,The Pearlescent Palace,Enkanomiya,Inazuma,emblem_enkanomiya
+the serpents intestine,The Serpent's Intestine,Enkanomiya,Inazuma,emblem_enkanomiya
 ------,------,SUMERU,------,------
 ------,------,SUMERU-ARDRAVI,SUMERU,------
 ardravi valley,Ardravi Valley,Ardravi Valley,Sumeru,emblem_sumeru
-devantaka mountain,Devantaka Mountain,Ardravi Valley,Sumeru,emblem_sumeru
 port ormos,Port Ormos,Ardravi Valley,Sumeru,emblem_sumeru
 vimara village,Vimara Village,Ardravi Valley,Sumeru,emblem_sumeru
 ------,------,SUMERU-ASHAVAN,SUMERU,------
@@ -224,14 +245,24 @@ treasures street - sumeru city,Treasures Street - Sumeru City,Avidya Forest,Sume
 akademiya - sumeru city,The Akademiya - Sumeru City,Avidya Forest,Sumeru,emblem_sumeru
 yazadaha pool,Yazadaha Pool,Avidya Forest,Sumeru,emblem_sumeru
 ------,------,SUMERU-LOKAPALA,SUMERU,------
-lokapaka jungle,Lokapaka Jungle,Lokapala Jungle,Sumeru,emblem_sumeru
-bayda harbor,Bayda Harbor,Lokapala Jungle,Sumeru,emblem_sumeru
-chatrakam cave,Chatrakam Cave,Lokapala Jungle,Sumeru,emblem_sumeru
-mawtiyima forest,Mawtiyima Forest,Lokapala Jungle,Sumeru,emblem_sumeru
+lokapaka jungle,Lokapaka Jungle,Lokapaka Jungle,Sumeru,emblem_sumeru
+bayda harbor,Bayda Harbor,Lokapaka Jungle,Sumeru,emblem_sumeru
+chatrakam cave,Chatrakam Cave,Lokapaka Jungle,Sumeru,emblem_sumeru
+mawtiyima forest,Mawtiyima Forest,Lokapaka Jungle,Sumeru,emblem_sumeru
 the palace of alcazarzaray,The Palace of Alcazarzaray,Lokapala Jungle,Sumeru,emblem_sumeru
+aranaga's little garden,Aranaga's Little Garden,Lokapaka Jungle,Sumeru,emblem_sumeru
 ------,------,SUMERU-LOSTNURSERY,SUMERU,------
 lost nursery,Lost Nursery,Lost Nursery,Sumeru,emblem_sumeru
-old vanarana,Old Vanarana,Lost Nursery,Sumeru,emblem_sumeru
+amrita-nourished nest,Amrita-Nourished Nest,Lost Nursery,Sumeru,emblem_sumeru
+------,------,VANARANA,SUMERU,------
+vanarana,Vanarana,Vanarana,Sumeru,emblem_sumeru
+old vanarana,Old Vanarana,Vanarana,Sumeru,emblem_sumeru
+------,------,VANARANA-MAIN,VANARANA,------
+apam woods,Apam Woods,Vanarana,Sumeru,emblem_sumeru
+caravan ribat,Caravan Ribat,Vanarana,Sumeru,emblem_sumeru
+pardis dhyai,Pardis Dhyai,Vanarana,Sumeru,emblem_sumeru
+--------,------,VANARANA-ENTRANCE,VANARANA,------
+devantaka mountain,Devantaka Mountain,Vanarana,Sumeru,emblem_sumeru
 ------,------,SUMERU-VISSUDHA,SUMERU,------
 vissudha field,Vissudha Field,Vissudha Field,Sumeru,emblem_sumeru
 fane of ashvattha,Fane of Ashvattha,Vissudha Field,Sumeru,emblem_sumeru
@@ -289,10 +320,31 @@ asipattravana swamp,Asipattravana Swamp,Realm of Farakhkert,Girdle of the Sands,
 hills of barsom,Hills of Barsom,Realm of Farakhkert,Girdle of the Sands,emblem_girdle_of_the_sands
 samudra coast,Samudra Coast,Realm of Farakhkert,Girdle of the Sands,emblem_girdle_of_the_sands
 vourukasha oasis,Vourukasha Oasis,Realm of Farakhkert,Girdle of the Sands,emblem_girdle_of_the_sands
+elysium's final treasure,Elysium's Final Treasure,Realm of Farakhkert,Girdle of the Sands,emblem_girdle_of_the_sands
 ------,------,FONTAINE,------,------
 ------,------,FONTAINE-COURT,FONTAINE,------
+court of fontaine region,Court of Fontaine Region,Court of Fontaine Region,Fontaine,emblem_fontaine
+------,------,COURT-MAIN,COURT,------
 palais mermonia,Palais Mermonia,Court of Fontaine Region,Fontaine,emblem_fontaine
 opera epiclese,Opera Epiclese,Court of Fontaine Region,Fontaine,emblem_fontaine
+hotel debord,Hotel Debord,Court of Fontaine Region,Fontaine,emblem_fontaine
+cafe lucerne,Cafe Lucerne,Court of Fontaine Region,Fontaine,emblem_fontaine
+steambird casino,The Steambird Casino,Court of Fontaine Region,Fontaine,emblem_fontaine
+furinas apartment,Furina's Apartment,Court of Fontaine Region,Fontaine,emblem_fontaine
+------,------,COURT-QUARTIERS,COURT,------
+fleuve cendre,Court of Fontaine: Fleuve Cendre,Court of Fontaine Region,Fontaine,emblem_fontaine
+lyonnais,Court of Fontaine: Quartier Lyonnais,Court of Fontaine Region,Fontaine,emblem_fontaine
+narbonnais,Court of Fontaine: Quartier Narbonnais,Court of Fontaine Region,Fontaine,emblem_fontaine
+vasari passage,Court of Fontaine: Vasari Passage,Court of Fontaine Region,Fontaine,emblem_fontaine
+------,------,COURT-OTHER,COURT,------
+annapausis,Annapausis,Court of Fontaine Region,Fontaine,emblem_fontaine
+chemin de lespoir,Chemin de L'Espoir,Court of Fontaine Region,Fontaine,emblem_fontaine
+fountain of lucine,Fountain of Lucine,Court of Fontaine Region,Fontaine,emblem_fontaine
+institute of natural philosophy,Institute of Natural Philosophy,Court of Fontaine Region,Fontaine,emblem_fontaine
+marcotte station,Marcotte Station,Court of Fontaine Region,Fontaine,emblem_fontaine
+salacia plain,Salacia Plain,Court of Fontaine Region,Fontaine,emblem_fontaine
+thalatta submarine canyon,Thalatta Submarine Canyon,Court of Fontaine Region,Fontaine,emblem_fontaine
+court of dew and springs,Court of Dew and Springs,Court of Fontaine Region,Fontaine,emblem_fontaine
 ------,------,FONTAINE-BELLEAU,FONTAINE,------
 belleau,Belleau Region,Belleau Region,Fontaine,emblem_fontaine
 poisson,Poisson,Belleau Region,Fontaine,emblem_fontaine
@@ -300,32 +352,19 @@ romaritime harbor,Romaritime Harbor,Belleau Region,Fontaine,emblem_fontaine
 west Slopes of Mont Automnequi,West Slopes of Mont Automnequi,Belleau Region,Fontaine,emblem_fontaine
 ------,------,FONTAINE-BERYL,FONTAINE,------
 beryl region,Beryl Region,Beryl Region,Fontaine,emblem_fontaine
-a lonely place,A Lonely Place,Beryl Region,Fontaine,emblem_fontaine
-a very bright place,A Very Bright Place,Beryl Region,Fontaine,emblem_fontaine
-a lonely place,A Lonely Place,Beryl Region,Fontaine,emblem_fontaine
-elton trench,Elton Trench,Beryl Region,Fontaine,emblem_fontaine
+------,------,BERYL-MAIN,BERYL,------
 elynas,Elynas,Beryl Region,Fontaine,emblem_fontaine
 merusea village,Merusea Village,Beryl Region,Fontaine,emblem_fontaine
+------,------,BERYL-UNDERGROUND,BERYL,------
+a lonely place,A Lonely Place,Beryl Region,Fontaine,emblem_fontaine
+a very bright place,A Very Bright Place,Beryl Region,Fontaine,emblem_fontaine
+a very warm place,A Very Warm Place,Beryl Region,Fontaine,emblem_fontaine
+elton trench,Elton Trench,Beryl Region,Fontaine,emblem_fontaine
 ------,------,FONTAINE-COURT,FONTAINE,------
 hotel debord,Hotel Debord,Court of Fontaine Region,Fontaine,emblem_fontaine
 cafe lucerne,Cafe Lucerne,Court of Fontaine Region,Fontaine,emblem_fontaine
 steambird casino,The Steambird Casino,Court of Fontaine Region,Fontaine,emblem_fontaine
 furinas apartment,Furina's Apartment,Court of Fontaine Region,Fontaine,emblem_fontaine
-fontaine,Court of Fontaine Region,Court of Fontaine Region,Fontaine,emblem_fontaine
-fleuve cendre,Court of Fontaine: Fleuve Cendre,Court of Fontaine Region,Fontaine,emblem_fontaine
-lyonnais,Court of Fontaine: Quartier Lyonnais,Court of Fontaine Region,Fontaine,emblem_fontaine
-narbonnais,Court of Fontaine: Quartier Narbonnais,Court of Fontaine Region,Fontaine,emblem_fontaine
-vasari passage,Court of Fontaine: Vasari Passage,Court of Fontaine Region,Fontaine,emblem_fontaine
-palais mermonia,Court of Fontaine: Palais Mermonia,Court of Fontaine Region,Fontaine,emblem_fontaine
-annapausis,Annapausis,Court of Fontaine Region,Fontaine,emblem_fontaine
-chemin de lespoir,Chemin de L'Espoir,Court of Fontaine Region,Fontaine,emblem_fontaine
-chemin de l'espoir,Chemin de L'Espoir,Court of Fontaine Region,Fontaine,emblem_fontaine
-fountain of lucine,Fountain of Lucine,Court of Fontaine Region,Fontaine,emblem_fontaine
-institute of natural philosophy,Institute of Natural Philosophy,Court of Fontaine Region,Fontaine,emblem_fontaine
-marcotte station,Marcotte Station,Court of Fontaine Region,Fontaine,emblem_fontaine
-opera epiclese,Opera Epiclese,Court of Fontaine Region,Fontaine,emblem_fontaine
-salacia plain,Salacia Plain,Court of Fontaine Region,Fontaine,emblem_fontaine
-thalatta submarine canyon,Thalatta Submarine Canyon,Court of Fontaine Region,Fontaine,emblem_fontaine
 ------,------,FONTAINE-LIFFEY,Fontaine,------
 liffey,Liffey Region,Liffey Region,Fontaine,emblem_fontaine
 fortress of meropide,fortress of meropide,Liffey Region,Fontaine,emblem_fontaine
@@ -357,6 +396,20 @@ faded theater,Faded Theater,Nostoi Region,Fontaine,emblem_fontaine
 nostoi region,Nostoi Region,Nostoi Region,Fontaine,emblem_fontaine
 ------,------,FONTAINE-SEABYGONE,Fontaine,------
 sea of bygone eras,Sea of Bygone Eras,Sea of Bygone Eras,Fontaine,emblem_fontaine
+------,------,SEABYGONE-CAESAREUM,SEABYGONE,------
+caesareum palace,Caesareum Palace,Sea of Bygone Eras,Fontaine,emblem_fontaine
+------,------,SEABYGONE-CLIVUS,SEABYGONE,------
+clivus capitolinus,Clivus Capitolinus,Sea of Bygone Eras,Fontaine,emblem_fontaine
+------,------,SEABYGONE-COLLEGIUM,SEABYGONE,------
+collegium phonascorum,Collegium Phonascorum,Sea of Bygone Eras,Fontaine,emblem_fontaine
+------,------,SEABYGONE-HORTUS,SEABYGONE,------
+hortus euergetis,Hortus Euergetis,Sea of Bygone Eras,Fontaine,emblem_fontaine
+------,------,SEABYGONE-INITIUM,SEABYGONE,------
+initium iani,Initium Iani,Sea of Bygone Eras,Fontaine,emblem_fontaine
+------,------,SEABYGONE-PORTUS,SEABYGONE,------
+portus anticus,Portus Anticus,Sea of Bygone Eras,Fontaine,emblem_fontaine
+------,------,SEABYGONE-ALTA,SEABYGONE,------
+alta semita,Alta Semita,Sea of Bygone Eras,Fontaine,emblem_fontaine
 ------,------,NATLAN,------,------
 ------,------,ANCIENT SACRED MOUNTAIN,NATLAN,------
 ancient sacred mountain,Ancient Sacred Mountain,Ancient Sacred Mountain,Natlan,emblem_ancient_sacred_mountain
@@ -466,10 +519,28 @@ final night cemetery,Final Night Cemetery,Paha Isle,Nod-Krai,emblem_nod-krai
 maroon basin,Maroon Basin,Paha Isle,Nod-Krai,emblem_nod-krai
 kuuvahki experimental design bureau,Kuuvahki Experimental Design Bureau,Paha Isle,Nod-Krai,emblem_nod-krai
 ------,------,SNEZHNAYA,------,------
+------,------,SNEZHNAYA-GRAD,SNEZHNAYA,------
+snezhnograd,Snezhnograd,Snezhnograd,Snezhnaya,emblem_snezhnaya
+zapolyarny palace,Zapolyarny Palace,Snezhnograd,Snezhnaya,emblem_snezhnaya
+------,------,SNEZHNAYA-VOLKODLAK,SNEZHNAYA,------
+volkodlak tundra,Volkodlak Tundra,Volkodlak Tundra,Snezhnaya,emblem_snezhnaya
+------,------,SNEZHNAYA-BIRCH,SNEZHNAYA,------
+white birch snowgrave,White Birch Snowgrave,White Birch Snowgrave,Snezhnaya,emblem_snezhnaya
+------,------,SNEZHNAYA-EVERFROZEN,SNEZHNAYA,------
+everfrozen earth,Everfrozen Earth,Everfrozen Earth,Snezhnaya,emblem_snezhnaya
+------,------,SNEZHNAYA-FLAMEFEATHER,SNEZHNAYA,------
+flamefeather valley,Flamefeather Valley,Flamefeather Valley,Snezhnaya,emblem_snezhnaya
+------,------,SNEZHNAYA-FELLFROST,SNEZHNAYA,------
+fellfrost peak,Fellfrost Peak,Fellfrost Peak,Snezhnaya,emblem_snezhnaya
 ------,------,MONDSTADT-DORNMAN,MONDSTADT,------
 dornman port,Dornman Port,Dornman Port,Mondstadt,emblem_mondstadt
 windrest peak,Windrest Peak,Dornman Port,Mondstadt,emblem_mondstadt
 temple of space,Temple of Space,Dornman Port,Mondstadt,emblem_mondstadt
+luyang academy,Luyang Academy,Temple of Space,Mondstadt,emblem_mondstadt
+desert pavilion,Desert Pavilion,Temple of Space,Mondstadt,emblem_mondstadt
+mahavaipulya chamber,Mahavaipulya Chamber,Temple of Space,Mondstadt,emblem_mondstadt
+pillar hall,Pillar Hall,Temple of Space,Mondstadt,emblem_mondstadt
+memory core,Memory Core,Temple of Space,Mondstadt,emblem_mondstadt
 millhaven,Millhaven,Dornman Port,Mondstadt,emblem_mondstadt
 old sanatorium site,Old Sanatorium Site,Dornman Port,Mondstadt,emblem_mondstadt
 devils cut,Devil's Cut,Dornman Port,Mondstadt,emblem_mondstadt
@@ -477,6 +548,38 @@ knights of favonius ruins,Knights of Favonius Ruins,Dornman Port,Mondstadt,emble
 zapolyarny palace,Zapolyarny Palace,Snezhnaya,Snezhnaya,emblem_snezhnaya
 ------,------,SNEZHNAYA-MOREPSYOKOYES,SNEZHNAYA,------
 morepsokoyes,Morepsokoyes,Morepsokoyes,Snezhnaya,emblem_snezhnaya
+------,------,MOON,------,------
+------,------,FROST-MOON,MOON,------
+frost moon,Frost Moon,Frost Moon,Moon,emblem_moon
+------,------,FROSTMOON-DUNANNA,FROSTMOON,------
+dunanna forward station,Dunanna Forward Station,Frost Moon,Moon,emblem_moon
+dunanna pit,Dunanna Pit,Frost Moon,Moon,emblem_moon
+------,------,FROSTMOON-HIGHLANDS,FROSTMOON,------
+lunar highlands,Lunar Highlands,Frost Moon,Moon,emblem_moon
+------,------,FROSTMOON-UNGIEN,FROSTMOON,------
+ungiens circle,Ungien's Circle,Frost Moon,Moon,emblem_moon
+------,------,FROSTMOON-MOONTIDE,FROSTMOON,------
+moontide sea,Moontide Sea,Frost Moon,Moon,emblem_moon
+curtain form blackbody containment lab,Curtain-Form Blackbody Containment Lab,Frost Moon,Moon,emblem_moon
+------,------,FROSTMOON-DARK,FROSTMOON,------
+dark side of the moon,Dark Side of the Moon,Frost Moon,Moon,emblem_moon
+------,------,EVENT-AREAS,------,------
+------,------,GOLDEN-APPLE,EVENT-AREAS,------
+golden apple archipelago,Golden Apple Archipelago,Golden Apple Archipelago,Event Areas,emblem_golden_apple
+twinning isle,Twinning Isle,Golden Apple Archipelago,Event Areas,emblem_golden_apple
+pudding isle,Pudding Isle,Golden Apple Archipelago,Event Areas,emblem_golden_apple
+broken isle,Broken Isle,Golden Apple Archipelago,Event Areas,emblem_golden_apple
+------,------,VELURIYAM-MIRAGE,EVENT-AREAS,------
+veluriyam mirage,Veluriyam Mirage,Veluriyam Mirage,Event Areas,emblem_veluriyam
+silver bottle courtyard,Silver Bottle Courtyard,Veluriyam Mirage,Event Areas,emblem_veluriyam
+overgrown valley,Overgrown Valley,Veluriyam Mirage,Event Areas,emblem_veluriyam
+pavilion of hermits,Pavilion of Hermits,Veluriyam Mirage,Event Areas,emblem_veluriyam
+thinkers theater,Thinker's Theater,Veluriyam Mirage,Event Areas,emblem_veluriyam
+------,------,SIMULANKA,EVENT-AREAS,------
+simulanka,Simulanka,Simulanka,Event Areas,emblem_simulanka
+toy factory,Toy Factory,Simulanka,Event Areas,emblem_simulanka
+forest of dreams,Forest of Dreams,Simulanka,Event Areas,emblem_simulanka
+sacred city of tollan,Sacred City of Tollan,Simulanka,Event Areas,emblem_simulanka
 ------,------,KHAENRIAH,------,------
 ------,------,KHAENRIAH-RUINS,KHAENRIAH,------
 abyssal ruins,Abyssal Ruins,Khaenri'ah,Khaenri'ah,emblem_khaenriah
@@ -484,7 +587,7 @@ abyssal ruins,Abyssal Ruins,Khaenri'ah,Khaenri'ah,emblem_khaenriah
 ------,------,OTHER-TREE,OTHER,------
 frostbearing tree,Frost Bearing Tree,Snow-Covered Path,Dragonspine,tree_frostbearing
 sacred sakura,Sacred Sakura's Favor,Grand Narukami Shrine,Inazuma,tree_sakura
-tree of dreams,Tree of Dreams,Vanarana,Sumeru,tree_dreams
+tree of dreams vanarana,Tree of Dreams,Vanarana,Sumeru,tree_dreams
 fountain of lucine,Fountain of Lucine,Court of Fontaine,Fontaine,fountain_lucine
 tonas flame, Tona's Flame,Stadium of the Sacred Flame,Natlan,tablet_tonas_flame
 tona's flame, Tona's Flame,Stadium of the Sacred Flame,Natlan,tablet_tonas_flame

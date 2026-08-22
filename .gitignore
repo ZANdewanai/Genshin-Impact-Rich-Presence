@@ -113,6 +113,10 @@ debug_images/
 shared_config.json
 gui_config.json
 
+# Build artifacts
+builds/
+dist/
+
 # IDE and misc
 GrabArea.exe
 history.txt

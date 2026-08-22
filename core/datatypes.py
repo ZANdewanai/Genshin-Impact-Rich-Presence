@@ -7,13 +7,32 @@ The constructors for these classes must have arguments listed in the same order 
 from __future__ import annotations
 from enum import Enum, auto
 from typing import Optional, Union
-from CONFIG import DEBUG_MODE, MC_AETHER, WANDERER_NAME, USERNAME
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler, FileModifiedEvent
 import csv
 import time
 import os
 import difflib
+
+# Debug mode - will be set by calling code to avoid circular dependency
+DEBUG_MODE = False
+MC_AETHER = True
+WANDERER_NAME = "Wanderer"
+MANEKIN_NAME = "Manekin"
+MANEKINA_NAME = "Manekina"
+USERNAME = "Player"
+GAME_RESOLUTION = 1080
+
+def set_config_values(debug_mode=False, mc_aether=True, wanderer_name="Wanderer", manekin_name="Manekin", manekina_name="Manekina", username="Player", game_resolution=1080):
+    """Set configuration values to avoid circular dependency with CONFIG.py"""
+    global DEBUG_MODE, MC_AETHER, WANDERER_NAME, MANEKIN_NAME, MANEKINA_NAME, USERNAME, GAME_RESOLUTION
+    DEBUG_MODE = debug_mode
+    MC_AETHER = mc_aether
+    WANDERER_NAME = wanderer_name
+    MANEKIN_NAME = manekin_name
+    MANEKINA_NAME = manekina_name
+    USERNAME = username
+    GAME_RESOLUTION = game_resolution
 
 
 class Boss:
@@ -489,6 +508,14 @@ class Data(PatternMatchingEventHandler):
                         c.search_str = WANDERER_NAME.lower()
                         c.character_display_name = WANDERER_NAME
 
+                    if c.search_str == "wonderland manekin":
+                        c.search_str = MANEKIN_NAME.lower()
+                        c.character_display_name = MANEKIN_NAME
+
+                    if c.search_str == "wonderland manekina":
+                        c.search_str = MANEKINA_NAME.lower()
+                        c.character_display_name = MANEKINA_NAME
+
                     self.characters.append(c)
 
                 self.characters_shortest_search = min(
@@ -763,7 +790,9 @@ class Data(PatternMatchingEventHandler):
 
         self._last_modified = time.time()
 
-        time.sleep(0.5)  # XXX: Hack to solve race condition
+        # XXX: Hack to solve race condition - file needs time to fully write
+        # This is suboptimal but prevents partial file reads
+        time.sleep(0.5)
 
         match os.path.basename(event.src_path):
             case "bosses.csv":
@@ -801,6 +830,14 @@ class Data(PatternMatchingEventHandler):
                             if c.search_str == "wanderer":
                                 c.search_str = WANDERER_NAME.lower()
                                 c.character_display_name = WANDERER_NAME
+
+                            if c.search_str == "wonderland manekin":
+                                c.search_str = MANEKIN_NAME.lower()
+                                c.character_display_name = MANEKIN_NAME
+
+                            if c.search_str == "wonderland manekina":
+                                c.search_str = MANEKINA_NAME.lower()
+                                c.character_display_name = MANEKINA_NAME
 
                             temp.append(c)
 

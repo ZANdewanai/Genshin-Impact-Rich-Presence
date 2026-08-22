@@ -1,7 +1,7 @@
 """
 ___________________________________________________________________
 
-Genshin Impact Discord Rich Presence v2.6
+Genshin Impact Discord Rich Presence v3.0
 
 Setup CONFIG.py with the game resolution, username, etc...
 before using.
@@ -16,6 +16,10 @@ import json
 import time
 import threading
 
+# Make stdout unbuffered for immediate debug output
+sys.stdout.reconfigure(line_buffering=True)
+sys.stderr.reconfigure(line_buffering=True)
+
 # Ensure script directory is in path for local modules
 script_dir = os.path.dirname(os.path.abspath(__file__))
 if script_dir not in sys.path:
@@ -29,10 +33,10 @@ if sys.executable.lower() != expected_embedded.lower():
     print(f"   Current: {sys.executable}")
     print(f"   Expected: {expected_embedded}")
     print("")
-    print("   Please use one of the following launchers:")
-    print("   - start_embedded.bat")
-    print("   - start_embedded.ps1")
-    print("   - python3.13.11_embedded\\python.exe main.py")
+    print("   Please use the provided launcher:")
+    print("   - start.bat")
+    print("   - start.ps1")
+    print("   - python3.13.11_embedded/python.exe main.py")
     print("")
     input("Press Enter to exit...")
     sys.exit(1)
@@ -45,7 +49,6 @@ from core import (
     current_activity,
     game_start_time,
     current_timer_type,
-    gui_callback,
     shutdown_event,
     state_lock,
     update_activity,
@@ -81,10 +84,7 @@ from core.datatypes import (
     ActivityType,
     Character,
     Data,
-    DEBUG_MODE,
-    USERNAME,
-    MC_AETHER,
-    WANDERER_NAME,
+    set_config_values,
 )
 from CONFIG import (
     USE_GPU,
@@ -96,7 +96,16 @@ from CONFIG import (
     get_dynamic_coordinates,
     OCR_CHARNAMES_ONE_IN,
     DEBUG_CHARACTER_MODE,
+    DEBUG_MODE,
+    USERNAME,
+    MC_AETHER,
+    WANDERER_NAME,
 )
+
+# Fallbacks for settings normally supplied via shared_config.json by the GUI
+MANEKIN_NAME = "Manekin"
+MANEKINA_NAME = "Manekina"
+GAME_RESOLUTION = 1080
 
 from core import ps_helper
 import core.state
@@ -112,6 +121,8 @@ if os.path.exists(shared_config_path):
                 "USERNAME",
                 "MC_AETHER",
                 "WANDERER_NAME",
+                "MANEKIN_NAME",
+                "MANEKINA_NAME",
                 "GAME_RESOLUTION",
                 "USE_GPU",
             ]:
@@ -121,25 +132,16 @@ if os.path.exists(shared_config_path):
     except Exception as e:
         print(f"Failed to load shared config: {e}")
 
-# Check environment variables for GPU override (from GUI subprocess)
-cuda_visible_devices = os.getenv("CUDA_VISIBLE_DEVICES")
-pytorch_cuda_alloc_conf = os.getenv("PYTORCH_CUDA_ALLOC_CONF")
-
-print(f"Environment check - CUDA_VISIBLE_DEVICES: {cuda_visible_devices}")
-print(f"Environment check - PYTORCH_CUDA_ALLOC_CONF: {pytorch_cuda_alloc_conf}")
-print(f"USE_GPU from CONFIG: {USE_GPU}")
-
-if cuda_visible_devices is not None:
-    if cuda_visible_devices == "0":
-        USE_GPU = True
-        print("GPU acceleration enabled via environment variable")
-    elif cuda_visible_devices == "":
-        USE_GPU = False
-        print("GPU acceleration disabled via environment variable")
-    else:
-        print(f"CUDA_VISIBLE_DEVICES set to: {cuda_visible_devices}")
-
-print(f"Final USE_GPU setting: {USE_GPU}")
+# Set config values in datatypes module to avoid circular dependency
+set_config_values(
+    debug_mode=DEBUG_MODE,
+    mc_aether=MC_AETHER,
+    wanderer_name=WANDERER_NAME,
+    manekin_name=MANEKIN_NAME,
+    manekina_name=MANEKINA_NAME,
+    username=USERNAME,
+    game_resolution=GAME_RESOLUTION
+)
 
 print(__doc__)
 
@@ -230,8 +232,8 @@ def signal_handler(signum, frame):
     try:
         stop_rpc_thread()
         join_rpc_thread(timeout=1.0)
-    except Exception:
-        pass
+    except (OSError, RuntimeError) as e:
+        print(f"Warning: Error during shutdown: {e}")
     # Force immediate process termination - kills all threads
     # Use _exit to bypass normal cleanup that might hang on daemon threads
     import os
@@ -325,91 +327,6 @@ while not shutdown_event.is_set():
     if loop_count % 5 == 0:
         write_gui_shared_data()
 
-    # Write data to shared file for GUI if environment variable is set (legacy support)
-    shared_file = os.getenv("GUI_SHARED_DATA_FILE")
-    if shared_file:
-        try:
-            # Take atomic snapshot of all state
-            with core.state.state_lock:
-                snapshot_activity = core.state.current_activity
-                snapshot_characters = list(core.state.current_characters)
-                snapshot_active_char = core.state.current_active_character
-                snapshot_game_start = core.state.game_start_time
-                snapshot_pause_ocr = core.state.ingame_pause_ocr
-
-            # Convert Activity object to dict for JSON serialization
-            activity_dict = None
-            if snapshot_activity:
-                activity_data_serialized = None
-                if snapshot_activity.activity_data:
-                    if hasattr(snapshot_activity.activity_data, "__dict__"):
-                        activity_data_dict = {}
-                        for (
-                            key,
-                            value,
-                        ) in snapshot_activity.activity_data.__dict__.items():
-                            if hasattr(value, "value"):
-                                activity_data_dict[key] = value.value
-                            elif hasattr(value, "name"):
-                                activity_data_dict[key] = value.name
-                            else:
-                                activity_data_dict[key] = (
-                                    str(value)
-                                    if not isinstance(
-                                        value, (str, int, float, bool, type(None))
-                                    )
-                                    else value
-                                )
-                        activity_data_serialized = activity_data_dict
-                    else:
-                        activity_data_serialized = snapshot_activity.activity_data
-
-                activity_type_value = None
-                if hasattr(snapshot_activity.activity_type, "value"):
-                    activity_type_value = snapshot_activity.activity_type.value
-                elif hasattr(snapshot_activity.activity_type, "name"):
-                    activity_type_value = snapshot_activity.activity_type.name
-                else:
-                    activity_type_value = str(snapshot_activity.activity_type)
-
-                activity_dict = {
-                    "activity_type": activity_type_value,
-                    "activity_data": activity_data_serialized,
-                }
-
-            # Convert Character objects to dicts
-            characters_dict = []
-            for char in snapshot_characters:
-                if char:
-                    characters_dict.append(
-                        {
-                            "character_display_name": char.character_display_name,
-                            "image_key": char.image_key,
-                        }
-                    )
-
-            data_to_write = {
-                "timestamp": time.time(),
-                "current_activity": activity_dict,
-                "current_characters": characters_dict,
-                "current_active_character": snapshot_active_char,
-                "game_start_time": snapshot_game_start,
-                "pause_ocr": snapshot_pause_ocr,
-                "adapted_coordinates": {
-                    "ADAPTED_NAMES_4P_COORD": character_region_manager.current_name_positions.copy(),
-                    "ADAPTED_NUMBER_4P_COORD": character_region_manager.current_number_positions.copy(),
-                    "ADAPTATION_ACTIVE": character_region_manager.adaptation_enabled,
-                    "OCCUPIED_SLOTS": character_region_manager.occupied_slots.copy(),
-                },
-            }
-            with open(shared_file, "w") as f:
-                json.dump(data_to_write, f, default=str)
-
-            if DEBUG_MODE:
-                print(f"[OK] Wrote shared data to {shared_file}")
-        except Exception as e:
-            if DEBUG_MODE:
-                print(f"[ERROR] Error writing to shared file: {e}")
 
     time.sleep(sleep_duration)
     loop_count += 1

@@ -67,6 +67,11 @@ lunar oblation i,Lost Mooncourt | Lunar Olation I,forgery,domain_forgery_nod_kra
 lunar oblation ii,Lost Mooncourt | Lunar Olation II,forgery,domain_forgery_nod_krai
 lunar oblation iii,Lost Mooncourt | Lunar Olation III,forgery,domain_forgery_nod_krai
 lunar oblation iv,Lost Mooncourt | Lunar Olation IV,forgery,domain_forgery_nod_krai
+------,------,DOMAIN OF FORGERY - SNEZHNAYA,------
+scars of cursed obsession i,Scars of Cursed Obsession I,forgery,domain_forgery_snezhnaya
+scars of cursed obsession ii,Scars of Cursed Obsession II,forgery,domain_forgery_snezhnaya
+scars of cursed obsession iii,Scars of Cursed Obsession III,forgery,domain_forgery_snezhnaya
+scars of cursed obsession iv,Scars of Cursed Obsession IV,forgery,domain_forgery_snezhnaya
 ------,------,DOMAINS OF BLESSING,------
 ------,------,DOMAIN OF BLESSING - MONDSTADT,------
 fires of purification i,Midsummer Courtyard | Fires of Purification I,blessing,domain_blessing_mondstadt
@@ -173,6 +178,11 @@ moonchild treasures i,Moonchild's Treasures | Glittering Melody I,blessing,domai
 moonchild treasures ii,Moonchild's Treasures | Glittering Melody II,blessing,domain_blessing_nod_krai
 moonchild treasures iii,Moonchild's Treasures | Glittering Melody III,blessing,domain_blessing_nod_krai
 moonchild treasures iv,Moonchild's Treasures | Glittering Melody IV,blessing,domain_blessing_nod_krai
+------,------,DOMAIN OF BLESSING - SNEZHNAYA,------
+inverted glacier i,Inverted Glacier | Crimson Proof I,blessing,domain_blessing_snezhnaya
+inverted glacier ii,Inverted Glacier | Crimson Proof II,blessing,domain_blessing_snezhnaya
+inverted glacier iii,Inverted Glacier | Crimson Proof III,blessing,domain_blessing_snezhnaya
+inverted glacier iv,Inverted Glacier | Crimson Proof IV,blessing,domain_blessing_snezhnaya
 ------,------,DOMAIN OF MASTERY,------
 ------,------,DOMAIN OF MASTERY - MONDSTADT,------
 frosted altar i,Forsaken Rift | Frosted Altar I,mastery,domain_mastery_mondstadt
@@ -253,6 +263,11 @@ veil of twilight i,Veil of Twilight | Umbral Refinement I,mastery,domain_mastery
 veil of twilight ii,Veil of Twilight | Umbral Refinement II,mastery,domain_mastery_nod_krai
 veil of twilight iii,Veil of Twilight | Umbral Refinement III,mastery,domain_mastery_nod_krai
 veil of twilight iv,Veil of Twilight | Umbral Refinement IV,mastery,domain_mastery_nod_krai
+------,------,DOMAIN OF MASTERY - SNEZHNAYA,------
+relics of fallen grace i,Relics of the Fallen Grace I,mastery,domain_mastery_snezhnaya
+relics of fallen grace ii,Relics of the Fallen Grace II,mastery,domain_mastery_snezhnaya
+relics of fallen grace iii,Relics of the Fallen Grace III,mastery,domain_mastery_snezhnaya
+relics of fallen grace iv,Relics of the Fallen Grace IV,mastery,domain_mastery_snezhnaya
 ------,------,TROUNCE DOMAINS,------
 ------,------,TROUNCE DOMAIN - MONDSTADT,------
 scattered ruins,Scattered Ruins,trounce,trounce_boss_andrius
@@ -277,3 +292,5 @@ lord of eroded primal fire,Lord of Eroded Primal Fire,trounce,trounce_boss_lord_
 the game before the gate,The Game Before the Gate,trounce,trounce_boss_the_game_before_the_gate
 ------,------,TROUNCE DOMAIN - NOD-KRAI,------
 the doctor,The Doctor | Memories: The Foul and the Fallen,trounce,trounce_boss_dottore
+------,------,TROUNCE DOMAIN - SNEZHNAYA,------
+ronova,Ronova | Memories: Shade of Death,trounce,trounce_boss_ronova

@@ -1,0 +1,10 @@
+{
+  "description": "Enhance your Genshin Impact experience with a user-friendly interface that displays current party members, location, and activity in real-time.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

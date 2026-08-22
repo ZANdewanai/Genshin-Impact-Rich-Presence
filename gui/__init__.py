@@ -1,1 +1,1 @@
-# GUI package for Genshin Impact Rich Presence
+# Web GUI package: pywebview host for the React mock UI.

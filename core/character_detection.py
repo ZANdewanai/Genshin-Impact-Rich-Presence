@@ -321,8 +321,10 @@ class CharacterRegionManager:
             if DEBUG_MODE:
                 print(f"[CAPTURE] Capturing slot {slot_index} at coords: {coords}")
             image = ImageGrab.grab(bbox=coords)
-            cap = np.array(image)
-            image.close()
+            try:
+                cap = np.array(image)
+            finally:
+                image.close()
             results = self.reader.readtext(cap, allowlist=ALLOWLIST)
 
             # Require higher confidence for slot detection to reduce false positives

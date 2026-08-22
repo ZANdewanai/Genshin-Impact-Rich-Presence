@@ -1,65 +1,29 @@
 #!/usr/bin/env python3
 """
-OCR Engine Abstraction Layer
-Allows switching between different OCR engines without changing main application code
+OCR Engine - RapidOCR wrapper for Genshin Impact Rich Presence
+Lightweight OCR engine built on RapidOCR (ONNX Runtime)
 """
 import os
-import sys
-import time
 import numpy as np
 from PIL import Image
 
-# Add local packages to path
-script_dir = os.path.dirname(os.path.abspath(__file__))
-local_site_packages = os.path.join(script_dir, "local_packages", "site-packages")
-if local_site_packages not in sys.path:
-    sys.path.insert(0, local_site_packages)
+class Reader:
+    """RapidOCR Reader class for Genshin Impact Rich Presence"""
 
-class OCREngine:
-    """Abstract OCR engine interface"""
-
-    def __init__(self, config=None):
-        self.config = config or {}
-        self.reader = None
-        self.name = "Unknown"
-        self.logger = None  # For logging (can be set by wrapper)
-
-    def initialize(self):
-        """Initialize the OCR engine"""
-        raise NotImplementedError
-
-    def readtext(self, image, **kwargs):
-        """Process image and return text detection results"""
-        raise NotImplementedError
-
-    def get_size_mb(self):
-        """Return approximate size of OCR engine in MB"""
-        raise NotImplementedError
-
-class EasyOCREngine(OCREngine):
-    """EasyOCR implementation"""
-
-    def __init__(self, config=None):
-        super().__init__(config)
-        self.name = "EasyOCR"
-
-    def initialize(self):
-        """Initialize EasyOCR reader"""
+    def __init__(self, languages=None, gpu=False, **kwargs):
+        """Initialize RapidOCR reader"""
         try:
-            import easyocr
+            from rapidocr_onnxruntime import RapidOCR
             
             # Check GPU preference from multiple sources
             use_gpu = self._get_gpu_preference()
             
-            if self.logger:
-                self.logger.info(f"Initializing EasyOCR with GPU={use_gpu}")
-            else:
-                print(f"Initializing EasyOCR with GPU={use_gpu}")
-            self.reader = easyocr.Reader(['en'], gpu=use_gpu, **self.config)
-            return True
+            print(f"Initializing RapidOCR with GPU={use_gpu}")
+            self.reader = RapidOCR(use_gpu=use_gpu, **kwargs)
+            self.name = "RapidOCR"
         except ImportError:
-            print("EasyOCR not available")
-            return False
+            print("RapidOCR not available")
+            raise ImportError("RapidOCR is required but not installed. Install with: pip install rapidocr-onnxruntime")
 
     def _get_gpu_preference(self) -> bool:
         """Determine GPU preference from multiple sources"""
@@ -71,131 +35,83 @@ class EasyOCREngine(OCREngine):
         except (ImportError, AttributeError):
             return False
 
-        # Check if CUDA is actually available
-        try:
-            import torch
-            if not torch.cuda.is_available():
-                return False
-        except (ImportError, AttributeError):
-            return False
-
-        # Check environment variable for explicit override
-        cuda_visible = os.environ.get('CUDA_VISIBLE_DEVICES', '').strip()
-        if cuda_visible == '':
-            # Not set - use GPU if USE_GPU=True and CUDA available (already checked above)
-            return True
-        elif cuda_visible == '0':
-            return True   # Explicitly enabled (GPU 0)
-        else:
-            # Any other value means explicit GPU selection or disable
-            try:
-                # Try to parse as integer - if valid, use that GPU
-                int(cuda_visible)
-                return True
-            except ValueError:
-                return False
-
+        # RapidOCR uses ONNX Runtime which supports DirectML on Windows
+        # No CUDA availability checks are needed with ONNX Runtime
+        # Just return True if USE_GPU is True
         return True
 
-    def readtext(self, image, **kwargs):
-        """Process image with EasyOCR"""
+    def readtext(self, image, allowlist=None, **kwargs):
+        """
+        Process image with RapidOCR
+        
+        RapidOCR returns: ( [[bbox, text, confidence_string], ...], [timing_info] )
+        Standard result format: [(bbox, text, confidence_float), ...]
+        
+        RapidOCR output is converted into this standard format.
+        """
         if self.reader is None:
-            if not self.initialize():
-                return []
-        return self.reader.readtext(image, **kwargs)
+            raise RuntimeError("RapidOCR reader not initialized")
+        
+        # RapidOCR returns a tuple: (detections, timing_info)
+        result_tuple = self.reader(image)
+        
+        # Extract the detections (first element of tuple), handle None case
+        detections = []
+        if result_tuple and len(result_tuple) > 0 and result_tuple[0] is not None:
+            detections = result_tuple[0]
+        
+        # If allowlist is provided, filter results
+        if allowlist:
+            filtered_result = []
+            for item in detections:
+                # RapidOCR returns: [bbox, text, confidence_string]
+                if item is None or len(item) < 3:
+                    continue
+                bbox, text, confidence_str = item
+                # Ensure text is a string
+                if not isinstance(text, str):
+                    text = str(text)
+                # Filter text to only include characters in allowlist
+                filtered_text = ''.join([c for c in text if c in allowlist])
+                if filtered_text:  # Only keep if there's something after filtering
+                    # Convert confidence string to float
+                    try:
+                        confidence = float(confidence_str)
+                    except (ValueError, TypeError):
+                        confidence = 0.0
+                    filtered_result.append((bbox, filtered_text, confidence))
+            return filtered_result
+        
+        # Convert RapidOCR output to the standard result format
+        formatted_result = []
+        for item in detections:
+            if item is not None and len(item) >= 3:
+                bbox, text, confidence_str = item
+                # Ensure text is a string
+                if not isinstance(text, str):
+                    text = str(text)
+                # Convert confidence string to float
+                try:
+                    confidence = float(confidence_str)
+                except (ValueError, TypeError):
+                    confidence = 0.0
+                formatted_result.append((bbox, text, confidence))
+        return formatted_result
 
     def get_size_mb(self):
-        """Return EasyOCR size estimate"""
-        return 400  # Approximate size in MB
-
-# Removed PaddleOCR and Tesseract engines - they don't work for game text detection
-
-def get_available_engines():
-    """Get list of available OCR engines"""
-    engines = []
-
-    # Test EasyOCR
-    easyocr_engine = EasyOCREngine()
-    if easyocr_engine.initialize():
-        engines.append(easyocr_engine)
-
-    return engines
-
-def get_ocr_engine(preferred_engine="auto"):
-    """Get OCR engine by preference or auto-select best available"""
-
-    if preferred_engine == "auto":
-        # Auto-select: prefer smaller, faster engines first
-        available = get_available_engines()
-
-        if not available:
-            raise ImportError("No OCR engines available")
-
-        # Sort by size (smaller first) then by speed preference
-        # For now, just return the first available
-        return available[0]
-
-    elif preferred_engine.lower() == "easyocr":
-        engine = EasyOCREngine()
-        if engine.initialize():
-            return engine
-        else:
-            raise ImportError("EasyOCR not available")
-
-    else:
-        raise ValueError(f"Unknown OCR engine: {preferred_engine}. Only 'easyocr' is supported.")
-
-# Configuration - can be set via environment variable or CONFIG.py
-try:
-    from CONFIG import OCR_ENGINE
-    PREFERRED_OCR_ENGINE = OCR_ENGINE
-except ImportError:
-    PREFERRED_OCR_ENGINE = os.environ.get("GENSHIN_OCR_ENGINE", "auto")
-
-# Global OCR engine instance (EasyOCR only)
-_ocr_engine = None
-
-def get_ocr_reader():
-    """Get or create EasyOCR reader instance"""
-    global _ocr_engine
-
-    if _ocr_engine is None:
-        print("Initializing EasyOCR engine...")
-        _ocr_engine = get_ocr_engine("easyocr")
-        print(f"Using OCR: {_ocr_engine.name} (~{_ocr_engine.get_size_mb()}MB)")
-
-    return _ocr_engine
-
-def ocr_readtext(image, **kwargs):
-    """Drop-in replacement for easyocr.Reader.readtext()"""
-    reader = get_ocr_reader()
-    return reader.readtext(image, **kwargs)
-
-# For backward compatibility - expose as easyocr-like interface
-class Reader:
-    """EasyOCR-like Reader class for backward compatibility"""
-
-    def __init__(self, languages=None, gpu=False, **kwargs):
-        self.engine = get_ocr_reader()
-
-    def readtext(self, image, **kwargs):
-        return self.engine.readtext(image, **kwargs)
+        """Return RapidOCR size estimate"""
+        return 50  # Approximate in-memory footprint in MB
 
 if __name__ == "__main__":
-    # Test the OCR engines
-    print("Testing Available OCR Engines...")
+    # Test the OCR engine
+    print("Testing RapidOCR Engine...")
 
-    available_engines = get_available_engines()
-
-    if available_engines:
-        print(f"Found {len(available_engines)} OCR engines:")
-        for engine in available_engines:
-            print(f"   • {engine.name} (~{engine.get_size_mb()}MB)")
-    else:
-        print("No OCR engines available")
-
-    print("\nTo use in main.py:")
-    print("   import ocr_engine")
-    print("   reader = ocr_engine.Reader(['en'])")
-    print("   results = reader.readtext(image)")
-    print("\nEasyOCR is the only supported engine.")
+    try:
+        reader = Reader(['en'])
+        print(f"Successfully initialized: {reader.name} (~{reader.get_size_mb()}MB)")
+        print("\nTo use in main.py:")
+        print("   from core import ocr_engine")
+        print("   reader = ocr_engine.Reader(['en'])")
+        print("   results = reader.readtext(image)")
+    except ImportError as e:
+        print(f"Failed to initialize: {e}")

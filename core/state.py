@@ -90,45 +90,11 @@ _last_detection_log = None
 # GUI Integration
 # =============================================================================
 
-gui_callback: Optional[Callable] = None
-"""Callback function for GUI notifications when activities change. Set to None if running without GUI."""
-
-# Global variables for GUI communication
-_gui_shared_state = {
-    "current_activity": None,
-    "current_active_character": 0,
-    "current_characters": [None, None, None, None],
-    "game_start_time": None,
-    "pause_ocr": False,
-}
-_gui_state_lock = threading.Lock()
-
-
-def get_gui_shared_state():
-    """Get current GUI state - thread-safe"""
-    with _gui_state_lock:
-        return _gui_shared_state.copy()
-
-
-def set_gui_shared_state(key, value):
-    """Set GUI state value - thread-safe"""
-    with _gui_state_lock:
-        _gui_shared_state[key] = value
-
-
-def get_gui_state():
-    """Get current state for GUI"""
-    with state_lock:
-        return {
-            "current_activity": current_activity,
-            "current_active_character": current_active_character,
-            "current_characters": current_characters,
-            "game_start_time": game_start_time,
-            "pause_ocr": ingame_pause_ocr,
-        }
-
-
 # =============================================================================
+gui_callback: Optional[Callable] = None
+"""Optional callback for GUI notifications on activity changes (set by embedders)."""
+
+
 # State Accessors (for use with closures in RPC thread)
 # =============================================================================
 
@@ -204,6 +170,9 @@ def update_character(slot_idx: int, character: Optional[Character]):
     with state_lock:
         if 0 <= slot_idx < len(current_characters):
             current_characters[slot_idx] = character
+            if DEBUG_MODE:
+                print(f"DEBUG update_character: slot {slot_idx} set to {character.character_display_name if character else 'None'}")
+                print(f"DEBUG current_characters after update: {[c.character_display_name if c else 'None' for c in current_characters]}")
 
 
 def clear_all_characters():
@@ -240,16 +209,30 @@ def write_gui_shared_data():
             "active_characters": [],
             "location": "Unknown",
             "activity": "None",
+            "active_character_index": 0,  # 0-indexed, -1 if none
             "timestamp": None,
         }
-        
+
         with state_lock:
-            # Get active characters
+            # Get active characters with image keys
             chars = []
+            char_image_keys = []
             for char in current_characters:
                 if char is not None:
-                    chars.append(char.display_name)
+                    chars.append(char.character_display_name)
+                    char_image_keys.append(char.image_key)
             data["active_characters"] = chars if chars else ["None"]
+            data["active_character_image_keys"] = char_image_keys if char_image_keys else [""]
+
+            if DEBUG_MODE:
+                print(f"DEBUG write_gui_shared_data: current_characters = {[c.character_display_name if c else 'None' for c in current_characters]}")
+                print(f"DEBUG write_gui_shared_data: active_characters = {data['active_characters']}")
+            
+            # Get active character index (convert from 1-indexed to 0-indexed)
+            if current_active_character > 0:
+                data["active_character_index"] = current_active_character - 1
+            else:
+                data["active_character_index"] = -1
             
             # Get location from current activity
             if current_activity and hasattr(current_activity, 'location') and current_activity.location:
@@ -261,14 +244,37 @@ def write_gui_shared_data():
             if current_activity and hasattr(current_activity, 'description'):
                 data["activity"] = current_activity.description
             elif current_activity:
-                data["activity"] = str(current_activity.activity_type.value)
+                # Use activity type name instead of value
+                data["activity"] = current_activity.activity_type.name.replace("_", " ").title()
+            else:
+                data["activity"] = "Unknown"
             
             data["timestamp"] = game_start_time
         
-        # Write to file
+        if DEBUG_MODE:
+            print(f"DEBUG write_gui_shared_data: Final data = {data}")
+        
+        # Write to file atomically (write to temp file, then rename)
         shared_path = _get_shared_data_path()
-        with open(shared_path, "w") as f:
-            json.dump(data, f, indent=2)
+        temp_path = shared_path + ".tmp"
+        try:
+            with open(temp_path, "w") as f:
+                json.dump(data, f, indent=2)
+            if DEBUG_MODE:
+                print(f"DEBUG write_gui_shared_data: Wrote to {shared_path}")
+            # Atomic rename on Windows
+            if os.path.exists(shared_path):
+                os.replace(temp_path, shared_path)
+            else:
+                os.rename(temp_path, shared_path)
+        except Exception as e:
+            # Clean up temp file if something went wrong
+            if os.path.exists(temp_path):
+                try:
+                    os.remove(temp_path)
+                except OSError:
+                    pass  # Best effort cleanup
+            raise
             
     except Exception as e:
         if DEBUG_MODE:

@@ -41,7 +41,6 @@ from CONFIG import (
 from core.state import (
     current_active_character,
     last_active_character,
-    current_characters,
     current_activity,
     prev_non_idle_activity,
     prev_location,
@@ -67,8 +66,11 @@ from core.state import (
     update_activity,
     set_active_character,
     update_character,
+    get_current_characters,
 )
+import core.state
 import core.state as state_module
+import core.datatypes as character_datatypes
 from core.ocr_utils import capture_and_process_ocr
 from core.character_detection import CharacterRegionManager
 
@@ -129,10 +131,8 @@ def search_character_with_custom(DATA, text, custom_username, character_images=N
 
 def detect_characters_with_adaptation(reader, DATA, character_region_manager):
     """Detect characters using adaptive slot detection."""
-    global current_characters
-
-    # Store previous character data before detection
-    previous_characters = current_characters.copy()
+    # Store previous character data before detection using thread-safe accessor
+    previous_characters = get_current_characters()
 
     # Detect which slots are occupied
     occupied_slots, confidence_scores = character_region_manager.detect_occupied_slots()
@@ -145,6 +145,14 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
             with open(shared_config_path, "r") as f:
                 shared_config = json.load(f)
                 custom_username = shared_config.get("USERNAME")
+
+                # Hot-swap custom character names (GUI can change these live)
+                for cfg_key in ("WANDERER_NAME", "MANEKIN_NAME", "MANEKINA_NAME"):
+                    val = shared_config.get(cfg_key)
+                    if isinstance(val, str) and val.strip() and val != getattr(
+                        character_datatypes, cfg_key, None
+                    ):
+                        setattr(character_datatypes, cfg_key, val.strip())
 
                 # Support flexible character image mapping
                 if "CHARACTER_IMAGES" in shared_config:
@@ -191,12 +199,13 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
                     if DEBUG_MODE and DEBUG_CHARACTER_MODE:
                         char_names = [
                             char.character_display_name if char else None
-                            for char in current_characters
+                            for char in previous_characters
                         ]
                         print(
                             f"[DEBUG] current_characters before JSON write: {char_names}"
                         )
-                    if current_characters[char_idx] != char_data:
+                    if previous_characters[char_idx] != char_data:
+                        print(f"[DEBUG] About to call update_character for slot {char_idx} with {char_data.character_display_name}")
                         update_character(char_idx, char_data)
                         print(
                             f"[OK] Detected character {char_idx + 1}: {char_data.character_display_name}"
@@ -211,37 +220,27 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
                     # Don't update with unknown characters - keep cached if exists
             else:
                 # Only clear if we had a character before and OCR completely failed
-                if current_characters[char_idx] is not None:
+                if previous_characters[char_idx] is not None:
                     if DEBUG_MODE:
                         print(
                             f"[WARNING] Failed to detect character in slot {char_idx + 1}, keeping previous data"
                         )
         else:
-            # Clear unoccupied slots, but only when we have successfully detected other characters
-            # This indicates we're in active gameplay and the party configuration has actually changed
-            char_idx = slot_idx  # Fallback to sequential
-            if char_idx < 4:
-                # Only clear if:
-                # 1. We have at least one successfully detected character (indicating active gameplay)
-                # 2. The slot actually has character data that needs to be cleared
-                if detected_char_count > 0 and current_characters[char_idx] is not None:
-                    if DEBUG_MODE:
-                        print(
-                            f"[CLEAR] Clearing character from slot {char_idx + 1} - no longer in party"
-                        )
-                    update_character(char_idx, None)
-                    characters_updated = True
+            # Don't clear unoccupied slots - preserve previously detected characters
+            # OCR may temporarily fail to detect a character even if they're still in the party
+            # Only clear when we have strong evidence the party configuration actually changed
+            pass
 
     # If no characters were successfully detected at all, mark cache as invalid
     # This allows map location detection to run when no valid characters present
     if DEBUG_MODE:
         print(
-            f"DEBUG: found_valid_characters_this_cycle={found_valid_characters_this_cycle}, current_characters={current_characters}"
+            f"DEBUG: found_valid_characters_this_cycle={found_valid_characters_this_cycle}, current_characters={previous_characters}"
         )
     if not found_valid_characters_this_cycle:
         with state_lock:
             state_module.currently_active_characters_valid = False
-        if any(current_characters):
+        if any(previous_characters):
             if DEBUG_MODE:
                 print(
                     "[REFRESH] No valid characters detected this cycle, marking cache invalid for map detection"
@@ -255,7 +254,7 @@ def detect_characters_with_adaptation(reader, DATA, character_region_manager):
     # Log adaptation summary
     if DEBUG_MODE and any(c != 0 for c in confidence_scores):
         active_slots = [
-            i for i, char in enumerate(current_characters) if char is not None
+            i for i, char in enumerate(core.state.current_characters) if char is not None
         ]
         print(f"[ACTIVE] Active character slots detected: {active_slots}")
 
@@ -569,9 +568,11 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
         x1, y1, x2, y2 = coords
         # Capture full 30x30 box and analyze max brightness
         image = ImageGrab.grab(bbox=(x1, y1, x2, y2))
-        # Convert to numpy array and find max brightness (brightest pixel)
-        img_array = np.array(image)
-        image.close()
+        try:
+            # Convert to numpy array and find max brightness (brightest pixel)
+            img_array = np.array(image)
+        finally:
+            image.close()
         # Use max brightness to detect the white number regardless of background
         max_brightness = int(img_array.max())
         charnumber_brightness.append(max_brightness)
@@ -627,16 +628,21 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
             found_active_character and active_character + 1 != current_active_character
         )
         _is_loading = current_activity.activity_type == ActivityType.LOADING
+        _is_gamemenu = current_activity.activity_type == ActivityType.GAMEMENU
 
     if _active_char_matches:
         if _is_loading:
             # Signal that we've loaded
             pass  # Handled below
-
-        new_char_idx = active_character + 1
-        set_active_character(new_char_idx)
-        with state_lock:
-            c = current_characters[new_char_idx - 1]
+        elif _is_gamemenu:
+            # Don't switch active character during gamemenu/cutscene
+            pass
+        else:
+            new_char_idx = active_character + 1
+            set_active_character(new_char_idx)
+            # Use thread-safe accessor for current_characters
+            chars = get_current_characters()
+            c = chars[new_char_idx - 1]
             if c is not None:
                 # Only print if we haven't already printed for this character
                 if not hasattr(run_detection_iteration, "_last_printed_char"):
@@ -670,7 +676,7 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
     should_detect_characters = False
 
     with state_lock:
-        _has_missing_chars = len([a for a in current_characters if a is None]) > 0
+        _has_missing_chars = len([a for a in core.state.current_characters if a is None]) > 0
 
     if reload_party_flag:
         with state_lock:
@@ -713,6 +719,7 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
 
         # CAPTURE LOCATION
         if loop_count % OCR_LOC_ONE_IN == 0:
+            print(f"[OCR] Running location detection...")
 
             def loc_text_processor(text):
                 if "mission accept" in text.lower():
@@ -731,6 +738,11 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                 text_processor=loc_text_processor,
                 debug_key="LOCATION",
             )
+            
+            if loc_data:
+                print(f"[OK] Detected location: {loc_data.location_name}")
+            else:
+                print(f"[OCR] Location detection: No match found")
             if loc_data:
                 if loc_data == "COMMISSION":
                     if current_activity.activity_type != ActivityType.COMMISSION:
@@ -905,6 +917,7 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
 
         # CAPTURE GAMEMENU
         if _inactive_cooldown == 0 or _inactive_mode == ActivityType.GAMEMENU:
+            print(f"[OCR] Running gamemenu detection...")
             try:
                 gamemenu_data = capture_and_process_ocr(
                     reader,
@@ -916,6 +929,7 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                     debug_key="GAMEMENU",
                 )
                 if gamemenu_data:
+                    print(f"[OK] Detected gamemenu: {gamemenu_data.gamemenu_name}")
                     should_update_gamemenu = False
                     with state_lock:
                         if (
@@ -936,11 +950,8 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count):
                         with state_lock:
                             inactive_detection_cooldown = INACTIVE_COOLDOWN
                             inactive_detection_mode = ActivityType.GAMEMENU
-                        activity_log = (
-                            f"Detected gamemenu activity: {gamemenu_data.gamemenu_name}"
-                        )
-                        if activity_log != _last_activity_log:
-                            print(activity_log)
+                else:
+                    print(f"[OCR] Gamemenu detection: No match found")
             except (OSError, RuntimeError) as e:
                 print(f"[ERROR] Error processing GAMEMENU detection: {e}")
                 if DEBUG_MODE:

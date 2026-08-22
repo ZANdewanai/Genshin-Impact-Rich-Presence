@@ -1,8 +1,18 @@
 {
   "active_characters": [
-    "None"
+    "Ganyu",
+    "Columbina",
+    "Varesa",
+    "Kaedehara Kazuha"
   ],
   "location": "Unknown",
-  "activity": "1",
-  "timestamp": 1775881206.7233431
+  "activity": "Loading",
+  "active_character_index": -1,
+  "timestamp": 1787441623.3063004,
+  "active_character_image_keys": [
+    "char_ganyu",
+    "char_columbina",
+    "char_varesa",
+    "char_kaedehara_kazuha"
+  ]
 }

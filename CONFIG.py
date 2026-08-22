@@ -42,6 +42,30 @@ For detecting when Wanderer is active. (Spoiler: You can rename Wanderer)
    Use the GUI's "Wanderer Name" field instead.
 """
 
+MANEKIN_NAME = "Manekin"
+"""
+LEGACY SETTING - Now configured in GUI
+
+For detecting when Wonderland Manekin (male) is active.
+Can be renamed in-game.
+
+⚠️  IMPORTANT: This setting is now configured in the GUI application.
+   Changes made here will be overridden by GUI settings.
+   Use the GUI's "Manekin Name" field instead.
+"""
+
+MANEKINA_NAME = "Manekina"
+"""
+LEGACY SETTING - Now configured in GUI
+
+For detecting when Wonderland Manekina (female) is active.
+Can be renamed in-game.
+
+⚠️  IMPORTANT: This setting is now configured in the GUI application.
+   Changes made here will be overridden by GUI settings.
+   Use the GUI's "Manekina Name" field instead.
+"""
+
 GAME_RESOLUTION = 1080
 """
 LEGACY SETTING - Now auto-detected
@@ -251,14 +275,14 @@ OCR_BOSS_ONE_IN = 30
 """Process boss name every N loops"""
 OCR_DOMAIN_ONE_IN = 30
 """Process domain name every N loops"""
-OCR_ENGINE = "easyocr"
+OCR_ENGINE = "rapidocr"
 """
 OCR engine to use for text recognition.
 
-Only EasyOCR is supported - it actually works for detecting Genshin Impact game text.
-PaddleOCR and Tesseract were tested but don't work for game UI text detection.
+RapidOCR is used - it works for detecting Genshin Impact game text and is lightweight.
+Uses ONNX Runtime for fast, lightweight text recognition.
 
-Set via environment variable: GENSHIN_OCR_ENGINE=easyocr
+Set via environment variable: GENSHIN_OCR_ENGINE=rapidocr
 """
 
 # ----------------------------------------------------------------------------------------------------------
@@ -286,11 +310,19 @@ will be converted to full URLs by prepending ASSET_BASE_URL.
 Example: Set ASSET_BASE_URL to a GitHub raw content URL or your own CDN.
 """
 
-ASSET_BASE_URL = "https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/refs/heads/main/resources/assets/images/"
+# External asset URL configuration
+# Can be overridden via environment variable GENSHIN_ASSET_BASE_URL
+# Example: Set to your fork's URL if you fork this repository
+import os
+ASSET_BASE_URL = os.environ.get("GENSHIN_ASSET_BASE_URL", 
+    "https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/refs/heads/main/resources/assets/images/")
 """
 Base URL for external image assets when USE_URL_ASSETS is True.
 
 The image key from CSV files will be appended to this URL.
+
+To use your own fork or CDN, set the GENSHIN_ASSET_BASE_URL environment variable
+or modify the URL above to point to your asset repository.
 
 Examples:
 - GitHub (branch): "https://raw.githubusercontent.com/username/repo/refs/heads/main/resources/assets/images/characters/"

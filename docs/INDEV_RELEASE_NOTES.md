@@ -2,7 +2,8 @@
 
 ## 🚀 Major Updates
 - **Complete GUI Overhaul**: Modern PyQt5 interface with real-time monitoring and user-friendly configuration
-- **Embedded Python Runtime**: Self-contained 2GB+ bundle - no external Python installation required (eliminates dependency issues)
+- **Embedded Python Runtime**: Self-contained ~600MB bundle - no external Python installation required (eliminates dependency issues)
+- **RapidOCR Migration**: Migrated from EasyOCR/PyTorch to RapidOCR/ONNX Runtime, reducing distribution size from ~5GB to ~600MB
 - **Natlan & Nod-Krai Support**: Full coverage for newest regions including all characters, domains, bosses, and locations
 - **Comprehensive Content Database**:
   - 100+ Characters: Complete coverage from Mondstadt to Nod-Krai (including latest like Chasca, Mavuika, etc.)
@@ -10,7 +11,7 @@
   - 400+ Locations: Complete location tracking for accurate Rich Presence
   - 40+ Bosses: All world and weekly bosses including latest additions
 - **Dynamic Resolution Detection**: Automatic adaptation to any screen resolution (720p to 4K, ultrawide, etc.)
-- **Enhanced OCR Engine**: Improved text recognition accuracy with GPU acceleration support
+- **Enhanced OCR Engine**: RapidOCR with ONNX Runtime for lightweight, fast text recognition with DirectML GPU support
 
 ## 🛠️ Technical Improvements
 - Modular architecture for better maintainability and future updates

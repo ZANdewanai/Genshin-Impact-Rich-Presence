@@ -69,6 +69,7 @@ def get_all_urls(boss_name, key=None):
         'lord of eroded primal fire': 'Lord of Eroded Primal Fire',
         'the game before the gate': 'The Game Before the Gate',
         'the doctor': 'The Doctor',
+        'ronova': 'Ronova',
     }
     
     # Alternative names to try for some bosses
@@ -171,7 +172,7 @@ def main():
         
         for j, url in enumerate(urls):
             if download_image(url, output_path):
-                print(" ✓")
+                print(" [OK]")
                 downloaded = True
                 successful += 1
                 break
@@ -179,7 +180,7 @@ def main():
                 time.sleep(0.2)
         
         if not downloaded:
-            print(" ✗ Failed")
+            print(" [FAILED]")
             failed.append((key, display_name, asset_name))
             if output_path.exists() and output_path.stat().st_size < 100:
                 output_path.unlink()

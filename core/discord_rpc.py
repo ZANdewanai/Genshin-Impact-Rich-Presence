@@ -8,6 +8,10 @@ import pypresence as discord
 from core.datatypes import Activity, ActivityType, DEBUG_MODE
 from CONFIG import DISC_APP_ID, USE_URL_ASSETS, ASSET_BASE_URL
 
+# Seconds between presence updates. Discord rate-limits UpdateActivity to
+# 5 updates per 20 seconds, so keep this at 4s or above.
+PRESENCE_UPDATE_INTERVAL = 15.0
+
 
 # Event for clean shutdown
 _shutdown_event = threading.Event()
@@ -220,6 +224,15 @@ def discord_rpc_loop(current_activity_ref, current_characters_ref, game_start_ti
                 rpc.close()
                 rpc = None
                 continue
+            except discord.exceptions.PipeClosed:
+                # Discord pipe was closed (e.g., Discord reloaded). Need to reconnect.
+                print("Discord pipe closed. Attempting to reconnect...")
+                try:
+                    rpc.close()
+                except Exception:
+                    pass
+                rpc = None
+                continue
             except (OSError, RuntimeError) as e:
                 print("Error updating Discord RPC:")
                 print(e)
@@ -230,7 +243,7 @@ def discord_rpc_loop(current_activity_ref, current_characters_ref, game_start_ti
             traceback.print_exc()
 
         # Rate limit for UpdateActivity RPC is 5 updates / 20 seconds.
-        _shutdown_event.wait(5)
+        _shutdown_event.wait(PRESENCE_UPDATE_INTERVAL)
 
     # Cleanup on shutdown
     if rpc:

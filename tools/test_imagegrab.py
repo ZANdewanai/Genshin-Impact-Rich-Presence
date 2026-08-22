@@ -9,7 +9,6 @@ Press ESC to exit.
 from typing import Text
 import cv2
 import numpy as np
-import easyocr
 import time
 import os
 import sys
@@ -27,10 +26,12 @@ from CONFIG import (
     NAME_CONF_THRESH, LOCATION_COORD, BOSS_COORD, DOMAIN_COORD,
     PARTY_SETUP_COORD, OCR_CHARNAMES_ONE_IN, OCR_LOC_ONE_IN,
     OCR_BOSS_ONE_IN, OCR_DOMAIN_ONE_IN, ALLOWLIST, ALLOWLIST2,
-    DEBUG_MODE, INACTIVE_COOLDOWN, LOC_CONF_THRESH
+    DEBUG_MODE, INACTIVE_COOLDOWN, LOC_CONF_THRESH, USE_GPU
 )
 
-reader = easyocr.Reader(["en"], gpu=False)
+from core.ocr_engine import Reader
+
+reader = Reader(["en"], gpu=USE_GPU)
 
 # Set to True to popup windows displaying captured images to double check coordinates.
 # Only useful if you are using 2 monitors.

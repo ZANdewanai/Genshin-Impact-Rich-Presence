@@ -299,7 +299,7 @@ def download_missing_assets():
     print(f"Missing {len(missing)} images")
     
     if not missing:
-        print("\n✓ All images are already present!")
+        print("\n[OK] All images are already present!")
         return
     
     print(f"\nDownloading {len(missing)} missing images...\n")
@@ -365,7 +365,7 @@ def download_missing_assets():
         downloaded = False
         for j, url in enumerate(urls):
             if download_image(url, output_path):
-                print(" ✓")
+                print(" [OK]")
                 successful += 1
                 downloaded = True
                 break
@@ -373,7 +373,7 @@ def download_missing_assets():
                 time.sleep(0.2)
         
         if not downloaded:
-            print(" ✗ Failed")
+            print(" [FAILED]")
             failed.append((category, image_key, name))
             # Clean up partial file
             if output_path.exists() and output_path.stat().st_size < 100:
