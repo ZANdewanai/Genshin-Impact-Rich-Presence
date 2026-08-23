@@ -1,16 +1,16 @@
 {
   "active_characters": [
-    "Ganyu",
+    "Xiangling",
     "Columbina",
     "Varesa",
     "Kaedehara Kazuha"
   ],
   "location": "Unknown",
-  "activity": "Loading",
-  "active_character_index": -1,
-  "timestamp": 1787441623.3063004,
+  "activity": "Location",
+  "active_character_index": 2,
+  "timestamp": 1787454064.2703135,
   "active_character_image_keys": [
-    "char_ganyu",
+    "char_xiangling",
     "char_columbina",
     "char_varesa",
     "char_kaedehara_kazuha"

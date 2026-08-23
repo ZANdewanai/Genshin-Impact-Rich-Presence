@@ -380,7 +380,7 @@ DEBUG_MODE = True
 Set to true to print debug messages.
 """
 
-DEBUG_CHARACTER_MODE = False
+DEBUG_CHARACTER_MODE = True
 """
 Set to true to print character detection debug messages.
 Disable to reduce console spam from character detection.

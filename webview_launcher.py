@@ -1,6 +1,9 @@
 import os
 import threading
 import sys
+import http.server
+import socketserver
+import time
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 if script_dir not in sys.path:
@@ -16,22 +19,44 @@ except ImportError as e:
     print("Install with: pip install pywebview")
     sys.exit(1)
 
-DIST_INDEX = os.path.join(script_dir, "gui", "dist", "index.html")
-if not os.path.exists(DIST_INDEX):
-    print(f"Error: built UI not found at {DIST_INDEX}")
+DIST_DIR = os.path.join(script_dir, "gui", "dist")
+if not os.path.exists(DIST_DIR):
+    print(f"Error: built UI directory not found at {DIST_DIR}")
     print("Build it with:  cd gui && pnpm install && pnpm build")
     sys.exit(1)
+
+# Start a simple HTTP server to serve the built files
+PORT = 8000
+Handler = http.server.SimpleHTTPRequestHandler
+
+def start_http_server():
+    os.chdir(DIST_DIR)
+    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+        print(f"Serving built UI at http://localhost:{PORT}")
+        httpd.serve_forever()
+
+# Start the server in a separate thread
+server_thread = threading.Thread(target=start_http_server, daemon=True)
+server_thread.start()
+
+# Give the server a moment to start
+time.sleep(0.5)
+
+# Construct the URL to load
+ui_url = f"http://localhost:{PORT}/index.html"
+print(f"Loading UI from: {ui_url}")
 
 api = Api()
 window = webview.create_window(
     "Genshin Impact Rich Presence",
-    DIST_INDEX,
+    ui_url,
     js_api=api,
     width=1060,
     height=900,
     min_size=(900, 620),
     background_color="#08091a",
 )
+print("Window created successfully")
 
 
 def _fit_window(_=None):
@@ -39,10 +64,14 @@ def _fit_window(_=None):
     try:
         size = window.evaluate_js(
             """
-            (() => { const el = document.body.children[0].children[0].children[0];
-            if (!el) return [0, 0];
-            const r = el.getBoundingClientRect();
-            return [Math.ceil(r.width), Math.ceil(r.height)]; })()
+            (() => {
+                // Simple approach: measure the root element
+                const root = document.getElementById('root');
+                if (!root) return [0, 0];
+                
+                const r = root.getBoundingClientRect();
+                return [Math.ceil(r.width), Math.ceil(r.height)];
+            })()
             """
         )
         if size and size[0] and size[1]:

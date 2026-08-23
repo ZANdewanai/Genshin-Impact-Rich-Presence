@@ -26,6 +26,11 @@ const EL_LABEL: Record<Element, string> = {
   cryo: "Cryo", geo: "Geo", dendro: "Dendro", empty: "—",
 };
 
+/* Accurate Genshin rarity colors: 5★ gold, 4★ purple. */
+const RARITY_5 = "#FFD780";
+const RARITY_4 = "#B48AE6";
+const rarityColor = (rarity?: number) => (rarity === 5 ? RARITY_5 : RARITY_4);
+
 const LOCATIONS = [
   "Mondstadt — City of Freedom", "Liyue Harbor — Port of Commerce",
   "Inazuma — Electro Archon's Domain", "Sumeru — City of Wisdom",
@@ -158,26 +163,40 @@ function ElBadge({ el }: { el: Element }) {
 }
 
 /* ── Character slot ────────────────────────────── */
-function CharacterSlot({ character, index, isActive, onClick }: {
-  character: Character | null; index: number; isActive: boolean; onClick: () => void;
+function CharacterSlot({ character, index, isActive }: {
+  character: Character | null; index: number; isActive: boolean;
 }) {
   const el = character?.element ?? "empty";
   const clr = EL_COLOR[el];
+  const rclr = rarityColor(character?.rarity);
   const animClass = ["slide-up-1","slide-up-2","slide-up-3","slide-up-4"][index];
   return (
-    <button onClick={onClick}
-      className={`relative flex flex-col overflow-hidden cursor-pointer group ${animClass} slot-glow glow-${el} ${isActive ? "active" : ""}`}
+    <button
+      className={`relative flex flex-col overflow-hidden group ${animClass} slot-glow glow-${el} ${isActive ? "active" : ""}`}
       style={{
         background: character ? "linear-gradient(170deg,#0d1122 0%,#0a0d1a 100%)" : "rgba(10,13,26,0.5)",
-        border: `1px solid ${isActive ? clr + "70" : "rgba(200,168,75,0.18)"}`,
+        border: character ? `1px solid ${rclr}55` : "1px solid rgba(200,168,75,0.18)",
+        boxShadow: isActive && character
+          ? `0 12px 32px rgba(0,0,0,0.5), 0 0 20px ${rclr}50, inset 0 0 24px rgba(var(--el-clr), 0.07)`
+          : character ? `0 0 16px rgba(var(--el-clr), 0.0)` : undefined,
         borderRadius: 4, aspectRatio: "3/4", outline: "none",
-        transition: "border-color 0.35s ease",
+        transform: isActive ? "translateY(-4px)" : "translateY(0)",
+        transition: "transform 0.2s ease, box-shadow 0.3s ease, border-color 0.35s ease",
       }}
     >
       <span className="corner tl" style={{ opacity: isActive ? 0.9 : 0.5 }} />
       <span className="corner tr" style={{ opacity: isActive ? 0.9 : 0.5 }} />
       <span className="corner bl" style={{ opacity: isActive ? 0.9 : 0.5 }} />
       <span className="corner br" style={{ opacity: isActive ? 0.9 : 0.5 }} />
+      
+      {isActive && character && (
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
+          <svg width="20" height="12" viewBox="0 0 20 12" fill="none">
+            <polygon points="10,0 20,12 0,12" fill={rclr} />
+          </svg>
+        </div>
+      )}
+      
       {character ? (
         <>
           <div className="relative flex-1 overflow-hidden">
@@ -190,18 +209,18 @@ function CharacterSlot({ character, index, isActive, onClick }: {
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
               style={{ background: `linear-gradient(120deg,transparent 30%,${clr}10 50%,transparent 70%)` }} />
             <div className="absolute top-2 left-2">
-              <Stars n={character.rarity ?? 5} color={character.rarity === 5 ? "#e8c96a" : "#b090e0"} />
+              <Stars n={character.rarity ?? 5} color={rarityColor(character.rarity)} />
             </div>
           </div>
           <div className="px-2.5 pt-1.5 pb-2.5 flex flex-col gap-1.5">
             <span style={{ fontFamily: "var(--font-heading)", fontSize: "12.5px",
-              color: isActive ? "#f0d47a" : "#ede3c4", fontWeight: 500, letterSpacing: "0.04em",
+              color: isActive ? "#f0d47a" : "#ede3c4", fontWeight: 600, letterSpacing: "0.04em",
               whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", transition: "color 0.3s" }}>
               {character.name}
             </span>
             <div className="flex items-center justify-between">
               <ElBadge el={character.element} />
-              <span style={{ fontFamily: "var(--font-heading)", fontSize: "9px", color: "#6a5820", letterSpacing: "0.06em" }}>
+              <span style={{ fontFamily: "var(--font-heading)", fontSize: "9px", color: isActive ? "#f0d47a" : "#6a5820", letterSpacing: "0.06em", fontWeight: 500 }}>
                 {character.level != null ? `Lv.${character.level}` : ""}
               </span>
             </div>
@@ -501,7 +520,7 @@ function AboutPanel() {
           }}
         >
           <svg width="28" height="28" viewBox="0 0 24 24">
-            <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" fill="#c8a84b"/>
+            <polygon points="12,1 16,8 23,12 16,16 12,23 8,16 1,12 8,8" fill="#c8a84b"/>
           </svg>
         </div>
 
@@ -695,7 +714,7 @@ export default function App() {
   const [activity, setActivity] = useState("-");
   const [elapsed, setElapsed] = useState("-");
   const [party, setParty] = useState<(Character | null)[]>([]);
-  const [activeSlot, setActiveSlot] = useState<number | null>(0);
+  const [activeCharacterIndex, setActiveCharacterIndex] = useState<number | null>(0);
   const [settings, setSettings] = useState<Settings>({
     username: "",
     mcAether: true,
@@ -770,8 +789,8 @@ export default function App() {
           setActivity(s.activity || "None");
           setElapsed(fmtElapsed(s.timestamp));
           setParty(s.party.map(p => (p ? { ...p } : null)));
-          setActiveSlot(prev =>
-            prev !== null ? prev : (s.active_character_index >= 0 ? s.active_character_index : null));
+          // Use backend's active_character_index directly
+          setActiveCharacterIndex(s.active_character_index >= 0 ? s.active_character_index : null);
         })
         .catch(() => {});
     };
@@ -792,7 +811,7 @@ export default function App() {
     }
   };
 
-  const activeChar = party[activeSlot ?? 0] ?? null;
+  const activeChar = party[activeCharacterIndex ?? 0] ?? null;
   const activeEl = activeChar?.element ?? "geo";
 
   return (
@@ -837,7 +856,7 @@ export default function App() {
               }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24">
-                <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" fill="#c8a84b" opacity="0.95"/>
+                <polygon points="12,1 16,8 23,12 16,16 12,23 8,16 1,12 8,8" fill="#c8a84b" opacity="0.95"/>
               </svg>
               <div className="absolute inset-0 rounded-full" style={{ border: "1px solid rgba(200,168,75,0.18)", transform: "scale(1.28)" }} />
             </div>
@@ -897,8 +916,7 @@ export default function App() {
                 <div className="grid grid-cols-2 gap-3 mt-3.5 sm:grid-cols-4">
                   {party.map((char, i) => (
                     <CharacterSlot key={i} character={char} index={i}
-                      isActive={activeSlot === i}
-                      onClick={() => setActiveSlot(activeSlot === i ? null : i)}
+                      isActive={activeCharacterIndex === i}
                     />
                   ))}
                 </div>
@@ -921,7 +939,7 @@ export default function App() {
                       </span>
                       <div className="flex items-center gap-2">
                         <ElBadge el={activeEl} />
-                        <Stars n={activeChar.rarity ?? 5} color={activeChar.rarity === 5 ? "#e8c96a" : "#b090e0"} />
+                        <Stars n={activeChar.rarity ?? 5} color={rarityColor(activeChar.rarity)} />
                         <span style={{ fontFamily: "var(--font-heading)", fontSize: "8.5px", color: "#6a5820" }}>
                           {activeChar.level != null ? `Lv.${activeChar.level}` : ""}
                         </span>

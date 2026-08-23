@@ -184,7 +184,7 @@ class GamemenuType(Enum):
                 return GamemenuType.MENUS
             case "in a cutscene":
                 return GamemenuType.CUTSCENE
-            case "spyral abyss" | "spiral abyss":
+            case "spiral abyss":
                 return GamemenuType.SPIRAL
             case _:
                 return GamemenuType.MENUS  # Default fallback for unrecognized types

@@ -144,12 +144,19 @@ body {
     inset 0 0 24px rgba(var(--el-clr), 0.0);
   transition: box-shadow 0.4s ease;
 }
-.slot-glow:hover,
-.slot-glow.active {
+.slot-glow:hover {
   box-shadow:
     0 0 0 1px rgba(var(--el-clr), 0.55),
     0 0 22px rgba(var(--el-clr), 0.28),
     inset 0 0 24px rgba(var(--el-clr), 0.07);
+}
+.slot-glow.active {
+  box-shadow:
+    0 12px 32px rgba(0,0,0,0.5),
+    0 0 20px rgba(var(--el-clr), 0.35),
+    inset 0 0 24px rgba(var(--el-clr), 0.07);
+  transform: translateY(-4px);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
 }
 
 /* â”€â”€ Gold hairline divider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */

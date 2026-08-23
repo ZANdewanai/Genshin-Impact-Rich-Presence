@@ -143,13 +143,15 @@ class CharacterRegionManager:
                         confidence_scores.append(adaptive_confidence)
 
                         self.adaptation_history.append(
-                            {
-                                "slot": i,
-                                "original_coords": base_coords,
-                                "adapted_coords": best_coords,
-                                "timestamp": time.time(),
-                            }
-                        )
+                             {
+                                 "slot": i,
+                                 "original_coords": base_coords,
+                                 "adapted_coords": best_coords,
+                                 "timestamp": time.time(),
+                                 "detection_text": adaptive_success,
+                                 "detection_confidence": adaptive_confidence,
+                             }
+                         )
                     else:
                         occupied.append(None)
                         confidence_scores.append(0.0)
@@ -157,7 +159,7 @@ class CharacterRegionManager:
                     occupied.append(None)
                     confidence_scores.append(0.0)
 
-        self.occupied_slots = occupied
+        self.occupied_slots = [None if item == 'null' else item for item in occupied]
         self.slot_confidence = confidence_scores
 
         self._update_global_coordinates()
@@ -320,12 +322,29 @@ class CharacterRegionManager:
             # Log capture coordinates and verify against overlay
             if DEBUG_MODE:
                 print(f"[CAPTURE] Capturing slot {slot_index} at coords: {coords}")
-            image = ImageGrab.grab(bbox=coords)
+            try:
+                image = ImageGrab.grab(bbox=coords)
+            except Exception as e:
+                if DEBUG_MODE:
+                    print(f"[ERROR] Failed to capture image for slot {slot_index}: {e}")
+                return False, 0.0
+            
             try:
                 cap = np.array(image)
+            except Exception as e:
+                if DEBUG_MODE:
+                    print(f"[ERROR] Failed to convert image to array for slot {slot_index}: {e}")
+                image.close()
+                return False, 0.0
             finally:
                 image.close()
-            results = self.reader.readtext(cap, allowlist=ALLOWLIST)
+                
+            try:
+                results = self.reader.readtext(cap, allowlist=ALLOWLIST)
+            except Exception as e:
+                if DEBUG_MODE:
+                    print(f"[ERROR] OCR reader failed for slot {slot_index}: {e}")
+                return False, 0.0
 
             # Require higher confidence for slot detection to reduce false positives
             SLOT_DETECTION_THRESH = 0.75
@@ -356,9 +375,11 @@ class CharacterRegionManager:
 
             return False, 0.0
 
-        except (OSError, RuntimeError) as e:
+        except Exception as e:
             if DEBUG_MODE:
-                print(f"[ERROR] Slot {slot_index} OCR error: {e}")
+                print(f"[ERROR] Unexpected error in slot {slot_index} OCR: {e}")
+                import traceback
+                traceback.print_exc()
             return False, 0.0
 
     def _calculate_slot_boundaries(self):

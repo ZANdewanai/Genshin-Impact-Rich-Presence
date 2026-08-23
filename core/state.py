@@ -13,7 +13,7 @@ from core.datatypes import Activity, ActivityType, Character, Location, DEBUG_MO
 # =============================================================================
 
 shutdown_event = threading.Event()
-state_lock = threading.Lock()
+state_lock = threading.RLock()
 ocr_lock = threading.Lock()
 
 
