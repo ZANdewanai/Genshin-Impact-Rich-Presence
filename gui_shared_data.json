@@ -1,18 +1,18 @@
 {
   "active_characters": [
-    "Xiangling",
+    "ZANdewanai",
     "Columbina",
     "Varesa",
-    "Kaedehara Kazuha"
+    "Aloy"
   ],
   "location": "Unknown",
   "activity": "Location",
-  "active_character_index": 2,
-  "timestamp": 1787454064.2703135,
+  "active_character_index": 0,
+  "timestamp": 1787456403.2686412,
   "active_character_image_keys": [
-    "char_xiangling",
+    "char_aether",
     "char_columbina",
     "char_varesa",
-    "char_kaedehara_kazuha"
+    "char_aloy"
   ]
 }

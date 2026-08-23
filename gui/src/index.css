@@ -10,9 +10,10 @@
   --color-navy: #0b0f22;
   --color-panel: #0e1228;
   --color-card: #111828;
-  --color-gold: #c8a84b;
+  --color-gold: #FFD780;
   --color-gold-light: #f0d47a;
   --color-gold-dim: #6a5820;
+  --color-empty: #ffffff;
   --color-text-primary: #ede3c4;
   --color-text-muted: #8a7a5a;
 }
@@ -30,19 +31,19 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(200,168,75,0.25); border-radius: 2px; }
 
-/* â”€â”€ Shimmer sweep â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Shimmer sweep  */
 @keyframes shimmer {
   0%   { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
 
-/* â”€â”€ Gold pulse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Gold pulse  */
 @keyframes pulse-gold {
   0%, 100% { opacity: 0.55; box-shadow: 0 0 4px rgba(200,168,75,0.3); }
   50%       { opacity: 1;    box-shadow: 0 0 10px rgba(200,168,75,0.7); }
 }
 
-/* â”€â”€ Ambient drift for particles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Ambient drift for particles  */
 @keyframes drift {
   0%   { transform: translateY(0px)   translateX(0px)   scale(1);    opacity: 0; }
   20%  { opacity: 1; }
@@ -50,37 +51,57 @@ body {
   100% { transform: translateY(-80px) translateX(20px)  scale(0.6);  opacity: 0; }
 }
 
-/* â”€â”€ Slow breath glow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Slow breath glow  */
 @keyframes breathe {
   0%, 100% { opacity: 0.04; }
   50%       { opacity: 0.12; }
 }
 
-/* â”€â”€ Slot entrance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Slot entrance  */
 @keyframes slide-up {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes triangle-appear {
+  0%   { opacity: 0; transform: scale(0.3) translateY(-4px); }
+  60%  { opacity: 1; transform: scale(1.1) translateY(1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
 
-/* â”€â”€ Star twinkle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Active triangle indicator  */
+.animate-triangle-appear {
+animation: triangle-appear 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/*  Star twinkle  */
 @keyframes twinkle {
   0%, 100% { opacity: 0.2; }
   50%       { opacity: 0.9; }
 }
 
-/* â”€â”€ Active element ring pulse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Active element ring pulse  */
 @keyframes ring-pulse {
   0%, 100% { opacity: 0.5; }
   50%       { opacity: 1; }
 }
 
-/* â”€â”€ Coin spin for the logo mark â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Coin spin for the logo mark  */
 @keyframes logo-glow {
   0%, 100% { filter: drop-shadow(0 0 4px rgba(200,168,75,0.4)); }
   50%       { filter: drop-shadow(0 0 12px rgba(200,168,75,0.9)); }
 }
 
-/* â”€â”€ Utilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Lift up animation for active character slot  */
+@keyframes lift-up {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-12px); }
+  100% { transform: translateY(0); }
+}
+.lift-up-char {
+  animation: lift-up 0.4s ease-out;
+}
+
+/*  Utilities  */
 .animate-shimmer {
   background: linear-gradient(90deg,
     transparent 0%,
@@ -104,11 +125,11 @@ body {
 .slide-up-3 { animation: slide-up 0.45s cubic-bezier(0.22,1,0.36,1) 0.14s both; }
 .slide-up-4 { animation: slide-up 0.45s cubic-bezier(0.22,1,0.36,1) 0.21s both; }
 
-/* â”€â”€ Corner ornaments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Corner ornaments  */
 .corner {
   position: absolute;
   width: 14px; height: 14px;
-  border-color: #c8a84b;
+  border-color: var(--corner-color, #c8a84b);
   opacity: 0.65;
   pointer-events: none;
   transition: opacity 0.3s;
@@ -119,7 +140,7 @@ body {
 .corner.br { bottom: -1px; right: -1px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
 .corner-lg { width: 20px; height: 20px; }
 
-/* â”€â”€ Particle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Particle  */
 .particle {
   position: absolute;
   border-radius: 50%;
@@ -127,7 +148,7 @@ body {
   animation: drift var(--dur, 5s) var(--delay, 0s) ease-in infinite;
 }
 
-/* â”€â”€ Element glow classes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Element glow classes  */
 .glow-pyro    { --el-clr: 255,100,50;  }
 .glow-hydro   { --el-clr: 50,140,255;  }
 .glow-anemo   { --el-clr: 90,220,180;  }
@@ -135,7 +156,7 @@ body {
 .glow-cryo    { --el-clr: 140,200,255; }
 .glow-geo     { --el-clr: 200,160,50;  }
 .glow-dendro  { --el-clr: 100,210,80;  }
-.glow-empty   { --el-clr: 80,80,100;   }
+.glow-empty   { --el-clr: 255,255,255;   }
 
 .slot-glow {
   box-shadow:
@@ -151,15 +172,29 @@ body {
     inset 0 0 24px rgba(var(--el-clr), 0.07);
 }
 .slot-glow.active {
-  box-shadow:
-    0 12px 32px rgba(0,0,0,0.5),
-    0 0 20px rgba(var(--el-clr), 0.35),
-    inset 0 0 24px rgba(var(--el-clr), 0.07);
-  transform: translateY(-4px);
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
-}
+    box-shadow:
+      0 12px 32px rgba(0,0,0,0.5),
+      0 0 20px rgba(var(--el-clr), 0.35),
+      inset 0 0 24px rgba(var(--el-clr), 0.07);
+    transform: translateY(-6px);
+    animation: lift-up 0.4s ease-out;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.35s ease;
+  }
+  /* Override for empty slots to use gold glow */
+  .glow-empty.slot-glow.active {
+    box-shadow:
+      0 12px 32px rgba(0,0,0,0.5),
+      0 0 20px rgba(255,215,120,0.35),
+      inset 0 0 24px rgba(255,215,120,0.07);
+  }
+  .glow-empty.slot-glow:hover {
+    box-shadow:
+      0 0 0 1px rgba(255,215,120,0.55),
+      0 0 22px rgba(255,215,120,0.28),
+      inset 0 0 24px rgba(255,215,120,0.07);
+  }
 
-/* â”€â”€ Gold hairline divider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Gold hairline divider  */
 .gold-line {
   background: linear-gradient(90deg,
     transparent, rgba(200,168,75,0.5) 30%,
@@ -168,7 +203,7 @@ body {
   );
 }
 
-/* â”€â”€ Outer panel halo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/*  Outer panel halo  */
 .panel-halo {
   box-shadow:
     0 32px 80px rgba(0,0,0,0.85),

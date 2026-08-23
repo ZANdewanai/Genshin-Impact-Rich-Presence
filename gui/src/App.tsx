@@ -29,7 +29,7 @@ const EL_LABEL: Record<Element, string> = {
 /* Accurate Genshin rarity colors: 5★ gold, 4★ purple. */
 const RARITY_5 = "#FFD780";
 const RARITY_4 = "#B48AE6";
-const rarityColor = (rarity?: number) => (rarity === 5 ? RARITY_5 : RARITY_4);
+const rarityColor = (rarity?: number) => (rarity === 5 ? RARITY_5 : rarity === 4 ? RARITY_4 : RARITY_5);
 
 const LOCATIONS = [
   "Mondstadt — City of Freedom", "Liyue Harbor — Port of Commerce",
@@ -176,12 +176,12 @@ function CharacterSlot({ character, index, isActive }: {
       style={{
         background: character ? "linear-gradient(170deg,#0d1122 0%,#0a0d1a 100%)" : "rgba(10,13,26,0.5)",
         border: character ? `1px solid ${rclr}55` : "1px solid rgba(200,168,75,0.18)",
-        boxShadow: isActive && character
+        boxShadow: isActive 
           ? `0 12px 32px rgba(0,0,0,0.5), 0 0 20px ${rclr}50, inset 0 0 24px rgba(var(--el-clr), 0.07)`
           : character ? `0 0 16px rgba(var(--el-clr), 0.0)` : undefined,
-        borderRadius: 4, aspectRatio: "3/4", outline: "none",
+        borderRadius: 4, aspectRatio: "3 / 4", outline: "none",
         transform: isActive ? "translateY(-4px)" : "translateY(0)",
-        transition: "transform 0.2s ease, box-shadow 0.3s ease, border-color 0.35s ease",
+        transition: "transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.35s ease, border-color 0.35s ease",
       }}
     >
       <span className="corner tl" style={{ opacity: isActive ? 0.9 : 0.5 }} />
@@ -189,13 +189,19 @@ function CharacterSlot({ character, index, isActive }: {
       <span className="corner bl" style={{ opacity: isActive ? 0.9 : 0.5 }} />
       <span className="corner br" style={{ opacity: isActive ? 0.9 : 0.5 }} />
       
-      {isActive && character && (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
-          <svg width="20" height="12" viewBox="0 0 20 12" fill="none">
-            <polygon points="10,0 20,12 0,12" fill={rclr} />
-          </svg>
-        </div>
-      )}
+{isActive && character && (
+  <div className="absolute top-1 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+    <svg
+      width="20"
+      height="12"
+      viewBox="0 0 20 12"
+      fill="none"
+      className="animate-triangle-appear"
+    >
+      <polygon points="10,12 20,0 0,0" fill="#FFD780" />
+    </svg>
+  </div>
+)}
       
       {character ? (
         <>
@@ -219,7 +225,7 @@ function CharacterSlot({ character, index, isActive }: {
               {character.name}
             </span>
             <div className="flex items-center justify-between">
-              <ElBadge el={character.element} />
+              
               <span style={{ fontFamily: "var(--font-heading)", fontSize: "9px", color: isActive ? "#f0d47a" : "#6a5820", letterSpacing: "0.06em", fontWeight: 500 }}>
                 {character.level != null ? `Lv.${character.level}` : ""}
               </span>
@@ -228,6 +234,9 @@ function CharacterSlot({ character, index, isActive }: {
         </>
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center gap-2">
+          <div className="absolute top-1.5 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+            <Stars n={5} color="#FFD780" />
+          </div>
           <div style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid rgba(200,168,75,0.2)",
             display: "flex", alignItems: "center", justifyContent: "center" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(200,168,75,0.35)" strokeWidth="1.2">
