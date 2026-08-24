@@ -27,7 +27,7 @@ if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 
 # VERIFY: Must run with embedded Python only
-expected_embedded = os.path.join(script_dir, "python3.13.11_embedded", "python.exe")
+expected_embedded = os.path.join(script_dir, "python3.12.8_embedded", "python.exe")
 # Case-insensitive comparison for Windows paths
 if sys.executable.lower() != expected_embedded.lower():
     print("[ERROR] This application must run with the embedded Python interpreter.")
@@ -37,7 +37,7 @@ if sys.executable.lower() != expected_embedded.lower():
     print("   Please use the provided launcher:")
     print("   - start.bat")
     print("   - start.ps1")
-    print("   - python3.13.11_embedded/python.exe main.py")
+    print("   - python3.12.8_embedded/python.exe main.py")
     print("")
     input("Press Enter to exit...")
     sys.exit(1)
@@ -46,15 +46,7 @@ print(f"[OK] Using embedded Python: {sys.executable}")
 
 # Import core modules
 from core import (
-    # State
-    current_activity,
-    game_start_time,
-    current_timer_type,
     shutdown_event,
-    state_lock,
-    update_activity,
-    set_active_character,
-    update_character,
     get_current_activity,
     get_current_characters,
     get_game_start_time,
@@ -68,12 +60,10 @@ from core import (
     # Discord RPC
     start_rpc_thread,
     stop_rpc_thread,
-    is_rpc_alive,
     join_rpc_thread,
     # Detection loop
     run_detection_iteration,
     update_coordinates_if_needed,
-    detect_characters_with_adaptation,
     RESOLUTION_CHECK_INTERVAL,
 )
 
@@ -90,7 +80,6 @@ from core.datatypes import (
 )
 from CONFIG import (
     USE_GPU,
-    GAME_RESOLUTION,
     SLEEP_PER_ITERATION,
     PAUSE_STATE_COOLDOWN,
     GENSHIN_WINDOW_CLASS,
@@ -164,7 +153,11 @@ character_region_manager = CharacterRegionManager(reader)
 coordinator = None
 if USE_SENSOR_WORKERS:
     from core.coordinator import SensorCoordinator
+    import core.detection as _detection
     coordinator = SensorCoordinator(reader, DATA, character_region_manager)
+    # MenuSensor already OCRs DOMAIN/GAMEMENU (cached + throttled); tell the
+    # main detection loop not to re-OCR them uncached every iteration.
+    _detection.SENSOR_WORKERS_ACTIVE = True
     print("[OK] Sensor worker architecture enabled "
           "(CharSensor / LocationSensor / MenuSensor)")
 
@@ -261,8 +254,6 @@ def signal_handler(signum, frame):
         print(f"Warning: Error during OCR executor shutdown: {e}")
     # Force immediate process termination - kills all threads
     # Use _exit to bypass normal cleanup that might hang on daemon threads
-    import os
-
     os._exit(0)
 
 

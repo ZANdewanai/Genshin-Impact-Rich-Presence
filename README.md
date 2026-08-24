@@ -2,266 +2,157 @@
 
 ![Screenshot](resources/assets/Screenshot.png) ![Screenshot](resources/assets/Screenshot2.png) ![Screenshot](resources/assets/Screenshot3.png)
 
-> - **Windows only**
-> - **Game text language must be English**
-> - **Location detection**: Works best when traveling between places (location text appears longer), but teleporting works too with fallback map detection (i.e. "thinking of traveling to location")
-> - **Automatic resolution detection**: Works with any resolution (720p, 1080p, 1440p, 2160p, ultrawide, etc.)
-> - **Party setup**: Works with any number of characters (1-4) in party, works for Single Player mode only
-> - **Modern GUI interface**: User-friendly configuration and monitoring
-> - **Adaptive character detection**: Automatically adjusts to UI changes
+A Discord Rich Presence for Genshin Impact that shows your current location,
+activity, party, and playtime. It does not tamper with game files — it scans
+text in periodic screen captures using OCR (RapidOCR on ONNX Runtime) and
+translates what it sees into Discord status updates.
 
-This Discord Rich Presence doesn't tamper with Genshin Impact game files in any way. It works by scanning text in screen captures using OCR (Optical Character Recognition).
+> - **Windows 10/11 only**
+> - **GPU required** — OCR runs exclusively through DirectML (NVIDIA, AMD, or Intel); the app refuses to start without it
+> - **Game text language must be English**
+> - **Single Player mode only**, any party size (1–4)
+> - Works at any resolution or aspect ratio (auto-detected, ultrawide included)
 
 -----
 
 ## 🚀 Quick Start
 
-### GUI Version (Recommended - Easiest)
-1. **Double-click `start_gui.bat`** (or run it from command line)
-2. Configure your settings in the GUI:
-   - Enter your Genshin Impact username
-   - Select your main character (Aether/Lumine)
-   - Set Wanderer name if applicable
+1. Double-click **`start_gui.bat`**
+2. In the GUI's Settings tab, enter:
+   - Your Genshin Impact username
+   - Your main character (Aether/Lumine)
+   - Wanderer name, if you've renamed them in-game
 3. Click **"Start Rich Presence"**
-4. The application will automatically detect your game and update Discord
 
-### Alternative Methods
+The app detects the Genshin window automatically and starts updating Discord.
+Discord must be running (desktop app).
 
-#### Direct GUI Launch:
+### Alternative Launch Methods
+
 ```bash
-python3.13.11_embedded\python.exe webview_launcher.py
+# GUI mode directly
+python3.12.8_embedded\python.exe webview_launcher.py
+
+# Console mode - same OCR + Discord RPC, no GUI
+python3.12.8_embedded\python.exe main.py
 ```
 
-#### Console Mode (Limited):
-```bash
-python3.13.11_embedded\python.exe main.py
-```
-> **⚠️ Note**: Console mode provides OCR detection and logging but **does not include Discord Rich Presence**. Use the GUI for full functionality including Discord integration.
+Console mode is configured by editing `CONFIG.py`; the GUI is recommended for
+live monitoring and configuration.
 
 -----
 
-## 📋 Setup Guide
+## ⚙️ Configuration
 
-### 1. System Requirements
+Most users configure everything through the GUI. Settings are stored in
+`shared_config.json` (runtime-generated) and passed to the detection engine.
 
-- **Windows 10/11**
-- **Embedded Python 3.13** (included in `python3.13.11_embedded/`)
-- **NVIDIA GPU** recommended (with recent drivers >525 for best OCR performance)
-- **Genshin Impact** with English text language
+Advanced users can edit [CONFIG.py](CONFIG.py) directly:
 
-### 2. Configuration (GUI Method - Recommended)
-
-**Most users don't need to edit any config files!** The GUI handles all user configuration:
-
-1. Launch the GUI using `start_gui.bat`
-2. Use the **Settings** tab to set:
-   - **Username**: Your Genshin Impact username
-   - **Main Character**: Aether or Lumine
-   - **Wanderer Name**: Your custom Wanderer name (if renamed)
-   - **GPU Acceleration**: Enable for better OCR performance
-
-### 3. Advanced Configuration (Optional)
-
-For advanced users who need manual configuration, edit [CONFIG.py](CONFIG.py):
-
-⚠️ **Important**: Most settings in CONFIG.py are now **legacy** and configured through the GUI. Changes made here may be overridden by GUI settings.
-
-**Legacy Settings (use GUI instead):**
-- `USERNAME` → Configure in GUI's "Username" field
-- `MC_AETHER` → Configure in GUI's "Main Character" dropdown
-- `WANDERER_NAME` → Configure in GUI's "Wanderer Name" field
-- `GAME_RESOLUTION` → Now auto-detected (rarely needs manual override)
-
-**Still relevant settings:**
-- `USE_GPU` → Enable GPU acceleration for OCR
-- Screen coordinates → Usually auto-detected, manual config rarely needed
-
-### 4. GPU Acceleration (Recommended)
-
-The application uses RapidOCR for text recognition. GPU acceleration significantly improves performance:
-
-- **Enabled by default** in both GUI and CONFIG.py
-- Uses ONNX Runtime with DirectML support on Windows
-- The embedded Python includes ONNX Runtime for GPU acceleration
-- Can be toggled in the GUI's Configuration tab
-
-### 5. Start the Application
-
-#### GUI Mode (Recommended):
-- **Double-click `start_gui.bat`** or run `python3.13.11_embedded\python.exe webview_launcher.py`
-- Click "Start Rich Presence" in the GUI
-- Monitor activity in real-time through the GUI
-
-#### Console Mode (Limited):
-- Run `python3.13.11_embedded\python.exe main.py`
-- View OCR detection status in the console window
-
-**Console mode provides:**
-- ✅ OCR text detection and logging
-- ✅ Character and location recognition
-- ❌ **No Discord Rich Presence** (RPC disabled)
-- ❌ **No GUI interface**
-
-**For full Discord Rich Presence functionality, use GUI mode.**
+- `USERNAME`, `MC_AETHER`, `WANDERER_NAME` — legacy; overridden by GUI settings
+- `GAME_RESOLUTION` — auto-detected; manual override rarely needed (only for GPU-upscaling setups like DLDSR/DLSS)
+- Manual screen coordinates — only needed for non-standard aspect ratios where auto-detection fails
+- `USE_URL_ASSETS` / `ASSET_BASE_URL` — serve character/boss images to Discord from a URL instead of uploading assets (bypasses Discord's 300-asset limit)
 
 -----
 
-## Contribution
+## ✨ How It Works
 
-### Data entry
+- **Screen capture → OCR → activity state.** The engine grabs the game window
+  and reads region-specific text: location names, boss names, domain names,
+  party slots, and menus.
+- **Sensor worker architecture.** Character, location, and menu regions are
+  scanned in dedicated worker threads coordinated via a shared blackboard,
+  keeping the main loop responsive. A legacy sequential loop remains available
+  (`USE_SENSOR_WORKERS = False`).
+- **Adaptive character detection.** If UI scaling shifts the party HUD, the
+  character name regions self-adjust within bounds instead of failing.
+- **Hot-reloaded data.** The CSV files in `data/` reload on change — you can
+  add missing locations/characters while playing without restarting.
+- **OCR pauses when Genshin loses focus or is minimized**, so idle resource
+  usage is minimal.
 
-The [data](data/) folder contains `.csv` (comma-separated values) data files that requires manual input. More information on how to edit these files can be found in the [data README](data/README.md).
-
-Quite a few locations/points of interests may be missing from the current data, and as new domains/characters/bosses/locations get added, this project requires continuous updates to maintain these records.
-
-The `.csv` data files have a hot-reload feature, so you don't need to restart the Discord RPC program to see effected changes to these files, you can enter them as you play the game and find unmarked locations/missing data.
 -----
 
 ## 📁 Project Structure
 
 ```
-├── start_gui.bat                    # 🚀 Quick launcher for GUI (recommended)
-├── start_gui.ps1                   # 🚀 PowerShell launcher for GUI
-├── start_embedded.bat               # 🖥️ Console mode launcher
-├── start_embedded.ps1              # 🖥️ PowerShell console launcher
-├── main.py                          # Console version of the application
-├── webview_launcher.py              # 🖥️ GUI version entry point
-├── CONFIG.py                        # ⚙️ Configuration file (mostly legacy)
-├── core/                           # � Core application modules
-│   ├── __init__.py
-│   ├── detection.py               # Main detection loop
-│   ├── discord_rpc.py             # Discord Rich Presence integration
-│   ├── ocr_engine.py              # OCR processing engine
-│   ├── ocr_utils.py               # OCR utilities
-│   ├── character_detection.py     # Adaptive character detection
-│   ├── datatypes.py               # Data type definitions
-│   ├── state.py                   # Global state management
-│   └── ps_helper.py               # Process helper utilities
-├── gui/                            # 🖥️ GUI application modules
-│   ├── __init__.py
-│   ├── main_window.py             # Main GUI window
-│   ├── config.py                  # GUI configuration
-│   ├── styles.py                  # GUI styling
-│   └── tabs/                      # GUI tabs
-│       ├── main_tab.py            # Status tab
-│       ├── config_tab.py          # Settings tab
-│       └── about_tab.py           # About tab
-├── shared_config.json              # 🔄 GUI-main communication file (runtime)
-├── gui_shared_data.json            # 📊 Real-time data sharing (runtime only)
-├── gui_config.json                # ⚙️ GUI persistent configuration (runtime)
-├── data/                           # 📊 Game data files
-│   ├── characters.csv              # Character database
-│   ├── locations.csv               # Location database
-│   ├── domains.csv                 # Domain database
-│   ├── bosses.csv                  # Boss database
-│   ├── gamemenus.csv               # Game menu database
-│   └── README.md                   # Data file documentation
-├── tools/                          # 🛠️ Development tools
-│   └── download_icons_embedded.bat
-├── requirements.txt                # 📦 Python dependencies (for reference)
-├── python3.13.11_embedded/        # 🐍 Embedded Python environment (2GB+)
-├── resources/                      # 🎨 Assets and screenshots
-│   └── assets/                     # Images and icons
-├── docs/                           # 📚 Documentation
-│   ├── PATCH_NOTES.md              # Version history
-│   ├── INDEV_RELEASE_NOTES.md      # Development notes
-│   └── configure coordinates.md    # Coordinate configuration guide
-├── LICENSE                         # Project license
-└── README.md                       # This file
+├── start_gui.bat / .ps1          # GUI launcher (recommended)
+├── start_embedded.bat / .ps1     # Console-mode launcher
+├── main.py                       # Console entry point (OCR + Discord RPC)
+├── webview_launcher.py           # GUI entry point (pywebview + local HTTP server)
+├── CONFIG.py                     # Advanced/manual configuration
+├── core/
+│   ├── detection.py              # Main detection loop logic
+│   ├── sensors.py                # Sensor workers (char/location/menu scanning)
+│   ├── coordinator.py            # Coordinates sensor workers & blackboard
+│   ├── blackboard.py             # Shared JSON store for sensor results
+│   ├── character_detection.py    # Adaptive party-HUD character detection
+│   ├── ocr_engine.py             # RapidOCR wrapper (DirectML GPU enforcement)
+│   ├── ocr_utils.py              # Screen capture & OCR text utilities
+│   ├── discord_rpc.py            # Rich Presence update thread
+│   ├── state.py                  # Global game-state management
+│   ├── datatypes.py              # Activity/Character/Location types + CSV data
+│   ├── ps_helper.py              # Window/process helpers (win32)
+│   └── log_utils.py              # Timestamped, throttled logging
+├── gui/
+│   ├── api.py                    # Python-side API exposed to the web UI
+│   └── src/                      # React + TypeScript front end (built to gui/dist)
+├── data/                         # Game data (hot-reloaded CSVs)
+│   ├── characters.csv            # Party characters
+│   ├── bosses.csv                # Weekly/world bosses
+│   ├── domains.csv               # Domains
+│   ├── locations.csv             # Locations & points of interest
+│   ├── gamemenus.csv             # Menu screens
+│   ├── character_meta.csv        # Character metadata
+│   └── GAME_DATA_DOCUMENTATION.md
+├── tools/                        # Debug & calibration scripts
+│   └── archive/                  # One-shot asset preparation scripts
+├── docs/                         # Patch notes & coordinate guide
+├── resources/                    # Images, icons, screenshots
+├── requirements.txt              # Python dependencies (for reference)
+└── python3.12.8_embedded/        # Bundled Python 3.12.8 environment
 ```
+
+Runtime-generated files (safe to delete when the app is closed):
+`shared_config.json`, `gui_shared_data.json`, `gui_config.json`.
 
 ## 🛠️ Troubleshooting
 
-### Quick Diagnosis
-
-**First, test if OCR is working:**
+**Test if OCR works:**
 ```bash
-python3.13.11_embedded\python.exe tools\test_imagegrab.py
+python3.12.8_embedded\python.exe tools\test_imagegrab.py
 ```
+Alt+tab into Genshin, switch characters, travel around, and watch the console output.
 
-**What to check:**
-- Alt+tab to Genshin Impact and leave it running
-- Change characters and visit different locations
-- Check the terminal output for successful OCR detection
-- Enable capture display windows in the debug script for visual verification
+| Problem | Fix |
+|---|---|
+| OCR not detecting text | Ensure the game is in English; update GPU drivers |
+| App won't start | Use `start_gui.bat`; verify `python3.12.8_embedded\` exists; allow it through antivirus |
+| Discord not updating | Confirm the Discord desktop app is running; restart Discord |
+| Poor performance | Close other GPU-intensive apps; update GPU drivers |
 
-### Common Issues & Solutions
+Debug tools live in `tools/`: `test_imagegrab.py` (capture test),
+`capture_ocr_regions.py` (region inspection),
+`interactive_coordinate_calibrator.py` (manual coordinate calibration),
+`test_sensors.py` (sensor architecture test).
 
-#### ❌ **"OCR not detecting text"**
-- ✅ Ensure Genshin Impact is running in **English**
-- ✅ The application **automatically detects** your resolution - no manual setup needed
-- ✅ Verify GPU drivers are up to date (recommended for best performance)
-- ✅ Try toggling `USE_GPU` in the GUI Configuration tab
-
-#### ❌ **"GUI not responding / not updating"**
-- ✅ Check the GUI log panel for error messages
-- ✅ Ensure the subprocess is running (check Task Manager for `python.exe`)
-- ✅ Verify file permissions for the application directory
-- ✅ Try restarting the GUI
-
-#### ❌ **"Discord not updating"**
-- ✅ Confirm Discord is running and logged in
-- ✅ Check that the Discord app is connected (green indicator in GUI)
-- ✅ Verify internet connection
-- ✅ Restart Discord if issues persist
-
-#### ❌ **"Application won't start"**
-- ✅ Use `start_gui.bat` instead of running Python directly
-- ✅ Ensure no antivirus is blocking the application
-- ✅ Check that `python3.13.11_embedded\` folder exists and is intact
-- ✅ Try running as administrator
-
-#### ❌ **"Poor performance / lag"**
-- ✅ Enable GPU acceleration in GUI Configuration
-- ✅ Close other GPU-intensive applications
-- ✅ Update NVIDIA drivers to latest version
-- ✅ The app uses minimal resources when Genshin is minimized
-
-### Advanced Debug Tools
-
-Located in `DEV_resources/for_debugging/`:
-- `test_imagegrab.py` - Test OCR image capture and text recognition
-- `capture_ocr_regions.py` - Debug specific OCR regions
-- `interactive_coordinate_calibrator.py` - Calibrate screen coordinates manually
-
-### Getting Help
-
-If issues persist:
-1. Check the GUI log for detailed error messages
-2. Run debug tools and note any error output
-3. Ensure Genshin Impact is running in windowed or borderless mode
-4. Try different GPU acceleration settings
-5. Verify your Windows version and permissions
+-----
 
 ## 🙏 Credits & License
 
+**Author**: Created, developed, and maintained by [@ZANdewanai](https://github.com/ZANdewanai).
+This version is a complete from-scratch rewrite — architecture, OCR pipeline,
+sensor system, and GUI are all original work built on the same core idea of
+screen-capture OCR driving Discord Rich Presence.
+
 **Image Assets**: Intellectual property of HoYoverse © miHoYo. All rights reserved.
+Some assets sourced from the [Genshin Impact Fandom Wiki](https://genshin-impact.fandom.com/).
 
-**Additional Images**: Some assets sourced from the [Genshin Impact Fandom Wiki](https://genshin-impact.fandom.com/).
+**License**: See [LICENSE](LICENSE).
 
-**Project History**:
-- **Original Implementation**: Created by [@ZANdewanai](https://github.com/ZANdewanai)
-- **Reimplementation**: Reworked by [@euwbah](https://github.com/euwbah)
-- **Current Version**: Further enhanced and GUI-ified by [@ZANdewanai](https://github.com/ZANdewanai)
-
-**License**: See [LICENSE](LICENSE) for full licensing information.
-
----
-
-## 📈 Recent Updates (v3.0indev)
-
-- ✨ **New GUI Interface**: Modern React-based desktop GUI (pywebview) with real-time monitoring
-- 🎯 **Adaptive Character Detection**: Automatically adjusts to UI layout changes
-- 🚀 **One-Click Launcher**: `start_gui.bat` for instant GUI startup
-- ⚙️ **GUI-Based Configuration**: No more manual config file editing for most users
-- 🔄 **Auto-Resolution Detection**: Works with any screen resolution automatically
-- 🎮 **Real-Time Status**: Live activity monitoring in the GUI
-- 🛠️ **Enhanced Troubleshooting**: Comprehensive debug tools and error handling
-- 📊 **Shared Data System**: Seamless communication between GUI and OCR engine
-
-**Legacy Settings Migration**: User settings previously in CONFIG.py are now configured through the GUI interface for better user experience.
-
----
 ### Contributing
 
-We welcome contributions! See our [GitHub Issues](https://github.com/ZANdewanai/Genshin-Impact-Rich-Presence/issues) for planned features and bug reports.
+Contributions welcome! Data entry is the biggest ongoing need — see
+[data/GAME_DATA_DOCUMENTATION.md](data/GAME_DATA_DOCUMENTATION.md) and check
+[GitHub Issues](https://github.com/ZANdewanai/Genshin-Impact-Rich-Presence/issues).

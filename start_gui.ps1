@@ -5,10 +5,10 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $scriptDir
 
 Write-Host "Starting Genshin Impact Rich Presence GUI..." -ForegroundColor Green
-Write-Host "Using embedded Python: python3.13.11_embedded\python.exe" -ForegroundColor Cyan
+Write-Host "Using embedded Python: python3.12.8_embedded\python.exe" -ForegroundColor Cyan
 Write-Host ""
 
-& ".\python3.13.11_embedded\python.exe" "webview_launcher.py"
+& ".\python3.12.8_embedded\python.exe" "webview_launcher.py"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""

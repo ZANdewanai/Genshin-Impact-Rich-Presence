@@ -6,8 +6,6 @@ Make sure these coordinates are set up properly before running the script.
 See README.md on how to determine coordinates.
 """
 
-import time
-
 USERNAME = "PlayerName"
 """
 LEGACY SETTING - Now configured in GUI
@@ -289,7 +287,8 @@ Set via environment variable: GENSHIN_OCR_ENGINE=rapidocr
 
 DISC_APP_ID = "944346292568596500"
 """
-Discord Application ID of euwbah's genshin-rpc discord app.
+Discord Application ID for this project's Discord Rich Presence app
+(owned and managed by ZANdewanai).
 """
 
 # URL-based asset loading - bypasses Discord's 300 asset limit

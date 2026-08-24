@@ -5,10 +5,10 @@
     "Varesa",
     "Zhongli"
   ],
-  "location": "Court of Fontaine Region",
+  "location": "fortress of meropide",
   "activity": "Location",
-  "active_character_index": 0,
-  "timestamp": 1787534233.1229978,
+  "active_character_index": 2,
+  "timestamp": 1787607218.5722911,
   "active_character_image_keys": [
     "char_aether",
     "char_columbina",

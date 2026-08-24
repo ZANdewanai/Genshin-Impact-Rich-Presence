@@ -12,6 +12,14 @@ import numpy as np
 
 from core.datatypes import Activity, ActivityType, Character, Data, DEBUG_MODE
 from CONFIG import DEBUG_CHARACTER_MODE
+
+# Set to True by main.py when the SensorCoordinator (MenuSensor, etc.) is active.
+# When True, run_detection_iteration skips its own uncached DOMAIN/GAMEMENU OCR
+# because the MenuSensor already performs those (cached + throttled) and the
+# Coordinator consumes the result from menus.json. This keeps domain detection
+# as cheap as gamemenu instead of double-OCRing every iteration.
+SENSOR_WORKERS_ACTIVE = False
+
 from CONFIG import (
     ACTIVE_CHARACTER_THRESH,
     SLEEP_PER_ITERATION,
@@ -572,9 +580,31 @@ def process_map_text(text, data_instance):
     return cleaned_text
 
 
+def _sync_debug_flags():
+    """Hot-swap DEBUG_MODE / DEBUG_CHARACTER_MODE from shared_config.json so the
+    GUI debug toggle applies to a running engine without a restart."""
+    try:
+        shared = _get_shared_config()
+        if "DEBUG_MODE" in shared:
+            character_datatypes.DEBUG_MODE.value = bool(shared["DEBUG_MODE"])
+        if "DEBUG_CHARACTER_MODE" in shared:
+            global DEBUG_CHARACTER_MODE
+            DEBUG_CHARACTER_MODE = bool(shared["DEBUG_CHARACTER_MODE"])
+            try:
+                import core.character_detection as _cd
+                _cd.DEBUG_CHARACTER_MODE = bool(shared["DEBUG_CHARACTER_MODE"])
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+
 def run_detection_iteration(reader, DATA, character_region_manager, loop_count, full_screen=None):
     """Run one iteration of the detection loop."""
     global _last_location_log, _last_activity_log
+
+    # Apply any debug-flag changes made from the GUI this cycle.
+    _sync_debug_flags()
 
     if full_screen is None:
         full_screen = ImageGrab.grab()
@@ -1103,7 +1133,8 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count, 
         # CAPTURE DOMAIN
         # Only when no active party is on screen - the domain region overlaps
         # with overworld UI text (NPC names etc.) and domains are a menu state.
-        if _menu_scan and (
+        # Skipped when sensor workers are active (MenuSensor already handles it).
+        if _menu_scan and not SENSOR_WORKERS_ACTIVE and (
             _inactive_cooldown == 0 or _inactive_mode == ActivityType.DOMAIN
         ):
             domain_data = capture_and_process_ocr(
@@ -1150,7 +1181,8 @@ def run_detection_iteration(reader, DATA, character_region_manager, loop_count, 
                                     print(f"GUI callback error: {e}")
 
         # CAPTURE GAMEMENU
-        if _menu_scan and (
+        # Skipped when sensor workers are active (MenuSensor already handles it).
+        if _menu_scan and not SENSOR_WORKERS_ACTIVE and (
             _inactive_cooldown == 0 or _inactive_mode == ActivityType.GAMEMENU
         ):
             try:

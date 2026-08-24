@@ -1,6 +1,7 @@
 """Adaptive character detection system."""
 
 import json
+import os
 import re
 import time
 from pathlib import Path
@@ -329,8 +330,20 @@ class CharacterRegionManager:
             gui_config["ADAPTATION_HISTORY"] = self.adaptation_history.copy()
             gui_config["OCCUPIED_SLOTS"] = self.occupied_slots.copy()
 
-            with open(shared_config_file, "w") as f:
-                json.dump(gui_config, f, indent=4)
+            # Atomic write (temp file + replace) so concurrent readers never
+            # see a partially-written JSON file.
+            temp_file = shared_config_file.with_suffix(".json.tmp")
+            try:
+                with open(temp_file, "w") as f:
+                    json.dump(gui_config, f, indent=4)
+                os.replace(temp_file, shared_config_file)
+            except OSError:
+                if temp_file.exists():
+                    try:
+                        temp_file.unlink()
+                    except OSError:
+                        pass
+                raise
 
             if DEBUG_MODE:
                 print("[OK] Updated shared config for GUI with adapted coordinates")

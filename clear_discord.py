@@ -2,7 +2,7 @@
 import time
 import pypresence as discord
 
-DISC_APP_ID = "944346292568596500"
+from CONFIG import DISC_APP_ID
 
 print("Clearing Discord Rich Presence...")
 try:

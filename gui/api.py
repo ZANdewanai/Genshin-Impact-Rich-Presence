@@ -20,7 +20,7 @@ if ROOT not in sys.path:
 
 SHARED_DATA_FILE = os.path.join(ROOT, "gui_shared_data.json")
 SHARED_CONFIG_FILE = os.path.join(ROOT, "shared_config.json")
-EMBEDDED_PYTHON = os.path.join(ROOT, "python3.13.11_embedded", "python.exe")
+EMBEDDED_PYTHON = os.path.join(ROOT, "python3.12.8_embedded", "python.exe")
 MAIN_PY = os.path.join(ROOT, "main.py")
 
 # Ring buffer of recent engine output lines (oldest at index 0).
@@ -279,6 +279,62 @@ class Api:
         """Return captured engine output lines (newest last)."""
         with _LOG_LOCK:
             return list(_log_buffer)
+
+    # ── Debug logging toggle ─────────────────────────────────────
+    # The GUI flips these instead of logging always being on. They mirror
+    # CONFIG.DEBUG_MODE / DEBUG_CHARACTER_MODE so the engine honours them.
+    def get_debug(self):
+        """Return the current debug-flag state (live shared_config, else CONFIG)."""
+        shared = self._read_json(SHARED_CONFIG_FILE)
+        try:
+            import CONFIG as _cfg
+            dflt_mode = bool(_cfg.DEBUG_MODE)
+            dflt_char = bool(_cfg.DEBUG_CHARACTER_MODE)
+        except ImportError:
+            dflt_mode = False
+            dflt_char = False
+        return {
+            "debugMode": bool(shared.get("DEBUG_MODE", dflt_mode)),
+            "debugCharacterMode": bool(shared.get("DEBUG_CHARACTER_MODE", dflt_char)),
+        }
+
+    def set_debug(self, debug_mode, debug_character_mode):
+        """Persist debug flags to shared_config.json (live) and CONFIG.py (canonical)."""
+        debug_mode = bool(debug_mode)
+        debug_character_mode = bool(debug_character_mode)
+        shared = self._read_json(SHARED_CONFIG_FILE)
+        shared["DEBUG_MODE"] = debug_mode
+        shared["DEBUG_CHARACTER_MODE"] = debug_character_mode
+        try:
+            with open(SHARED_CONFIG_FILE, "w", encoding="utf-8") as f:
+                json.dump(shared, f, indent=4)
+        except OSError as e:
+            print(f"Warning: could not save shared_config.json: {e}")
+        # Keep CONFIG.py canonical so a fresh engine start inherits the choice.
+        self._write_config_debug(debug_mode, debug_character_mode)
+        return {"ok": True}
+
+    def _write_config_debug(self, debug_mode, debug_character_mode):
+        """Rewrite the DEBUG_MODE / DEBUG_CHARACTER_MODE lines in CONFIG.py in place."""
+        try:
+            import re
+            cfg_path = os.path.join(ROOT, "CONFIG.py")
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                text = f.read()
+            text = re.sub(
+                r"^DEBUG_MODE\s*=.*$",
+                f"DEBUG_MODE = {str(debug_mode)}",
+                text, count=1, flags=re.M,
+            )
+            text = re.sub(
+                r"^DEBUG_CHARACTER_MODE\s*=.*$",
+                f"DEBUG_CHARACTER_MODE = {str(debug_character_mode)}",
+                text, count=1, flags=re.M,
+            )
+            with open(cfg_path, "w", encoding="utf-8") as f:
+                f.write(text)
+        except Exception as e:
+            print(f"Warning: could not update CONFIG.py debug flags: {e}")
 
     def shutdown(self):
         """Kill the engine subprocess when the window closes."""

@@ -121,3 +121,6 @@ dist/
 GrabArea.exe
 history.txt
 Genshin-Impact-Rich-Presence.rar
+
+# Sensor test logs (runtime generated)
+sensor_test_*.txt

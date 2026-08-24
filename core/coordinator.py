@@ -94,13 +94,13 @@ class SensorCoordinator:
             }
 
         self.sensors = [
-            CharSensor(reader, data, char_coords, self.paths["characters"][0], 2.0),
+            CharSensor(reader, data, char_coords, self.paths["characters"][0], 4.0),
             LocationSensor(
-                reader, data, loc_coords, self.paths["location"][0], 1.0,
+                reader, data, loc_coords, self.paths["location"][0], 0.5,
                 characters_path=self.paths["characters"][0],
                 menus_path=self.paths["menus"][0],
             ),
-            MenuSensor(reader, data, menu_coords, self.paths["menus"][0], 1.5),
+            MenuSensor(reader, data, menu_coords, self.paths["menus"][0], 4.0),
         ]
         self._empty_party_exits = 0
         self._empty_gamemenu = 0
@@ -166,8 +166,14 @@ class SensorCoordinator:
         # HUD evidence is only trustworthy when freshly reported - during
         # menu transitions the last overworld scan can linger for seconds.
         hud_visible = False
+        party_detected = False
         if chars and (time.time() - chars.get("written_at", 0)) < 6.0:
             hud_visible = bool(chars.get("hud_visible"))
+            # Detected party slot names are themselves strong evidence the
+            # party HUD is on screen - count them so a flaky hud_visible OCR
+            # check can't wrongly "pause" an active exploration session.
+            slots = chars.get("slots") or []
+            party_detected = any(s and s.get("name") for s in slots)
 
         # ---- party slots -------------------------------------------------
         if chars and chars.get("slots"):
@@ -338,7 +344,13 @@ class SensorCoordinator:
                     log(f"Domain: {found.domain_name}")
 
         # ---- bookkeeping: prev_non_idle + pause state ----------------------
-        any_evidence = hud_visible or party_flag or bool(gamemenu) or bool(domain)
+        any_evidence = (
+            hud_visible
+            or party_detected
+            or party_flag
+            or bool(gamemenu)
+            or bool(domain)
+        )
         if any_evidence:
             self._last_evidence_time = time.time()
             with state_lock:

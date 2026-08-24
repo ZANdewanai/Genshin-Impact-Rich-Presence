@@ -55,6 +55,8 @@ declare global {
         get_settings?(): Promise<Partial<Settings>>;
         save_settings?(patch: Partial<Settings>): Promise<{ ok: boolean }>;
         get_logs?(): Promise<string[]>;
+        get_debug?(): Promise<{ debugMode: boolean; debugCharacterMode: boolean }>;
+        set_debug?(debugMode: boolean, debugCharacterMode: boolean): Promise<{ ok: boolean }>;
       };
     };
   }
@@ -325,7 +327,31 @@ function SettingRow({ label, description, children }: {
   );
 }
 
-/* ── Settings panel ────────────────────────────── */
+/* ── Toggle switch ────────────────────────────── */
+function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onChange}
+      className="relative inline-flex items-center rounded-full cursor-pointer transition-colors duration-200 flex-shrink-0"
+      style={{
+        width: 34, height: 18, outline: "none",
+        background: checked ? "rgba(200,168,75,0.85)" : "rgba(200,168,75,0.12)",
+        border: `1px solid ${checked ? "rgba(200,168,75,0.6)" : "rgba(200,168,75,0.25)"}`,
+      }}
+      aria-pressed={checked}
+    >
+      <span
+        className="absolute rounded-full transition-transform duration-200"
+        style={{
+          width: 12, height: 12, top: 2, left: 2,
+          background: checked ? "#08091a" : "#c8a84b",
+          transform: checked ? "translateX(16px)" : "translateX(0)",
+        }}
+      />
+    </button>
+  );
+}
 function ApplyButton({ dirty, saved, onApply }: {
   dirty: boolean; saved: boolean; onApply: () => void;
 }) {
@@ -793,6 +819,7 @@ export default function App() {
     manekinName: "Manekin",
     manekinaName: "Manekina",
   });
+  const [debugEnabled, setDebugEnabled] = useState(false);
 
   /* Load persisted settings once the backend bridge is available.
      pywebview injects window.pywebview asynchronously (in a thread after
@@ -815,6 +842,13 @@ export default function App() {
           }
         })
         .catch(() => {});
+      window.pywebview!.api.get_debug?.()
+        .then(d => {
+          if (!cancelled && d && typeof d.debugMode === "boolean") {
+            setDebugEnabled(d.debugMode);
+          }
+        })
+        .catch(() => {});
     };
     load();
     return () => { cancelled = true; };
@@ -828,9 +862,22 @@ export default function App() {
     }
   };
 
-  /* Live engine log lines, shown in the Logs tab. */
+  /* Toggle engine debug logging (CONFIG DEBUG_MODE / DEBUG_CHARACTER_MODE). */
+  const updateDebug = (enabled: boolean) => {
+    setDebugEnabled(enabled);
+    if (hasBackend()) {
+      window.pywebview!.api.set_debug?.(enabled, enabled)?.catch(() => {});
+    }
+  };
+
+  /* Live engine log lines, shown in the Logs tab. Only polled while debug
+     logging is enabled, so the UI doesn't burn cycles when it's off. */
   const [logs, setLogs] = useState<string[]>([]);
   useEffect(() => {
+    if (!debugEnabled) {
+      setLogs([]);
+      return;
+    }
     let alive = true;
     const tick = () => {
       if (!window.pywebview?.api?.get_logs) return;
@@ -843,7 +890,7 @@ export default function App() {
     tick();
     const t = setInterval(tick, 1000);
     return () => { alive = false; clearInterval(t); };
-  }, []);
+  }, [debugEnabled]);
 
   /* Poll backend engine state (or demo simulator when running in a browser) */
   const connectedRef = useRef(false);
@@ -1103,10 +1150,45 @@ export default function App() {
           )}
 
           {tab === "settings" && (
-            <SettingsPanel settings={settings} onSave={updateSettings} />
+            <>
+              <SettingsPanel settings={settings} onSave={updateSettings} />
+
+              <div className="mt-5">
+                <OrnamentDivider label="DEBUG LOGGING" />
+                <div className="mt-3 rounded overflow-hidden"
+                  style={{ background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)" }}
+                >
+                  <div className="flex items-center justify-between gap-4 py-3 px-4"
+                    style={{ borderBottom: "1px solid rgba(200,168,75,0.07)" }}
+                  >
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span style={{ fontFamily: "var(--font-heading)", fontSize: "11px", color: "#ede3c4", letterSpacing: "0.05em" }}>
+                        ENGINE DEBUG LOGS
+                      </span>
+                      <span style={{ fontFamily: "var(--font-body)", fontSize: "12.5px", color: "#6a5820", lineHeight: 1.3 }}>
+                        Verbose engine output in the Logs tab. Maps to CONFIG DEBUG_MODE / DEBUG_CHARACTER_MODE.
+                      </span>
+                    </div>
+                    <ToggleSwitch checked={debugEnabled} onChange={() => updateDebug(!debugEnabled)} />
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
-          {tab === "logs" && <LogsPanel logs={logs} />}
+          {tab === "logs" && (debugEnabled ? (
+            <LogsPanel logs={logs} />
+          ) : (
+            <div className="rounded overflow-hidden"
+              style={{ background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)" }}
+            >
+              <div className="px-4 py-6 text-center">
+                <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "#6a5820", lineHeight: 1.5 }}>
+                  Debug logging is disabled. Enable “Engine Debug Logs” in Settings to view live engine output.
+                </span>
+              </div>
+            </div>
+          ))}
 
           {tab === "about" && <AboutPanel />}
         </div>

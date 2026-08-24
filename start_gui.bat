@@ -4,10 +4,10 @@ REM Launcher script for Genshin Impact Rich Presence GUI using embedded Python
 cd /d "%~dp0"
 
 echo Starting Genshin Impact Rich Presence GUI (Web GUI version)...
-echo Using embedded Python: python3.13.11_embedded\python.exe
+echo Using embedded Python: python3.12.8_embedded\python.exe
 echo.
 
-python3.13.11_embedded\python.exe webview_launcher.py
+python3.12.8_embedded\python.exe webview_launcher.py
 
 if errorlevel 1 (
     echo.

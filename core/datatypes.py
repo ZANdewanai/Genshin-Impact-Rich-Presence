@@ -834,9 +834,10 @@ class Data(PatternMatchingEventHandler):
 
         self._last_modified = time.time()
 
-        # XXX: Hack to solve race condition - file needs time to fully write
-        # This is suboptimal but prevents partial file reads
-        time.sleep(0.5)
+        # Guard against reading a partially-written file: our own writers use
+        # atomic writes (temp + os.replace), but these data/*.csv files can
+        # also be edited externally, where a brief delay is still prudent.
+        time.sleep(0.25)
 
         match os.path.basename(event.src_path):
             case "bosses.csv":

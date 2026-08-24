@@ -81,7 +81,7 @@ def build_distribution():
     copy_dir(PROJECT_ROOT / "resources", DIST_DIR / "resources")
     copy_dir(PROJECT_ROOT / "icons", DIST_DIR / "icons")
     # Copy embedded Python (will clean up heavy packages after)
-    copy_dir(PROJECT_ROOT / "python3.13.11_embedded", DIST_DIR / "python3.13.11_embedded")
+    copy_dir(PROJECT_ROOT / "python3.12.8_embedded", DIST_DIR / "python3.12.8_embedded")
     
 
     # Create launcher scripts
@@ -90,7 +90,7 @@ def build_distribution():
     # Simple batch launcher using embedded Python
     batch_launcher = """@echo off
 cd /d "%~dp0"
-python3.13.11_embedded\\python.exe webview_launcher.py
+python3.12.8_embedded\\python.exe webview_launcher.py
 """
     with open(DIST_DIR / "start.bat", "w") as f:
         f.write(batch_launcher)
@@ -99,7 +99,7 @@ python3.13.11_embedded\\python.exe webview_launcher.py
     # PowerShell launcher
     ps_launcher = """$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $scriptDir
-& ".\\python3.13.11_embedded\\python.exe" webview_launcher.py
+& ".\\python3.12.8_embedded\\python.exe" webview_launcher.py
 """
     with open(DIST_DIR / "start.ps1", "w") as f:
         f.write(ps_launcher)
@@ -110,7 +110,7 @@ Set-Location $scriptDir
 Portable Distribution Build (RapidOCR)
 
 This is a portable, ready-to-use distribution with everything included:
-- Embedded Python 3.13.11
+- Embedded Python 3.12.8
 - RapidOCR (ONNX Runtime) for text recognition
 - All dependencies pre-installed
 - GUI application
