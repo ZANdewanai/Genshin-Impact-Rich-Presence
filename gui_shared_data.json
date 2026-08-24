@@ -3,16 +3,16 @@
     "ZANdewanai",
     "Columbina",
     "Varesa",
-    "Aloy"
+    "Zhongli"
   ],
-  "location": "Unknown",
+  "location": "Court of Fontaine Region",
   "activity": "Location",
   "active_character_index": 0,
-  "timestamp": 1787456403.2686412,
+  "timestamp": 1787534233.1229978,
   "active_character_image_keys": [
     "char_aether",
     "char_columbina",
     "char_varesa",
-    "char_aloy"
+    "char_zhongli"
   ]
 }

@@ -15,7 +15,23 @@ import os
 import difflib
 
 # Debug mode - will be set by calling code to avoid circular dependency
-DEBUG_MODE = False
+# NOTE: This is a live proxy object, NOT a plain bool. Modules do
+# `from core.datatypes import DEBUG_MODE` at import time (before main.py has
+# called set_config_values), which would freeze a plain False forever. With
+# this proxy the imported reference stays valid and `if DEBUG_MODE:` always
+# evaluates the CURRENT config value.
+class _LiveBool:
+    def __init__(self, value: bool = False):
+        self.value = value
+
+    def __bool__(self) -> bool:
+        return bool(self.value)
+
+    def __repr__(self) -> str:
+        return repr(bool(self.value))
+
+
+DEBUG_MODE = _LiveBool(False)
 MC_AETHER = True
 WANDERER_NAME = "Wanderer"
 MANEKIN_NAME = "Manekin"
@@ -25,8 +41,10 @@ GAME_RESOLUTION = 1080
 
 def set_config_values(debug_mode=False, mc_aether=True, wanderer_name="Wanderer", manekin_name="Manekin", manekina_name="Manekina", username="Player", game_resolution=1080):
     """Set configuration values to avoid circular dependency with CONFIG.py"""
-    global DEBUG_MODE, MC_AETHER, WANDERER_NAME, MANEKIN_NAME, MANEKINA_NAME, USERNAME, GAME_RESOLUTION
-    DEBUG_MODE = debug_mode
+    global MC_AETHER, WANDERER_NAME, MANEKIN_NAME, MANEKINA_NAME, USERNAME, GAME_RESOLUTION
+    # DEBUG_MODE is a live proxy object - mutate it in place so every module
+    # holding a reference (from-import) sees the updated value.
+    DEBUG_MODE.value = bool(debug_mode)
     MC_AETHER = mc_aether
     WANDERER_NAME = wanderer_name
     MANEKIN_NAME = manekin_name
@@ -633,6 +651,32 @@ class Data(PatternMatchingEventHandler):
         if len(charname_match) > 0:
             self.party_capture_cache[charname_text.lower()] = charname_match[0]
             return charname_match[0]
+
+        # Fuzzy fallback: OCR often drops/merges a letter in character names
+        # (e.g. 'Yumemizuk Mizuki'). Use the same similarity approach as
+        # locations - require high confidence to avoid false positives.
+        fuzzy_matches = []
+        for character in self.characters:
+            ratio1 = difflib.SequenceMatcher(
+                None, charname_text.lower(), character.search_str.lower()
+            ).ratio()
+            ratio2 = difflib.SequenceMatcher(
+                None, character.search_str.lower(), charname_text.lower()
+            ).ratio()
+            similarity = max(ratio1, ratio2)
+            if similarity >= 0.87:  # High bar - must be a near-identical name
+                fuzzy_matches.append((character, similarity))
+
+        if fuzzy_matches:
+            fuzzy_matches.sort(key=lambda x: x[1], reverse=True)
+            char = fuzzy_matches[0][0]
+            if DEBUG_MODE:
+                print(
+                    f'FUZZY: Matched "{charname_text}" to "{char.character_display_name}" '
+                    f'(similarity: {fuzzy_matches[0][1]:.2f})'
+                )
+            self.party_capture_cache[charname_text.lower()] = char
+            return char
 
         self.party_capture_cache[charname_text.lower()] = None
         return None

@@ -3,9 +3,12 @@
 import os
 import json
 import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
 from typing import Optional, Callable
 
 from core.datatypes import Activity, ActivityType, Character, Location, DEBUG_MODE
+from core.log_utils import log as log_ts, should_log as log_should_log
 
 
 # =============================================================================
@@ -16,6 +19,8 @@ shutdown_event = threading.Event()
 state_lock = threading.RLock()
 ocr_lock = threading.Lock()
 
+ocr_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="ocr")
+
 
 # =============================================================================
 # Game State Variables
@@ -25,8 +30,8 @@ ocr_lock = threading.Lock()
 current_active_character: int = 0
 last_active_character: int = 0  # Remember the last detected active character
 
-# Character data for all 4 party slots
-current_characters: list[Optional[Character]] = [None, None, None, None]
+# Character data for all 6 party slots
+current_characters: list[Optional[Character]] = [None, None, None, None, None, None]
 
 # Flag to track if characters were truly detected this cycle (vs cached from before)
 # Initialized to True so first detection cycle works immediately
@@ -179,7 +184,7 @@ def clear_all_characters():
     """Clear all character data."""
     global current_characters
     with state_lock:
-        current_characters = [None, None, None, None]
+        current_characters = [None, None, None, None, None, None]
 
 
 def reset_game_start_time():
@@ -189,6 +194,14 @@ def reset_game_start_time():
 
     with state_lock:
         game_start_time = time.time()
+
+
+def shutdown_ocr_executor():
+    """Shutdown the OCR thread pool executor."""
+    global ocr_executor
+    if ocr_executor is not None:
+        ocr_executor.shutdown(wait=False)
+        ocr_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="ocr")
 
 
 # =============================================================================
@@ -224,9 +237,9 @@ def write_gui_shared_data():
             data["active_characters"] = chars if chars else ["None"]
             data["active_character_image_keys"] = char_image_keys if char_image_keys else [""]
 
-            if DEBUG_MODE:
-                print(f"DEBUG write_gui_shared_data: current_characters = {[c.character_display_name if c else 'None' for c in current_characters]}")
-                print(f"DEBUG write_gui_shared_data: active_characters = {data['active_characters']}")
+            if DEBUG_MODE and log_should_log("gui_data", 30.0):
+                log_ts(f"DEBUG write_gui_shared_data: current_characters = {[c.character_display_name if c else 'None' for c in current_characters]}")
+                log_ts(f"DEBUG write_gui_shared_data: active_characters = {data['active_characters']}")
             
             # Get active character index (convert from 1-indexed to 0-indexed)
             if current_active_character > 0:
@@ -235,24 +248,22 @@ def write_gui_shared_data():
                 data["active_character_index"] = -1
             
             # Get location from current activity
-            if current_activity and hasattr(current_activity, 'location') and current_activity.location:
-                data["location"] = current_activity.location.name
+            if current_activity and current_activity.activity_type == ActivityType.LOCATION and current_activity.activity_data:
+                data["location"] = current_activity.activity_data.location_name
             elif prev_location:
-                data["location"] = prev_location.name
+                data["location"] = prev_location.location_name
             
             # Get activity description
-            if current_activity and hasattr(current_activity, 'description'):
-                data["activity"] = current_activity.description
-            elif current_activity:
-                # Use activity type name instead of value
+            if current_activity:
+                # Use activity type name
                 data["activity"] = current_activity.activity_type.name.replace("_", " ").title()
             else:
                 data["activity"] = "Unknown"
             
             data["timestamp"] = game_start_time
         
-        if DEBUG_MODE:
-            print(f"DEBUG write_gui_shared_data: Final data = {data}")
+        if DEBUG_MODE and log_should_log("gui_final", 30.0):
+            log_ts(f"DEBUG write_gui_shared_data: Final data = {data}")
         
         # Write to file atomically (write to temp file, then rename)
         shared_path = _get_shared_data_path()

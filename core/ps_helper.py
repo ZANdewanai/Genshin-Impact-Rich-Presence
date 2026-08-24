@@ -20,14 +20,26 @@ GetWindowText = ctypes.windll.user32.GetWindowTextW
 GetWindowTextLength = ctypes.windll.user32.GetWindowTextLengthW
 IsWindowVisible = ctypes.windll.user32.IsWindowVisible
 
+_genshin_pid_cache = None
+_genshin_pid_cache_time = 0
+_genshin_pid_cache_ttl = 5.0
 
-def _getProcessIDByName(process_name: str):
+
+def _getProcessIDByName(process_name: str, use_cache: bool = True):
+    global _genshin_pid_cache, _genshin_pid_cache_time
+
+    if use_cache and _genshin_pid_cache is not None:
+        if time.time() - _genshin_pid_cache_time < _genshin_pid_cache_ttl:
+            return _genshin_pid_cache
+
     pids = []
 
     for proc in psutil.process_iter():
         if process_name.lower() in proc.name().lower():
             pids.append(proc.pid)
 
+    _genshin_pid_cache = pids
+    _genshin_pid_cache_time = time.time()
     return pids
 
 
@@ -93,8 +105,8 @@ def check_genshin_is_foreground():
 
         _, pid = win32process.GetWindowThreadProcessId(hwnd)
 
-        # Check if this PID matches any Genshin process
-        genshin_pids = _getProcessIDByName("GenshinImpact.exe")
+        # Use cached process list to avoid expensive psutil iteration every call
+        genshin_pids = _getProcessIDByName("GenshinImpact.exe", use_cache=True)
         return pid in genshin_pids
     except Exception:
         return False

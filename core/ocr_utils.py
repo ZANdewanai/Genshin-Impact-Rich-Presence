@@ -2,9 +2,10 @@
 
 import time
 import numpy as np
-from PIL import ImageGrab
+from PIL import ImageGrab, Image
 
 from core.datatypes import ActivityType, DEBUG_MODE
+from core.log_utils import log, should_log, record_ocr
 
 
 def capture_and_process_ocr(
@@ -16,66 +17,90 @@ def capture_and_process_ocr(
     search_func,
     text_processor=None,
     debug_key=None,
+    image=None,
 ):
     """
     Generic function to handle OCR capture, processing, and activity detection.
 
     :param reader: OCR reader instance (from ocr_engine)
-    :param coord: Coordinate tuple for ImageGrab
+    :param coord: Coordinate tuple for ImageGrab or crop region
     :param allowlist: String for OCR allowlist
     :param conf_thresh: Confidence threshold for text filtering
     :param activity_type: ActivityType enum for detection
     :param search_func: Function to search for activity data (e.g., DATA.search_location)
     :param text_processor: Optional function to process text before searching
     :param debug_key: Optional key for debug prints (e.g., 'LOCATION')
+    :param image: Optional pre-captured PIL Image. If provided, coord is used to crop
+                  from this image instead of doing a new screen capture. The caller
+                  remains responsible for closing the original image.
     :return: Detected activity or None
     """
-    image = None
+    source_image = None
     cap = None
     try:
-        image = ImageGrab.grab(bbox=coord)
-        cap = np.array(image)
+        if image is None:
+            time.sleep(0.01)
+            source_image = ImageGrab.grab(bbox=coord)
+        else:
+            source_image = image.crop(coord)
+
+        grayscale = source_image.convert('L')
+        small_image = grayscale.resize(
+            (int(grayscale.width * 0.5), int(grayscale.height * 0.5)), Image.LANCZOS
+        )
+        cap = np.array(small_image)
+        grayscale.close()
+        small_image.close()
     except OSError:
-        if image:
-            image.close()
+        if source_image:
+            source_image.close()
         print(
             "OSError: Cannot capture screen. Try running as admin if this issue persists."
         )
         time.sleep(1)
         return None
     except RuntimeError as e:
-        if image:
-            image.close()
+        if source_image:
+            source_image.close()
         print(f"Screen capture runtime error during {activity_type}: {e}")
         time.sleep(1)
         return None
 
     results = []
+    _ocr_start = time.perf_counter()
     try:
         results = reader.readtext(cap, allowlist=allowlist)
     except RuntimeError as e:
         print(f"OCR RuntimeError during {activity_type} recognition: {e}")
-        # Cleanup
         del cap
-        if image:
-            image.close()
-        del image
+        if source_image:
+            source_image.close()
+        del source_image
         time.sleep(1)
         return None
 
-    # Cleanup memory
+    # Perf counter: measure pure OCR inference time per region
+    record_ocr(
+        debug_key or activity_type.name,
+        (time.perf_counter() - _ocr_start) * 1000.0,
+    )
+
     del cap
-    if image:
-        image.close()
-    del image
+    if source_image:
+        source_image.close()
+    del source_image
 
     processed_text = " ".join(
         [word.strip() for word in [r[1] for r in results if r[2] > conf_thresh]]
     )
     if debug_key and DEBUG_MODE:
-        print(
-            f"{debug_key} OCR: '{processed_text}' (confidence: {[r[2] for r in results if r[2] > conf_thresh]})"
-        )
+        # Only log non-empty reads immediately; throttle identical empty
+        # reads to once per 10s per region to avoid console spam
+        if processed_text or should_log(f"ocr_empty_{debug_key}", 10.0):
+            log(
+                f"{debug_key} OCR: '{processed_text}' "
+                f"(confidence: {[r[2] for r in results if r[2] > conf_thresh]})"
+            )
 
     if text_processor:
         processed_text = text_processor(processed_text)

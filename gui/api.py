@@ -179,7 +179,7 @@ class Api:
             "location": "Unknown",
             "activity": "None",
             "timestamp": None,
-            "party": [None, None, None, None],
+            "party": [None, None, None, None, None, None],
             "active_character_index": -1,
         }
         data = {}
@@ -193,7 +193,7 @@ class Api:
         names = data.get("active_characters") or []
         keys = data.get("active_character_image_keys") or []
         party = []
-        for i in range(4):
+        for i in range(6):
             name = names[i] if i < len(names) else None
             if not name or name == "None":
                 party.append(None)

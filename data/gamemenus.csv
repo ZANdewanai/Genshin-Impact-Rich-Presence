@@ -55,11 +55,11 @@ weapons,Looking at their Weapons,In Menus,menu_inventory_weapons
 artifacts,Looking at their Artifacts,In Menus,menu_inventory_artifacts
 dev,Looking at their Character Development Items,In Menus,menu_inventory_development
 food,Looking at their Food Stock,In Menus,menu_inventory_food
+furnishings,Looking at their Furnishings,In Menus,menu_inventory_furnishings
 materials,Looking at their Materials or Researching them in the archives,In Menus,menu_inventory_materials
 gadget,Looking at their Gadgets,In Menus,menu_inventory_gadgets
 quest,Looking at their Quest Items,In Menus,menu_inventory_quests
 precious,Looking at their Precious Items,In Menus,menu_inventory_precious
-furnishings,Looking at their Furnishings,In Menus,menu_inventory_furnishings
 character archive,Looking at the Character Archive,In Menus,menu_character_archive
 ------,------,TUTORIALS,------
 all,Looking at All the Tutorials,In Menus,menu_tutorial

@@ -95,12 +95,11 @@ def get_asset_url(image_key: str) -> str:
 
 def get_party_info_string(current_characters):
     """Generate party info string for Discord RPC."""
-    party_members = []
-    for i, char in enumerate(current_characters[:4], 1):  # Show first 4 characters
-        if char is not None:
-            party_members.append(char.character_display_name)
-        else:
-            party_members.append(f"Slot {i}")
+    party_members = [
+        char.character_display_name
+        for char in current_characters[:6]
+        if char is not None
+    ]
 
     return " | ".join(party_members) if party_members else "No party detected"
 

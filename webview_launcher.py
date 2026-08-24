@@ -47,45 +47,37 @@ ui_url = f"http://localhost:{PORT}/index.html"
 print(f"Loading UI from: {ui_url}")
 
 api = Api()
+ASPECT = 16 / 9  # 16:9 — the UI is designed for this ratio
 window = webview.create_window(
     "Genshin Impact Rich Presence",
     ui_url,
     js_api=api,
-    width=1060,
-    height=900,
-    min_size=(900, 620),
+    width=1280,
+    height=720,
+    min_size=(960, 540),
     background_color="#08091a",
 )
 print("Window created successfully")
 
 
-def _fit_window(_=None):
-    """Resize the window so the whole panel fits with no scrolling."""
+def _enforce_aspect(*_):
+    """Lock the window to a 16:9 ratio so the 16:9 UI never looks stretched or tall."""
     try:
-        size = window.evaluate_js(
-            """
-            (() => {
-                // Simple approach: measure the root element
-                const root = document.getElementById('root');
-                if (!root) return [0, 0];
-                
-                const r = root.getBoundingClientRect();
-                return [Math.ceil(r.width), Math.ceil(r.height)];
-            })()
-            """
-        )
-        if size and size[0] and size[1]:
-            # +40 = outer p-5 padding on both sides, +72 vertical safety margin
-            window.resize(max(900, size[0] + 40), max(620, size[1] + 72))
+        w = window.width
+        h = window.height
+        target_h = round(w / ASPECT)
+        if target_h != h:
+            window.resize(w, target_h)
     except Exception as e:
-        print(f"fit failed: {e}")
+        print(f"aspect lock failed: {e}")
 
 
-window.events.loaded += _fit_window
-# Re-fit once web fonts have finished loading (layout shifts after first paint),
-# so the window always matches the true content height.
+window.events.loaded += _enforce_aspect
+# Keep the ratio locked even if the user resizes the window.
+window.events.resized += _enforce_aspect
+# Re-apply once web fonts have finished loading (layout can shift after first paint).
 for _delay in (0.8, 2.0, 3.5):
-    threading.Timer(_delay, _fit_window).start()
+    threading.Timer(_delay, _enforce_aspect).start()
 
 try:
     webview.start(gui="edgechromium")

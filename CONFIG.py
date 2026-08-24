@@ -375,12 +375,19 @@ a window with the same window caption, but with the "DXGIWatchdogThreadWindow" c
 hence, it's important to filter out the exact class & window caption.
 """
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 """
 Set to true to print debug messages.
 """
 
-DEBUG_CHARACTER_MODE = True
+USE_SENSOR_WORKERS = True
+"""
+Use the new multi-thread sensor architecture (CharSensor/LocationSensor/
+MenuSensor writing JSON blackboards + coordinator state machine) instead of
+the legacy sequential detection loop in core/detection.py.
+"""
+
+DEBUG_CHARACTER_MODE = False
 """
 Set to true to print character detection debug messages.
 Disable to reduce console spam from character detection.
@@ -404,6 +411,24 @@ BASE_NAMES_4P_COORD = [
     (2165, 445, 2362, 517),  # Character 2
     (2165, 575, 2360, 650),  # Character 3
     (2165, 705, 2362, 778),  # Character 4
+]
+
+BASE_NUMBER_6P_COORD = [
+    (2480, 350, 2510, 380),   # Char 1 - centered at (2495, 365)
+    (2480, 472, 2510, 502),   # Char 2 - centered at (2495, 487)
+    (2480, 592, 2510, 622),   # Char 3 - centered at (2495, 607)
+    (2480, 717, 2510, 747),   # Char 4 - centered at (2495, 732)
+    (2480, 842, 2510, 872),   # Char 5 - centered at (2495, 857)
+    (2480, 967, 2510, 997),   # Char 6 - centered at (2495, 982)
+]
+
+BASE_NAMES_6P_COORD = [
+    (2165, 320, 2362, 391),   # Character 1
+    (2165, 445, 2362, 517),   # Character 2
+    (2165, 575, 2360, 650),   # Character 3
+    (2165, 705, 2362, 778),   # Character 4
+    (2165, 835, 2362, 908),   # Character 5
+    (2165, 965, 2362, 1038),  # Character 6
 ]
 
 BASE_ACTIVITY_COORD = (1880, 20, 2436, 77)
@@ -443,6 +468,8 @@ def get_dynamic_coordinates():
                 return {
                     "NUMBER_4P_COORD": BASE_NUMBER_4P_COORD,
                     "NAMES_4P_COORD": BASE_NAMES_4P_COORD,
+                    "NUMBER_6P_COORD": BASE_NUMBER_6P_COORD,
+                    "NAMES_6P_COORD": BASE_NAMES_6P_COORD,
                     "BOSS_COORD": BASE_BOSS_COORD,
                     "LOCATION_COORD": BASE_LOCATION_COORD,
                     "MAP_LOC_COORD": BASE_MAP_LOC_COORD,
@@ -477,6 +504,24 @@ def get_dynamic_coordinates():
                         round(y2 * scale_y),
                     )
                     for x1, y1, x2, y2 in BASE_NAMES_4P_COORD
+                ],
+                "NUMBER_6P_COORD": [
+                    (
+                        round(x1 * scale_x),
+                        round(y1 * scale_y),
+                        round(x2 * scale_x),
+                        round(y2 * scale_y),
+                    )
+                    for x1, y1, x2, y2 in BASE_NUMBER_6P_COORD
+                ],
+                "NAMES_6P_COORD": [
+                    (
+                        round(x1 * scale_x),
+                        round(y1 * scale_y),
+                        round(x2 * scale_x),
+                        round(y2 * scale_y),
+                    )
+                    for x1, y1, x2, y2 in BASE_NAMES_6P_COORD
                 ],
                 "BOSS_COORD": (
                     round(BASE_BOSS_COORD[0] * scale_x),
@@ -528,6 +573,8 @@ def get_dynamic_coordinates():
     return {
         "NUMBER_4P_COORD": BASE_NUMBER_4P_COORD,
         "NAMES_4P_COORD": BASE_NAMES_4P_COORD,
+        "NUMBER_6P_COORD": BASE_NUMBER_6P_COORD,
+        "NAMES_6P_COORD": BASE_NAMES_6P_COORD,
         "BOSS_COORD": BASE_BOSS_COORD,
         "LOCATION_COORD": BASE_LOCATION_COORD,
         "MAP_LOC_COORD": BASE_MAP_LOC_COORD,
@@ -543,6 +590,8 @@ DYNAMIC_COORDINATES, DETECTED_RESOLUTION = get_dynamic_coordinates()
 # Make coordinates available globally
 NUMBER_4P_COORD = DYNAMIC_COORDINATES["NUMBER_4P_COORD"]
 NAMES_4P_COORD = DYNAMIC_COORDINATES["NAMES_4P_COORD"]
+NUMBER_6P_COORD = DYNAMIC_COORDINATES["NUMBER_6P_COORD"]
+NAMES_6P_COORD = DYNAMIC_COORDINATES["NAMES_6P_COORD"]
 BOSS_COORD = DYNAMIC_COORDINATES["BOSS_COORD"]
 LOCATION_COORD = DYNAMIC_COORDINATES["LOCATION_COORD"]
 MAP_LOC_COORD = DYNAMIC_COORDINATES["MAP_LOC_COORD"]

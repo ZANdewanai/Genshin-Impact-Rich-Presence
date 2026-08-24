@@ -1,7 +1,6 @@
 """Adaptive character detection system."""
 
 import json
-import os
 import re
 import time
 from pathlib import Path
@@ -12,7 +11,7 @@ from PIL import ImageGrab
 
 from core.datatypes import ActivityType, Character, DEBUG_MODE
 from CONFIG import DEBUG_CHARACTER_MODE
-from CONFIG import NAMES_4P_COORD, NUMBER_4P_COORD, ALLOWLIST, NAME_CONF_THRESH
+from CONFIG import NAMES_6P_COORD, NUMBER_6P_COORD, ALLOWLIST, NAME_CONF_THRESH
 
 # Shared config path (defined locally since it's runtime-dependent)
 script_dir = Path(__file__).resolve().parent.parent
@@ -20,6 +19,20 @@ shared_config_path = script_dir / "shared_config.json"
 
 from core import ps_helper
 from core.ocr_utils import capture_and_process_ocr
+from core.log_utils import record_ocr
+
+_screen_resolution_cache = None
+_screen_resolution_cache_time = 0
+_screen_resolution_cache_ttl = 2.0
+
+
+def get_screen_resolution_cached():
+    global _screen_resolution_cache, _screen_resolution_cache_time
+    now = time.time()
+    if _screen_resolution_cache is None or (now - _screen_resolution_cache_time) > _screen_resolution_cache_ttl:
+        _screen_resolution_cache = ps_helper.get_screen_resolution()
+        _screen_resolution_cache_time = now
+    return _screen_resolution_cache
 
 
 class CharacterRegionManager:
@@ -28,45 +41,27 @@ class CharacterRegionManager:
     def __init__(self, reader):
         self.reader = reader
 
-        # Load coordinates from shared_config.json first, fallback to CONFIG.py
-        script_dir = Path(__file__).resolve().parent.parent
-        shared_config_file = script_dir / "shared_config.json"
-
-        try:
-            if shared_config_file.exists():
-                with open(shared_config_file, "r") as f:
-                    config = json.load(f)
-                    # Use adapted coordinates if available, otherwise fallback
-                    if (
-                        "ADAPTED_NAMES_4P_COORD" in config
-                        and "ADAPTED_NUMBER_4P_COORD" in config
-                    ):
-                        self.base_name_positions = [
-                            tuple(c) for c in config["ADAPTED_NAMES_4P_COORD"]
-                        ]
-                        self.base_number_positions = [
-                            tuple(c) for c in config["ADAPTED_NUMBER_4P_COORD"]
-                        ]
-                    else:
-                        self.base_name_positions = list(NAMES_4P_COORD)
-                        self.base_number_positions = list(NUMBER_4P_COORD)
-            else:
-                self.base_name_positions = list(NAMES_4P_COORD)
-                self.base_number_positions = list(NUMBER_4P_COORD)
-        except (OSError, RuntimeError, ValueError) as e:
-            if DEBUG_MODE:
-                print(f"[WARNING] Error loading shared config: {e}, using CONFIG.py")
-            self.base_name_positions = list(NAMES_4P_COORD)
-            self.base_number_positions = list(NUMBER_4P_COORD)
+        # Base coordinates ALWAYS come from CONFIG.py - shared_config.json is
+        # write-only runtime output (for the GUI) and is never used as a
+        # starting point. Adaptations live in memory for this session only.
+        # Name boxes get a small left padding: OCR occasionally clips the
+        # first letter of names ('umemizuki', 'aresa') because long names
+        # start slightly left of the configured box.
+        _name_left_pad = 12
+        self.base_name_positions = [
+            (max(0, x1 - _name_left_pad), y1, x2, y2)
+            for (x1, y1, x2, y2) in NAMES_6P_COORD
+        ]
+        self.base_number_positions = list(NUMBER_6P_COORD)
 
         self.current_name_positions = self.base_name_positions.copy()
         self.current_number_positions = self.base_number_positions.copy()
 
         # Dynamic tracking - start with unknown (None) instead of assuming occupied
-        self.occupied_slots = [None, None, None, None]
-        self.slot_confidence = [0.0, 0.0, 0.0, 0.0]
+        self.occupied_slots = [None, None, None, None, None, None]
+        self.slot_confidence = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.adaptation_history = []
-        self.vertical_shifts = [0, 0, 0, 0]
+        self.vertical_shifts = [0, 0, 0, 0, 0, 0]
 
         # Movement constraints (vertical only, ±30 pixels max)
         self.max_vertical_shift = 30
@@ -78,10 +73,34 @@ class CharacterRegionManager:
         """Reset positions to base coordinates after screen resolution change."""
         self.current_name_positions = self.base_name_positions.copy()
         self.current_number_positions = self.base_number_positions.copy()
-        self.vertical_shifts = [0, 0, 0, 0]
+        self.vertical_shifts = [0, 0, 0, 0, 0, 0]
         self.needs_redetection = True
 
-    def detect_occupied_slots(self):
+    def _validate_positions(self, positions, kind="name"):
+        """Sanity-check a coordinate list: 6 valid boxes, no duplicates,
+        strictly ordered vertically with plausible slot spacing."""
+        if not isinstance(positions, (list, tuple)) or len(positions) != 6:
+            return False
+        centers = []
+        for box in positions:
+            try:
+                x1, y1, x2, y2 = box
+                if not all(isinstance(v, (int, float)) for v in box):
+                    return False
+            except (TypeError, ValueError):
+                return False
+            if x2 <= x1 or y2 <= y1:
+                return False
+            centers.append((y1 + y2) / 2)
+        # Slots must be strictly top-to-bottom with reasonable spacing
+        # (real party slots are ~100-130px apart at 1440p)
+        min_gap = 50
+        for prev, curr in zip(centers, centers[1:]):
+            if curr - prev < min_gap:
+                return False
+        return True
+
+    def detect_occupied_slots(self, image=None):
         """Determine which character slots are actually occupied with overlap prevention"""
         occupied = []
         confidence_scores = []
@@ -94,7 +113,7 @@ class CharacterRegionManager:
 
         for i, base_coords in enumerate(self.base_name_positions):
             success, confidence = self._test_slot_detection(
-                i, self.current_name_positions[i]
+                i, self.current_name_positions[i], image=image
             )
 
             if DEBUG_MODE and DEBUG_CHARACTER_MODE:
@@ -134,6 +153,7 @@ class CharacterRegionManager:
                             base_coords,
                             detected_names,
                             max_tries=MAX_ADAPTATION_TRIES,
+                            image=image,
                         )
                     )
 
@@ -141,6 +161,9 @@ class CharacterRegionManager:
                         self.current_name_positions[i] = best_coords
                         occupied.append(i)
                         confidence_scores.append(adaptive_confidence)
+                        # Register the detected name so later slots can't
+                        # match the same character again (dedup)
+                        detected_names.add(adaptive_success)
 
                         self.adaptation_history.append(
                              {
@@ -167,7 +190,7 @@ class CharacterRegionManager:
         return occupied, confidence_scores
 
     def _try_adaptive_positions_strict(
-        self, slot_index, base_coords, detected_names, max_tries=3
+        self, slot_index, base_coords, detected_names, max_tries=3, image=None
     ):
         """Try limited vertical position shifts with strict validation"""
         x1, y1, x2, y2 = base_coords
@@ -189,7 +212,7 @@ class CharacterRegionManager:
             test_y1 = y1 + shift
             test_y2 = y2 + shift
 
-            screen_height = ps_helper.get_screen_resolution()[1]
+            screen_height = get_screen_resolution_cached()[1]
             if test_y1 < 0 or test_y2 > screen_height:
                 continue
 
@@ -200,7 +223,7 @@ class CharacterRegionManager:
                 continue
 
             temp_success, temp_confidence = self._test_slot_detection(
-                slot_index, test_coords
+                slot_index, test_coords, image=image
             )
 
             # Require higher confidence for adapted positions
@@ -246,7 +269,7 @@ class CharacterRegionManager:
             test_y2 = y2 + shift
 
             # Stay within screen bounds
-            screen_height = ps_helper.get_screen_resolution()[1]
+            screen_height = get_screen_resolution_cached()[1]
             if test_y1 < 0 or test_y2 > screen_height:
                 continue
 
@@ -272,17 +295,17 @@ class CharacterRegionManager:
 
     def _update_global_coordinates(self):
         """Update global coordinate variables with adapted positions for GUI"""
-        global NAMES_4P_COORD, NUMBER_4P_COORD
+        global NAMES_6P_COORD, NUMBER_6P_COORD
 
         # Update the global coordinate arrays with current adapted positions
-        NAMES_4P_COORD = self.current_name_positions.copy()
-        NUMBER_4P_COORD = self.current_number_positions.copy()
+        NAMES_6P_COORD = self.current_name_positions.copy()
+        NUMBER_6P_COORD = self.current_number_positions.copy()
 
         # Log the coordinate update for debugging
         if DEBUG_MODE:
             print("[COORDS] Updated global coordinates for GUI:")
-            print(f"   NAMES_4P_COORD: {NAMES_4P_COORD}")
-            print(f"   NUMBER_4P_COORD: {NUMBER_4P_COORD}")
+            print(f"   NAMES_6P_COORD: {NAMES_6P_COORD}")
+            print(f"   NUMBER_6P_COORD: {NUMBER_6P_COORD}")
 
         # Also update the shared config file that GUI reads
         self._update_gui_shared_config()
@@ -300,8 +323,8 @@ class CharacterRegionManager:
                 gui_config = {}
 
             # Update coordinate information for GUI
-            gui_config["ADAPTED_NAMES_4P_COORD"] = self.current_name_positions.copy()
-            gui_config["ADAPTED_NUMBER_4P_COORD"] = self.current_number_positions.copy()
+            gui_config["ADAPTED_NAMES_6P_COORD"] = self.current_name_positions.copy()
+            gui_config["ADAPTED_NUMBER_6P_COORD"] = self.current_number_positions.copy()
             gui_config["ADAPTATION_ACTIVE"] = True
             gui_config["ADAPTATION_HISTORY"] = self.adaptation_history.copy()
             gui_config["OCCUPIED_SLOTS"] = self.occupied_slots.copy()
@@ -316,31 +339,38 @@ class CharacterRegionManager:
             if DEBUG_MODE:
                 print(f"[ERROR] Error updating shared config: {e}")
 
-    def _test_slot_detection(self, slot_index, coords):
+    def _test_slot_detection(self, slot_index, coords, image=None):
         """Test if a character slot can be detected at given coordinates"""
         try:
             # Log capture coordinates and verify against overlay
             if DEBUG_MODE:
                 print(f"[CAPTURE] Capturing slot {slot_index} at coords: {coords}")
             try:
-                image = ImageGrab.grab(bbox=coords)
+                if image is None:
+                    capture_image = ImageGrab.grab(bbox=coords)
+                else:
+                    capture_image = image.crop(coords)
             except Exception as e:
                 if DEBUG_MODE:
                     print(f"[ERROR] Failed to capture image for slot {slot_index}: {e}")
                 return False, 0.0
             
             try:
-                cap = np.array(image)
+                cap = np.array(capture_image)
             except Exception as e:
                 if DEBUG_MODE:
                     print(f"[ERROR] Failed to convert image to array for slot {slot_index}: {e}")
-                image.close()
+                capture_image.close()
                 return False, 0.0
             finally:
-                image.close()
-                
+                capture_image.close()
+                 
             try:
+                _ocr_start = time.perf_counter()
                 results = self.reader.readtext(cap, allowlist=ALLOWLIST)
+                record_ocr(
+                    "CHAR_SLOTS", (time.perf_counter() - _ocr_start) * 1000.0
+                )
             except Exception as e:
                 if DEBUG_MODE:
                     print(f"[ERROR] OCR reader failed for slot {slot_index}: {e}")
@@ -386,17 +416,17 @@ class CharacterRegionManager:
         """Calculate the safe boundaries for each character slot to prevent overlap"""
         boundaries = []
 
-        for i in range(4):
+        for i in range(6):
             if i == 0:
                 # First slot - only lower boundary
                 upper_bound = -float("inf")
                 lower_bound = (
                     self.base_name_positions[1][1] - 10
                 )  # 10px buffer from next slot
-            elif i == 3:
+            elif i == 5:
                 # Last slot - only upper boundary
                 upper_bound = (
-                    self.base_name_positions[2][1] + 10
+                    self.base_name_positions[4][1] + 10
                 )  # 10px buffer from previous slot
                 lower_bound = float("inf")
             else:
@@ -416,7 +446,7 @@ class CharacterRegionManager:
 
         # Check against adjacent slots only
         for i in [slot_index - 1, slot_index + 1]:
-            if 0 <= i < 4:
+            if 0 <= i < 6:
                 upper_bound, lower_bound = slot_boundaries[i]
 
                 # Check if this slot would encroach on adjacent slot's territory
@@ -473,7 +503,7 @@ class CharacterRegionManager:
         """Get number coordinates that stay paired with adapted name positions"""
         # Apply the same vertical shifts to number positions as name positions
         adaptive_coords = []
-        for i in range(4):
+        for i in range(6):
             x1, y1, x2, y2 = self.base_number_positions[i]
 
             # Apply the same vertical shift as the corresponding name position
@@ -493,8 +523,8 @@ class CharacterRegionManager:
         """Reset all positions to original coordinates"""
         self.current_name_positions = self.base_name_positions.copy()
         self.current_number_positions = self.base_number_positions.copy()
-        self.occupied_slots = [None, None, None, None]
-        self.slot_confidence = [0.0, 0.0, 0.0, 0.0]
+        self.occupied_slots = [None, None, None, None, None, None]
+        self.slot_confidence = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.adaptation_history.clear()
         self.needs_redetection = True
         print("[RESET] Reset character positions to base coordinates")
@@ -527,7 +557,7 @@ class CharacterRegionManager:
 
         # Show vertical shifts
         shifts = []
-        for i in range(4):
+        for i in range(6):
             name_shift = (
                 self.current_name_positions[i][1] - self.base_name_positions[i][1]
             )

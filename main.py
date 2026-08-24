@@ -15,6 +15,7 @@ import os
 import json
 import time
 import threading
+from PIL import ImageGrab
 
 # Make stdout unbuffered for immediate debug output
 sys.stdout.reconfigure(line_buffering=True)
@@ -61,6 +62,7 @@ from core import (
     get_last_active_character,
     reset_game_start_time,
     write_gui_shared_data,
+    shutdown_ocr_executor,
     # Character detection
     CharacterRegionManager,
     # Discord RPC
@@ -97,6 +99,7 @@ from CONFIG import (
     OCR_CHARNAMES_ONE_IN,
     DEBUG_CHARACTER_MODE,
     DEBUG_MODE,
+    USE_SENSOR_WORKERS,
     USERNAME,
     MC_AETHER,
     WANDERER_NAME,
@@ -157,6 +160,14 @@ print("_______________________________________________________________")
 # Initialize character region manager
 character_region_manager = CharacterRegionManager(reader)
 
+# Initialize sensor coordinator if enabled
+coordinator = None
+if USE_SENSOR_WORKERS:
+    from core.coordinator import SensorCoordinator
+    coordinator = SensorCoordinator(reader, DATA, character_region_manager)
+    print("[OK] Sensor worker architecture enabled "
+          "(CharSensor / LocationSensor / MenuSensor)")
+
 
 # Handle command line arguments for manual control
 def handle_adaptive_character_commands():
@@ -210,6 +221,11 @@ print("_______________________________________________________________")
 # Reset game timer on startup for fresh session
 reset_game_start_time()
 
+# Start sensor workers if enabled
+if coordinator is not None:
+    coordinator.start()
+
+
 # Start Discord RPC thread
 start_rpc_thread(
     get_current_activity,
@@ -228,12 +244,21 @@ def signal_handler(signum, frame):
     """Handle graceful shutdown on Ctrl+C or SIGTERM - kills entire process immediately"""
     print(f"\nReceived signal {signum}, terminating process...")
     shutdown_event.set()
+    if coordinator is not None:
+        try:
+            coordinator.stop()
+        except Exception as e:
+            print(f"Warning: Error stopping sensors: {e}")
     # Clear Discord presence before killing process
     try:
         stop_rpc_thread()
         join_rpc_thread(timeout=1.0)
     except (OSError, RuntimeError) as e:
         print(f"Warning: Error during shutdown: {e}")
+    try:
+        shutdown_ocr_executor()
+    except (OSError, RuntimeError) as e:
+        print(f"Warning: Error during OCR executor shutdown: {e}")
     # Force immediate process termination - kills all threads
     # Use _exit to bypass normal cleanup that might hang on daemon threads
     import os
@@ -311,20 +336,37 @@ while not shutdown_event.is_set():
             print("GenshinImpact.exe resumed. Resuming OCR.")
 
     # Run one detection iteration
-    try:
-        sleep_duration = run_detection_iteration(
-            reader, DATA, character_region_manager, loop_count
-        )
-    except Exception as e:
-        print(f"[ERROR] Error in detection iteration: {e}")
-        if DEBUG_MODE:
-            import traceback
+    if coordinator is not None:
+        # Sensor architecture: workers scan in their own threads; the main
+        # loop only consumes their JSON outputs via the coordinator.
+        try:
+            sleep_duration = coordinator.tick()
+        except Exception as e:
+            print(f"[ERROR] Coordinator error: {e}")
+            if DEBUG_MODE:
+                import traceback
+                traceback.print_exc()
+            sleep_duration = 1.0
+    else:
+        # Legacy sequential detection loop
+        try:
+            full_screen = ImageGrab.grab()
+            try:
+                sleep_duration = run_detection_iteration(
+                    reader, DATA, character_region_manager, loop_count, full_screen=full_screen
+                )
+            finally:
+                full_screen.close()
+        except Exception as e:
+            print(f"[ERROR] Error in detection iteration: {e}")
+            if DEBUG_MODE:
+                import traceback
 
-            traceback.print_exc()
-        sleep_duration = 1.0  # Use longer sleep on error to avoid spamming
+                traceback.print_exc()
+            sleep_duration = 1.0  # Use longer sleep on error to avoid spamming
 
-    # Write data to shared file for GUI every 5 iterations (approx every 0.7 seconds)
-    if loop_count % 5 == 0:
+    # Write data to shared file for GUI every 10 iterations (approx every 1.5 seconds)
+    if loop_count % 10 == 0:
         write_gui_shared_data()
 
 

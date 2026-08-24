@@ -3,9 +3,6 @@
 OCR Engine - RapidOCR wrapper for Genshin Impact Rich Presence
 Lightweight OCR engine built on RapidOCR (ONNX Runtime)
 """
-import os
-import numpy as np
-from PIL import Image
 
 class Reader:
     """RapidOCR Reader class for Genshin Impact Rich Presence"""
@@ -52,8 +49,9 @@ class Reader:
         if self.reader is None:
             raise RuntimeError("RapidOCR reader not initialized")
         
-        # RapidOCR returns a tuple: (detections, timing_info)
-        result_tuple = self.reader(image)
+        from core.state import ocr_lock
+        with ocr_lock:
+            result_tuple = self.reader(image)
         
         # Extract the detections (first element of tuple), handle None case
         detections = []

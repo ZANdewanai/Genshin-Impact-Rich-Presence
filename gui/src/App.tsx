@@ -89,7 +89,11 @@ function fetchState(demoConnected: boolean): Promise<BackendState> {
     location: LOCATIONS[0],
     activity: ACTIVITIES[0],
     timestamp: DEMO_STARTED_AT,
-    party: [null, null, null, null],
+    party: [
+      { name: "ZANdewanai", element: "pyro", level: 90, rarity: 5, imageUrl: "https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/refs/heads/main/resources/assets/images/characters/char_kibble.png" },
+      { name: "Qiqi", element: "cryo", level: 80, rarity: 5, imageUrl: "https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/refs/heads/main/resources/assets/images/characters/char_qiqi.png" },
+      { name: "Keqing", element: "electro", level: 75, rarity: 5, imageUrl: "https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/refs/heads/main/resources/assets/images/characters/char_keqing.png" },
+    ],
     active_character_index: 0,
   });
 }
@@ -172,16 +176,16 @@ function CharacterSlot({ character, index, isActive }: {
   const animClass = ["slide-up-1","slide-up-2","slide-up-3","slide-up-4"][index];
   return (
     <button
-      className={`relative flex flex-col overflow-hidden group ${animClass} slot-glow glow-${el} ${isActive ? "active" : ""}`}
+      className={`relative flex flex-col overflow-hidden group flex-1 ${animClass} slot-glow glow-${el} ${isActive ? "active" : ""}`}
       style={{
         background: character ? "linear-gradient(170deg,#0d1122 0%,#0a0d1a 100%)" : "rgba(10,13,26,0.5)",
         border: character ? `1px solid ${rclr}55` : "1px solid rgba(200,168,75,0.18)",
         boxShadow: isActive 
-          ? `0 12px 32px rgba(0,0,0,0.5), 0 0 20px ${rclr}50, inset 0 0 24px rgba(var(--el-clr), 0.07)`
-          : character ? `0 0 16px rgba(var(--el-clr), 0.0)` : undefined,
-        borderRadius: 4, aspectRatio: "3 / 4", outline: "none",
-        transform: isActive ? "translateY(-4px)" : "translateY(0)",
-        transition: "transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.35s ease, border-color 0.35s ease",
+          ? `0 8px 18px rgba(0,0,0,0.45), 0 0 12px ${rclr}50, inset 0 0 16px rgba(var(--el-clr), 0.06)`
+          : character ? `0 0 10px rgba(var(--el-clr), 0.0)` : undefined,
+        borderRadius: 4, aspectRatio: "3 / 4", maxWidth: "150px", outline: "none",
+        transform: isActive ? "translateY(-3px)" : "translateY(0)",
+        transition: "transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, border-color 0.3s ease",
       }}
     >
       <span className="corner tl" style={{ opacity: isActive ? 0.9 : 0.5 }} />
@@ -208,25 +212,25 @@ function CharacterSlot({ character, index, isActive }: {
           <div className="relative flex-1 overflow-hidden">
             <img src={character.imageUrl} alt={character.name}
               className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform"
-              style={{ filter: "saturate(0.8) contrast(1.08) brightness(0.95)", transitionDuration: "600ms" }}
+              style={{ filter: "saturate(0.8) contrast(1.08) brightness(0.95)", transitionDuration: "500ms" }}
             />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg,transparent 38%,rgba(8,9,26,0.96) 100%)" }} />
-            <div className="absolute top-0 left-0 right-0 h-0.5" style={{ backgroundColor: clr, boxShadow: `0 0 6px ${clr}` }} />
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg,transparent 36%,rgba(8,9,26,0.96) 100%)" }} />
+            <div className="absolute top-0 left-0 right-0 h-0.5" style={{ backgroundColor: clr, boxShadow: `0 0 5px ${clr}` }} />
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400"
               style={{ background: `linear-gradient(120deg,transparent 30%,${clr}10 50%,transparent 70%)` }} />
             <div className="absolute top-2 left-2">
               <Stars n={character.rarity ?? 5} color={rarityColor(character.rarity)} />
             </div>
           </div>
-          <div className="px-2.5 pt-1.5 pb-2.5 flex flex-col gap-1.5">
-            <span style={{ fontFamily: "var(--font-heading)", fontSize: "12.5px",
+          <div className="px-2 pt-1 pb-2 flex flex-col gap-1">
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "11px",
               color: isActive ? "#f0d47a" : "#ede3c4", fontWeight: 600, letterSpacing: "0.04em",
               whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", transition: "color 0.3s" }}>
               {character.name}
             </span>
             <div className="flex items-center justify-between">
               
-              <span style={{ fontFamily: "var(--font-heading)", fontSize: "9px", color: isActive ? "#f0d47a" : "#6a5820", letterSpacing: "0.06em", fontWeight: 500 }}>
+              <span style={{ fontFamily: "var(--font-heading)", fontSize: "8px", color: isActive ? "#f0d47a" : "#6a5820", letterSpacing: "0.06em", fontWeight: 500 }}>
                 {character.level != null ? `Lv.${character.level}` : ""}
               </span>
             </div>
@@ -237,13 +241,13 @@ function CharacterSlot({ character, index, isActive }: {
           <div className="absolute top-1.5 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
             <Stars n={5} color="#FFD780" />
           </div>
-          <div style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid rgba(200,168,75,0.2)",
+          <div style={{ width: 28, height: 28, borderRadius: "50%", border: "1px solid rgba(200,168,75,0.2)",
             display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(200,168,75,0.35)" strokeWidth="1.2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,168,75,0.35)" strokeWidth="1.2">
               <circle cx="12" cy="8" r="4"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
             </svg>
           </div>
-          <span style={{ fontFamily: "var(--font-heading)", fontSize: "8px", color: "rgba(200,168,75,0.3)", letterSpacing: "0.14em" }}>
+          <span style={{ fontFamily: "var(--font-heading)", fontSize: "7.5px", color: "rgba(200,168,75,0.3)", letterSpacing: "0.14em" }}>
             EMPTY
           </span>
         </div>
@@ -468,20 +472,79 @@ function SettingsPanel({ settings, onSave }: {
 /* ── Logs panel ───────────────────────────────── */
 function LogsPanel({ logs }: { logs: string[] }) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
+  const [autoScroll, setAutoScroll] = useState(true);
+
+  // Follow new lines only while the user is at/near the bottom
   useEffect(() => {
+    if (!autoScroll) return;
     bottomRef.current?.scrollIntoView({ behavior: "auto" });
-  }, [logs.length]);
+  }, [logs.length, autoScroll]);
+
+  const handleScroll = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+    setAutoScroll(atBottom);
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(logs.join("\n"));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard unavailable - fall back to selection-based copying
+      const selection = window.getSelection();
+      if (containerRef.current && selection) {
+        const range = document.createRange();
+        range.selectNodeContents(containerRef.current);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+  };
 
   return (
     <div>
       <OrnamentDivider label="ENGINE LOG" />
       <div className="mt-3 rounded overflow-hidden"
         style={{ background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)" }}>
-        <div style={{
-          maxHeight: 480, overflowY: "auto", padding: "12px 14px",
-          fontFamily: "var(--font-body)", fontSize: "12px", lineHeight: 1.6,
-          color: "#9aa0b8",
-        }}>
+        {/* Toolbar */}
+        <div className="flex items-center justify-between px-3 py-1.5"
+          style={{ borderBottom: "1px solid rgba(200,168,75,0.14)" }}>
+          <span style={{ fontSize: "11px", color: "#6a7089" }}>
+            {logs.length} {logs.length === 1 ? "line" : "lines"}
+            {!autoScroll && logs.length > 0 && (
+              <span style={{ color: "#6a5820", fontStyle: "italic" }}> · scrolled up</span>
+            )}
+          </span>
+          <button
+            onClick={handleCopy}
+            disabled={logs.length === 0}
+            className="rounded px-2.5 py-0.5 transition-colors"
+            style={{
+              fontSize: "11px",
+              fontFamily: "var(--font-body)",
+              color: copied ? "#ede3c4" : "#c8a84b",
+              border: "1px solid rgba(200,168,75,0.35)",
+              background: copied ? "rgba(200,168,75,0.15)" : "transparent",
+              cursor: logs.length === 0 ? "not-allowed" : "pointer",
+              opacity: logs.length === 0 ? 0.4 : 1,
+            }}
+          >
+            {copied ? "✓ Copied" : "Copy"}
+          </button>
+        </div>
+        <div
+          ref={containerRef}
+          onScroll={handleScroll}
+          style={{
+            maxHeight: 480, overflowY: "auto", padding: "12px 14px",
+            fontFamily: "var(--font-body)", fontSize: "12px", lineHeight: 1.6,
+            color: "#9aa0b8", userSelect: "text", cursor: "text",
+          }}>
           {logs.length === 0 ? (
             <span style={{ color: "#6a5820", fontStyle: "italic" }}>
               No engine output yet. Press CONNECT to start the detection + RPC engine.
@@ -542,9 +605,9 @@ function AboutPanel() {
           Genshin Presence
         </div>
 
-        <div style={{ fontFamily: "var(--font-heading)", fontSize: "9px", color: "#6a5820", letterSpacing: "0.2em", marginTop: 4 }}>
-          VERSION 1.0.0
-        </div>
+          <div style={{ fontFamily: "var(--font-heading)", fontSize: "9px", color: "#6a5820", letterSpacing: "0.2em", marginTop: 4 }}>
+            VERSION 3.0
+          </div>
 
         <div style={{ fontFamily: "var(--font-body)", fontStyle: "italic", fontSize: "13px", color: "#8a7a5a", marginTop: 8, textAlign: "center", maxWidth: 260, lineHeight: 1.5 }}>
           Show Teyvat to the world — your party, your world, your adventure.
@@ -554,20 +617,20 @@ function AboutPanel() {
       {/* Info cards */}
       <div>
         <OrnamentDivider label="DETAILS" />
-        <div className="mt-3 rounded overflow-hidden" style={{ background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)" }}>
+        <div className="mt-3 rounded overflow-hidden grid grid-cols-2 gap-px" style={{ background: "rgba(200,168,75,0.1)", border: "1px solid rgba(200,168,75,0.14)" }}>
           {[
-            { label: "VERSION", value: "1.0.0 (stable)" },
-            { label: "BUILT WITH", value: "Electron · React · Discord RPC" },
-            { label: "GAME SUPPORT", value: "Genshin Impact 5.x" },
-            { label: "PLATFORM", value: "Windows · macOS · Linux" },
-            { label: "LICENSE", value: "MIT — open source" },
+            { label: "VERSION", value: "3.0" },
+            { label: "BUILT WITH", value: "Python · React · pywebview · RapidOCR" },
+            { label: "GAME SUPPORT", value: "Genshin Impact (EN text)" },
+            { label: "PLATFORM", value: "Windows only" },
+            { label: "LICENSE", value: "MIT License" },
           ].map(({ label, value }) => (
-            <div key={label} className="flex items-center justify-between px-4 py-2.5"
-              style={{ borderBottom: "1px solid rgba(200,168,75,0.07)" }}>
+            <div key={label} className="flex flex-col gap-1 px-4 py-2.5"
+              style={{ background: "rgba(8,9,26,0.65)" }}>
               <span style={{ fontFamily: "var(--font-heading)", fontSize: "8.5px", color: "#6a5820", letterSpacing: "0.14em" }}>
                 {label}
               </span>
-              <span style={{ fontFamily: "var(--font-body)", fontSize: "13.5px", color: "#ede3c4" }}>
+              <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "#ede3c4", lineHeight: 1.3 }}>
                 {value}
               </span>
             </div>
@@ -580,10 +643,9 @@ function AboutPanel() {
         <OrnamentDivider label="LINKS" />
         <div className="mt-3 grid grid-cols-2 gap-2">
           {[
-            { label: "GitHub Repo", icon: "⧉", sub: "Source code & releases" },
-            { label: "Discord Server", icon: "◈", sub: "Community & support" },
+            { label: "GitHub Repo", icon: "⧉", sub: "github.com/ZANdewanai/…" },
             { label: "Report Issue", icon: "⚑", sub: "Bugs & feedback" },
-            { label: "Changelog", icon: "≡", sub: "What's new" },
+            { label: "Releases", icon: "≡", sub: "Changelog & downloads" },
           ].map(({ label, icon, sub }) => (
             <button key={label} className="flex flex-col gap-1 px-3 py-3 rounded text-left cursor-pointer group transition-all duration-200"
               style={{
@@ -824,14 +886,18 @@ export default function App() {
   const activeEl = activeChar?.element ?? "geo";
 
   return (
-    <div className="size-full flex items-center justify-center p-5"
+    <div className="size-full flex items-center justify-center p-3"
       style={{ background: "radial-gradient(ellipse 80% 60% at 40% 30%,#0c1030 0%,#08091a 65%,#060810 100%)" }}
     >
-      <div className="w-full max-w-5xl relative panel-halo"
+      <div className="w-full relative panel-halo flex flex-col"
         style={{
+          aspectRatio: "16 / 9",
+          maxWidth: "calc(100vh * 16 / 9)",
+          maxHeight: "100%",
           background: "linear-gradient(145deg,#0c1028 0%,#090d1e 50%,#080a18 100%)",
           border: "1px solid rgba(200,168,75,0.22)",
-          borderRadius: 6,
+          borderRadius: 8,
+          overflow: "hidden",
           transition: "box-shadow 0.6s ease",
         }}
       >
@@ -912,57 +978,54 @@ export default function App() {
         </div>
 
         {/* ── Tab content ── */}
-        <div className="relative px-5 pb-5 pt-4 flex flex-col gap-5"
-          
+        <div className="relative px-4 pb-4 pt-3 flex flex-1 min-h-0 flex-col gap-4 overflow-y-auto"
         >
           {tab === "presence" && (
             <>
-              <div className="grid grid-cols-1 xl:grid-cols-[1.15fr_1fr] gap-x-8 gap-y-5 items-start">
-              <div className="flex flex-col gap-5 min-w-0">
+              <div className="flex flex-col gap-4">
               {/* Party */}
               <div>
                 <OrnamentDivider label="ACTIVE PARTY" />
-                <div className="grid grid-cols-2 gap-3 mt-3.5 sm:grid-cols-4">
-                  {party.map((char, i) => (
+                <div className="flex flex-wrap justify-center gap-3 mt-3">
+                  {party.map((char, i) => char ? (
                     <CharacterSlot key={i} character={char} index={i}
                       isActive={activeCharacterIndex === i}
                     />
-                  ))}
+                  ) : null)}
                 </div>
 
                 {activeChar && (
-                  <div className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded"
+                  <div className="mt-2.5 flex items-center gap-2.5 px-2.5 py-2 rounded"
                     style={{
                       background: `linear-gradient(90deg,${EL_COLOR[activeEl]}10,transparent 80%)`,
                       border: `1px solid ${EL_COLOR[activeEl]}28`,
                     }}
                   >
                     <div style={{
-                      width: 5, height: 32, borderRadius: 3, flexShrink: 0,
+                      width: 4, height: 22, borderRadius: 2, flexShrink: 0,
                       background: EL_COLOR[activeEl],
-                      boxShadow: `0 0 8px ${EL_COLOR[activeEl]}`,
+                      boxShadow: `0 0 5px ${EL_COLOR[activeEl]}`,
                     }} />
                     <div className="flex flex-col gap-0.5">
-                      <span style={{ fontFamily: "var(--font-heading)", fontSize: "11px", color: EL_COLOR[activeEl], letterSpacing: "0.06em" }}>
+                      <span style={{ fontFamily: "var(--font-heading)", fontSize: "10px", color: EL_COLOR[activeEl], letterSpacing: "0.06em" }}>
                         {activeChar.name}
                       </span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <ElBadge el={activeEl} />
                         <Stars n={activeChar.rarity ?? 5} color={rarityColor(activeChar.rarity)} />
-                        <span style={{ fontFamily: "var(--font-heading)", fontSize: "8.5px", color: "#6a5820" }}>
+                        <span style={{ fontFamily: "var(--font-heading)", fontSize: "8px", color: "#6a5820" }}>
                           {activeChar.level != null ? `Lv.${activeChar.level}` : ""}
                         </span>
                       </div>
                     </div>
-                    <span style={{ fontFamily: "var(--font-body)", fontStyle: "italic", fontSize: "13px", color: "rgba(200,168,75,0.35)", marginLeft: "auto" }}>
+                    <span style={{ fontFamily: "var(--font-body)", fontStyle: "italic", fontSize: "11px", color: "rgba(200,168,75,0.35)", marginLeft: "auto" }}>
                       Selected
                     </span>
                   </div>
                 )}
               </div>
 
-              </div>
-              <div className="flex flex-col gap-5 min-w-0">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 items-start">
               {/* Status */}
               <div>
                 <OrnamentDivider label="STATUS" />
@@ -1016,9 +1079,9 @@ export default function App() {
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between pt-0.5">
+              <div className="flex items-center justify-between pt-0.5 md:col-span-2">
                 <span style={{ fontFamily: "var(--font-heading)", fontSize: "7.5px", color: "#3a3020", letterSpacing: "0.14em" }}>
-                  v1.0.0 · GENSHIN PRESENCE
+                  v3.0 · GENSHIN PRESENCE
                 </span>
                 <button onClick={toggleConnection}
                   className="px-4 py-1.5 rounded cursor-pointer transition-all duration-300"
