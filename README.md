@@ -10,7 +10,7 @@ translates what it sees into Discord status updates.
 > - **Windows 10/11 only**
 > - **GPU required** — OCR runs exclusively through DirectML (NVIDIA, AMD, or Intel); the app refuses to start without it
 > - **Game text language must be English**
-> - **Single Player mode only**, any party size (1–4)
+> - **Single Player mode only**, any party size (1–6)
 > - Works at any resolution or aspect ratio (auto-detected, ultrawide included)
 
 -----
