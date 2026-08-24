@@ -142,9 +142,6 @@ Debug tools live in `tools/`: `test_imagegrab.py` (capture test),
 ## 🙏 Credits & License
 
 **Author**: Created, developed, and maintained by [@ZANdewanai](https://github.com/ZANdewanai).
-This version is a complete from-scratch rewrite — architecture, OCR pipeline,
-sensor system, and GUI are all original work built on the same core idea of
-screen-capture OCR driving Discord Rich Presence.
 
 **Image Assets**: Intellectual property of HoYoverse © miHoYo. All rights reserved.
 Some assets sourced from the [Genshin Impact Fandom Wiki](https://genshin-impact.fandom.com/).
