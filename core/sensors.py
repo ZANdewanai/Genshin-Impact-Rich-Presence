@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 
 import numpy as np
-from PIL import ImageGrab
+from PIL import Image, ImageGrab
 
 from core.blackboard import write_json, read_json
 from core.datatypes import DEBUG_MODE
@@ -112,6 +112,40 @@ class CharSensor(BaseSensor):
         self._slot_cache = [None] * 6  # per-slot: {"fp","sample","name"}
         self._last_round_success = False
         self._debounce = {"candidate": None, "confirmed": None}
+        # Optional static-screenshot mode: grab regions from a file instead of
+        # the live screen. Lets us repro trial/partial/solo party layouts from
+        # screenshots users supply, without triggering those in-game ourselves.
+        self._static_img = None
+        try:
+            from CONFIG import DEBUG_STATIC_IMAGE_PATH
+            if DEBUG_STATIC_IMAGE_PATH:
+                from pathlib import Path
+                p = Path(__file__).resolve().parent.parent / DEBUG_STATIC_IMAGE_PATH
+                if Path(DEBUG_STATIC_IMAGE_PATH).exists():
+                    p = Path(DEBUG_STATIC_IMAGE_PATH)
+                if p.is_file():
+                    self._static_img = Image.open(p).convert("RGB")
+                    log(f"[{self.name}] static-image debug mode: {p}")
+        except Exception:
+            self._static_img = None
+
+    def _grab(self, bbox):
+        """Crop from the static debug image when set, else the live screen."""
+        if self._static_img is not None:
+            return self._static_img.crop(bbox)
+        return ImageGrab.grab(bbox=bbox)
+
+    def reset_slot_cache(self):
+        """Reset the character slot OCR cache to force fresh reads.
+        
+        This is called when the game state changes significantly (e.g., exiting
+        a cutscene), forcing the CharSensor to re-OCR all character slots instead
+        of using potentially stale cached results.
+        """
+        self._slot_cache = [None] * 6
+        self._last_round_success = False
+        if DEBUG_MODE:
+            log(f"[{self.name}] Reset character slot cache")
 
     def _match_character(self, text):
         try:
@@ -130,82 +164,249 @@ class CharSensor(BaseSensor):
             return None
         return {"name": c.character_display_name, "image_key": c.image_key}
 
+    # Digits shown on the party-member number plates (1-6).
+    _NUMBER_DIGITS = "0123456789"
+
+    def _read_number_digit(self, bbox, dy=0):
+        """OCR the number plate paired with a name box.
+
+        ``dy`` is the vertical offset the matching name was found at, so the
+        plate is read at the SAME shift the name used (they move together).
+        Returns the integer party ordinal (1-6), or ``None`` if no confident
+        single digit is read. A failed read simply retries next scan.
+        """
+        x1, y1, x2, y2 = bbox
+        y_top = max(0, y1 + dy)
+        if y2 + dy <= y_top:  # shifted fully off-screen
+            return None
+        crop = self._grab((x1, y_top, x2, y2 + dy))
+        gray = crop.convert("L")
+        crop.close()
+        # Number plates are tiny (~30x30): _prep() would shrink them 0.5x and
+        # destroy the digit, so upscale 3x and binarize instead. Plates also
+        # come in BOTH polarities (bright circles can fade to dark, digits are
+        # sometimes dark-on-light, sometimes light-on-dark for inactive slots).
+        # Blindly inverting 255-gray is fragile, so Otsu-threshold binarize
+        # (auto-picks the "ink" polarity) then upscale. This yields a clean
+        # white-glyph-on-black image for OCR regardless of the plate shading.
+        import cv2
+        up = gray.resize((max(1, gray.width * 3), max(1, gray.height * 3)))
+        blur = cv2.GaussianBlur(np.array(up), (5, 5), 0)
+        # Otsu-threshold the plate, then choose the "ink" polarity robustly:
+        # the digit/glyph is the SMALLER population whether the plate is
+        # dark-on-light or light-on-dark. THRESH_BINARY_INV alone would assume
+        # the smaller side is always the low side, which fails on faded/muted
+        # plates. So pick whichever side has fewer pixels and make it white.
+        _, otsu = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        dark_side = (otsu == 0).sum()
+        light_side = (otsu == 255).sum()
+        if dark_side <= light_side:
+            arr = (otsu == 0).astype(np.uint8) * 255       # ink = dark
+        else:
+            arr = (otsu == 255).astype(np.uint8) * 255    # ink = light
+        t0 = time.perf_counter()
+        try:
+            results = self.reader.readtext(arr, allowlist=self._NUMBER_DIGITS)
+        except Exception:
+            results = []
+        record_ocr("CHAR_NUMBERS", (time.perf_counter() - t0) * 1000.0)
+        for r in results:
+            txt = r[1].strip()
+            if r[2] >= 0.5 and len(txt) == 1 and txt.isdigit():
+                d = int(txt)
+                if 1 <= d <= 6:
+                    return d
+        return None
+
+    def _plate_brightness(self, bbox, dy=0):
+        """Grayscale mean of a number plate (used for the active-slot hint)."""
+        x1, y1, x2, y2 = bbox
+        y_top = max(0, y1 + dy)
+        if y2 + dy <= y_top:
+            return 0.0
+        c = self._grab((x1, y_top, x2, y2 + dy))
+        try:
+            return float(np.array(c.convert("L")).mean())
+        finally:
+            c.close()
+
+    def _capture_slot(self, i, names_coord, numbers_coord, fallback=False,
+                      steps=None):
+        """Resolve the character shown at physical crop index ``i`` and read
+        its paired number plate to learn the TRUE party ordinal.
+
+        The number plate moves WITH the name box (the adaptive manager keeps
+        them paired), so the digit is authoritative: a character that drifts
+        between two calibrated slots (e.g. a sparse/partial party) is still
+        placed in its real party slot, and rearranging the party is reflected
+        correctly. Returns an entry dict, or ``None`` if nothing was found.
+        """
+        x1, y1, x2, y2 = names_coord[i]
+        crop = self._grab(names_coord[i])
+        cur = self._prep(crop)
+        crop.close()
+        cache = self._slot_cache[i] or {}
+
+        # Pixel-identical short-circuit: reuse the cached name, but ALWAYS
+        # re-read the paired plate so renumbering a stationary bar (party
+        # rearranged/shrunk/grown) is still caught, and to keep the active
+        # brightness hint fresh.
+        if not fallback and (
+            _looks_same(cache.get("fp"), cache.get("sample"), cur)
+            and cache.get("name")
+        ):
+            dy = cache.get("dy", 0)
+            digit = self._read_number_digit(numbers_coord[i], dy)
+            ordinal = (digit - 1) if digit else cache.get("ordinal", i)
+            self._slot_cache[i] = {**cache, "ordinal": ordinal}
+            return {
+                "ordinal": ordinal,
+                "digit_read": digit is not None,
+                "entry": {
+                    "name": cache["name"],
+                    "image_key": cache.get("image_key"),
+                    "cached": True,
+                },
+                "brightness": self._plate_brightness(numbers_coord[i], dy),
+            }
+
+        # Crops to try: base first, then ±10 after a prior success; the
+        # incremental fallback adds larger offsets up to ±80 (nearest first).
+        attempts = [(names_coord[i], 0)]
+        if self._last_round_success and not fallback:
+            attempts.extend([
+                ((x1, y1 - 10, x2, y2 - 10), -10),
+                ((x1, y1 + 10, x2, y2 + 10), 10),
+            ])
+        if fallback and steps:
+            for dy in steps:
+                y_top = max(0, y1 + dy)
+                if y2 + dy <= y_top:  # shifted fully off-screen
+                    continue
+                attempts.append(((x1, y_top, x2, y2 + dy), dy))
+
+        matched = None
+        used_dy = 0
+        used_cur = None
+        for coords, dy in attempts:
+            c = self._grab(coords)
+            arr = self._prep(c)
+            c.close()
+            t0 = time.perf_counter()
+            try:
+                results = self.reader.readtext(arr)
+            except Exception:
+                results = []
+            record_ocr("CHAR_SLOTS", (time.perf_counter() - t0) * 1000.0)
+            text = ""
+            for r in results:
+                if r[2] > 0.6 and len(r[1].strip()) > 2:
+                    text = r[1].strip()
+                    break
+            if text:
+                m = self._match_character(text)
+                if m:
+                    matched = m
+                    used_dy = dy
+                    used_cur = arr
+                    break
+
+        if not matched:
+            self._slot_cache[i] = None
+            return None
+
+        # Read the paired plate at the SAME offset the name was found, so the
+        # ordinal stays bonded to the character even under adaptation.
+        digit = self._read_number_digit(numbers_coord[i], used_dy)
+        ordinal = (digit - 1) if digit else i
+        self._slot_cache[i] = {
+            "fp": used_cur,
+            "sample": used_cur.ravel()[::4],
+            "name": matched["name"],
+            "image_key": matched.get("image_key"),
+            "ordinal": ordinal,
+            "dy": used_dy,
+        }
+        return {
+            "ordinal": ordinal,
+            "digit_read": digit is not None,
+            "entry": {**matched, "cached": False},
+            "brightness": self._plate_brightness(numbers_coord[i], used_dy),
+        }
+
+
     def scan(self):
         names_coord, numbers_coord = self.coords_provider()
-        slots = []
+        slots = [None] * 6
         any_success = False
-        for i in range(6):
-            crop = ImageGrab.grab(bbox=names_coord[i])
-            cur = self._prep(crop)
-            crop.close()
-            cache = self._slot_cache[i] or {}
-            if (
-                _looks_same(cache.get("fp"), cache.get("sample"), cur)
-                and cache.get("name")
-            ):
-                slots.append({"name": cache["name"], "cached": True})
-                continue
+        # Each resolved entry carries the TRUE party ordinal (from the paired
+        # number plate), the character entry, and the plate brightness used for
+        # the active-slot hint.
+        found = []
 
-            # Cheap failure path: base position only after a failed round.
-            attempts = [names_coord[i]]
-            if self._last_round_success:
-                x1, y1, x2, y2 = names_coord[i]
-                attempts.extend([
-                    (x1, y1 - 10, x2, y2 - 10),
-                    (x1, y1 + 10, x2, y2 + 10),
-                ])
-            matched = None
-            for coords in attempts:
-                c = ImageGrab.grab(bbox=coords)
-                arr = self._prep(c)
-                c.close()
-                t0 = time.perf_counter()
-                try:
-                    results = self.reader.readtext(arr)
-                except Exception:
-                    results = []
-                record_ocr("CHAR_SLOTS", (time.perf_counter() - t0) * 1000.0)
-                text = ""
-                for r in results:
-                    if r[2] > 0.6 and len(r[1].strip()) > 2:
-                        text = r[1].strip()
-                        break
-                if text:
-                    m = self._match_character(text)
-                    if m:
-                        matched = m
-                        break
-            if matched:
-                any_success = True
-                slots.append(matched)
-                self._slot_cache[i] = {
-                    "fp": cur,
-                    "sample": cur.ravel()[::4],
-                    "name": matched["name"],
-                }
-            else:
-                slots.append(None)
-                self._slot_cache[i] = None
+        # ---- Phase 1: main capture at base (+±10 after a previous success) ----
+        for i in range(6):
+            res = self._capture_slot(i, names_coord, numbers_coord)
+            if res is not None:
+                found.append(res)
+        any_success = bool(found)
         self._last_round_success = any_success
 
-        # Active-slot hint from number-plate brightness (relative winner).
+        # ---- Phase 2: incremental-shift fallback when nothing was found ----
+        if not any_success:
+            # Interleaved steps so the smallest absolute shift is tried first:
+            # -10, +10, -20, +20, …, -80, +80
+            steps = []
+            for step in range(10, 81, 10):
+                steps.append(-step)
+                steps.append(step)
+            for i in range(6):
+                res = self._capture_slot(
+                    i, names_coord, numbers_coord, fallback=True, steps=steps
+                )
+                if res is not None:
+                    found.append(res)
+            any_success = bool(found)
+            self._last_round_success = any_success
+
+        # ---- Phase 3: place into slots by TRUE party ordinal, with dedup ----
+        # A lone character sitting between calibrated slots can be caught at
+        # several physical boxes; each resolves to (ideally) the SAME ordinal.
+        # Guarantee one character occupies exactly one party slot: on a name
+        # collision we keep the entry whose ordinal came from a real plate read
+        # (more reliable than a fallback to the physical box index).
+        placed = []
+        placed_names = set()
+        seen_slots = set()
+        for f in sorted(found, key=lambda x: not x.get("digit_read", False)):
+            entry = f.get("entry") or {}
+            name = entry.get("name")
+            ord_ = f.get("ordinal")
+            if not name or not (isinstance(ord_, int) and 0 <= ord_ <= 5):
+                continue
+            if name in placed_names or ord_ in seen_slots or slots[ord_] is not None:
+                continue
+            slots[ord_] = entry
+            placed.append(f)
+            placed_names.add(name)
+            seen_slots.add(ord_)
+
+        # ---- Phase 4: active-slot hint from plate brightness (by ordinal) ----
         # Only consider slots that actually have a detected character; empty
         # slots below the party HUD can capture background pixels that are
         # darker than inactive number plates and break the comparison.
-        brightness = []
-        for i in range(6):
-            c = ImageGrab.grab(bbox=numbers_coord[i])
-            brightness.append(float(np.array(c.convert("L")).mean()))
-            c.close()
-        occupied = [i for i, slot in enumerate(slots) if slot and slot.get("name")]
-        if len(occupied) >= 2:
-            occ_brightness = [(i, brightness[i]) for i in occupied]
-            srt = sorted(occ_brightness, key=lambda t: t[1])
-            hint = None
-            if (srt[1][1] - srt[0][1]) >= max(25, int(srt[1][1] * 0.12)):
-                hint = srt[0][0]
-        else:
-            hint = None
+        hint = None
+        if len(placed) >= 2:
+            srt = sorted(placed, key=lambda t: t["brightness"])
+            if (srt[1]["brightness"] - srt[0]["brightness"]) >= max(
+                25, int(srt[1]["brightness"] * 0.12)
+            ):
+                hint = srt[0]["ordinal"]
+        elif len(placed) == 1:
+            # Single-character party (e.g. trial character story quests):
+            # the lone detected character IS the active one.
+            hint = placed[0]["ordinal"]
+
         d = self._debounce
         if hint is not None and hint == d["candidate"]:
             d["confirmed"] = hint
@@ -341,8 +542,14 @@ class MenuSensor(BaseSensor):
 
         result = {
             "gamemenu": gm.gamemenu_name if gm else None,
+            # Ship the resolved identity alongside the label so consumers
+            # never have to re-search by a lossy display string - search_str
+            # and display name frequently differ (e.g. cutscenes:
+            # search_str="auto", name="Currently in a Cutscene").
+            "gamemenu_search": gm.search_str if gm else None,
             "party_setup": is_party,
             "domain": dom.domain_name if dom else None,
+            "domain_search": dom.search_str if dom else None,
         }
 
         # Only emit a debug log line when the resolved menu label actually changes

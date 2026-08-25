@@ -37,19 +37,21 @@ archon,Looking at the Archon Quests,In Menus,menu_archon_quests
 progress,Looking at their Current Quests,In Menus,menu_current_quests
 hangout,Looking at the Hangout Events,In Menus,menu_hangout_event
 valiant chronicles local legend,Looking at Valiant Chronicles - Local Legend,In Menus,icon_valiant_chronicles
-------,------,SPYRAL,------
-floor 1,Floor 1 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
-floor 2,Floor 2 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
-floor 3,Floor 3 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
-floor 4,Floor 4 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
-floor 5,Floor 5 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
-floor 6,Floor 6 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
-floor 7,Floor 7 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
-floor 8,Floor 8 - Abyss Corridor,Spyral Abyss,spiral_abyss_corridor
-floor 9,Floor 9 - Abyssal Moon Spire,Spyral Abyss,spiral_abyss
-floor 10,Floor 10 - Abyssal Moon Spire,Spyral Abyss,spiral_abyss
-floor 11,Floor 11 - Abyssal Moon Spire,Spyral Abyss,spiral_abyss
-floor 12,Floor 12 - Abyssal Moon Spire,Spyral Abyss,spiral_abyss
+------,------,STYGIAN ONSLAUGHT,------
+stygian onslaught,Preparing for Battle,Stygian Onslaught,stygian_onslaught
+------,------,SPIRAL,------
+floor 1,Floor 1 - Abyss Corridor,Spiral Abyss,spiral_abyss_corridor
+floor 2,Floor 2 - Abyss Corridor,Spiral Abyss,spiral_abyss_corridor
+floor 3,Floor 3 - Abyss Corridor,Spiral Abyss,spiral_abyss_corridor
+floor 4,Floor 4 - Abyss Corridor,Spiral Abyss,spiral_abyss_corridor
+floor 5,Floor 5 - Abyss Corridor,Spiral Abyss,spiral_abyss_corridor
+floor 6,Floor 6 - Abyss Corridor,Spiral Abyss,spiral_abyss_corridor
+floor 7,Floor 7 - Abyss Corridor,Spiral Abyss,spiral_abyss_corridor
+floor 8,Floor 8 - Abyss Corridor,Spiral Abyss,spiral_abyss_corridor
+floor 9,Floor 9 - Abyssal Moon Spire,Spiral Abyss,spiral_abyss
+floor 10,Floor 10 - Abyssal Moon Spire,Spiral Abyss,spiral_abyss
+floor 11,Floor 11 - Abyssal Moon Spire,Spiral Abyss,spiral_abyss
+floor 12,Floor 12 - Abyssal Moon Spire,Spiral Abyss,spiral_abyss
 ------,------,INVENTORY,------
 weapons,Looking at their Weapons,In Menus,menu_inventory_weapons
 artifacts,Looking at their Artifacts,In Menus,menu_inventory_artifacts
@@ -118,3 +120,4 @@ fountain of lucine,Fountain of Lucine,Court of Fontaine - Fontaine,fountain_luci
 tonas flames restitution,Checking the Rewards from offering at the Tablet of Tona,in Menus,tablet_tonas_Flame
 tona's flame's restitution,Checking the Rewards from offering at the Tablet of Tona,in Menus,tablet_tonas_Flame
 tona's flame, Tona's Flame,Stadium of the Sacred Flame - Natlan,tablet_tonas_flame
+

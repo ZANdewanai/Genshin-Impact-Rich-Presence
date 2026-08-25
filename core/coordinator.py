@@ -11,7 +11,7 @@ All transition/latch-prevention rules live here:
 import time
 
 from core.blackboard import read_json
-from core.datatypes import Activity, ActivityType, Character, DEBUG_MODE
+from core.datatypes import Activity, ActivityType, Character, GamemenuType, DEBUG_MODE
 from core.log_utils import log
 from core.sensors import CharSensor, LocationSensor, MenuSensor
 from core import state as state_module
@@ -69,9 +69,13 @@ class SensorCoordinator:
             # fall back to CONFIG-scaled base coordinates.
             mgr = self.character_region_manager
             if mgr is not None:
+                # Number plates are read for their party-ordinal digit AND for
+                # active-char brightness, so they must stay PAIRED with the
+                # adapted name boxes (get_adaptive_number_coordinates applies
+                # the same vertical shift to each plate as its name box).
                 return (
                     list(mgr.current_name_positions),
-                    list(mgr.current_number_positions),
+                    list(mgr.get_adaptive_number_coordinates()),
                 )
             from CONFIG import NAMES_6P_COORD, NUMBER_6P_COORD
             return NAMES_6P_COORD, NUMBER_6P_COORD
@@ -102,6 +106,8 @@ class SensorCoordinator:
             ),
             MenuSensor(reader, data, menu_coords, self.paths["menus"][0], 4.0),
         ]
+        # Store reference to CharSensor for cache reset during state transitions
+        self.char_sensor = self.sensors[0]
         self._empty_party_exits = 0
         self._empty_gamemenu = 0
         self._last_valid_party = 0.0
@@ -142,6 +148,26 @@ class SensorCoordinator:
         log(msg)
 
     # ------------------------------------------------------------------ #
+    @staticmethod
+    def _resolve_by_name(value, search_fn, data_list, name_attr):
+        """Resolve a sensor-reported label to its data object.
+
+        Sensors report display names but search_fn matches against search_str;
+        the two frequently differ (cutscenes, domains with punctuation...).
+        Search first, then fall back to an exact case-insensitive label match.
+        """
+        if not value:
+            return None
+        found = search_fn(value)
+        if found is not None:
+            return found
+        v = str(value).strip().lower()
+        return next(
+            (o for o in data_list
+             if str(getattr(o, name_attr)).lower() == v),
+            None,
+        )
+
     def tick(self) -> float:
         """One coordinator iteration. Returns sleep duration."""
         # Heartbeat with OCR perf stats (same cadence as legacy path)
@@ -221,7 +247,14 @@ class SensorCoordinator:
         # ---- gamemenu/cutscene enter/exit ----------------------------------
         if gamemenu:
             self._empty_gamemenu = 0
-            gm_obj = self.data.search_gamemenu(gamemenu)
+            # Prefer the identity the sensor already resolved; fall back to
+            # searching, then to an exact label match.
+            gm_search = menus.get("gamemenu_search") if menus else None
+            gm_obj = self.data.search_gamemenu(gm_search or gamemenu)
+            if gm_obj is None:
+                gm_obj = self._resolve_by_name(
+                    gamemenu, self.data.search_gamemenu,
+                    self.data.gamemenus, "gamemenu_name")
             with state_lock:
                 act = state_module.current_activity
                 should_update = (
@@ -242,7 +275,17 @@ class SensorCoordinator:
         elif current == ActivityType.GAMEMENU:
             self._empty_gamemenu += 1
             recent_party = (time.time() - self._last_valid_party) < 20.0
-            needed = 2 if (hud_visible or recent_party) else 10
+            # Cutscenes hide their label for long stretches (dialogue without
+            # the auto/skip prompt on screen) - require a long run of misses
+            # before declaring exit so they don't flap every few seconds.
+            with state_lock:
+                _act = state_module.current_activity
+                _is_cutscene = (
+                    getattr(_act, "activity_data", None) is not None
+                    and getattr(_act.activity_data, "gamemenu_type", None)
+                    == GamemenuType.CUTSCENE
+                )
+            needed = 60 if _is_cutscene else (2 if (hud_visible or recent_party) else 10)
             if self._empty_gamemenu >= needed:
                 self._empty_gamemenu = 0
                 self._exit_to_overworld("Left menu/cutscene")
@@ -258,7 +301,30 @@ class SensorCoordinator:
                     state_module.current_activity.activity_type
                     == ActivityType.MAP_LOCATION
                 )
-            if was_map:
+                was_cutscene = (
+                    state_module.current_activity.activity_type == ActivityType.GAMEMENU
+                    and getattr(
+                        getattr(state_module.current_activity, "activity_data", None),
+                        "gamemenu_type",
+                        None,
+                    )
+                    == GamemenuType.CUTSCENE
+                )
+            # The party HUD never shows during a cutscene - seeing it means we
+            # are back in the overworld, so exit immediately regardless of the
+            # sticky cutscene timeout.
+            if was_cutscene:
+                self._empty_gamemenu = 0
+                # Reset CharSensor's OCR cache so it re-reads character
+                # slots fresh after a cutscene (trial character parties,
+                # party size changes, etc. differ from pre-cutscene state)
+                self.char_sensor.reset_slot_cache()
+                # Also reset the character region manager's occupied slot
+                # tracking so it re-detects the (possibly smaller) party
+                if self.character_region_manager is not None:
+                    self.character_region_manager.reset_to_base_positions()
+                self._exit_to_overworld("Left cutscene - party HUD visible")
+            elif was_map:
                 self._exit_to_overworld("Closed map - back to exploring")
             elif is_loading:
                 new_activity = Activity(ActivityType.LOCATION, None)
@@ -277,7 +343,9 @@ class SensorCoordinator:
                 log("Detected doing commissions")
         elif loc and loc.get("map_location"):
             map_info = loc["map_location"]
-            found = self.data.search_location(map_info["name"])
+            found = self._resolve_by_name(
+                map_info["name"], self.data.search_location,
+                self.data.locations, "location_name")
             if found is not None and not hud_visible:
                 with state_lock:
                     act = state_module.current_activity
@@ -293,7 +361,9 @@ class SensorCoordinator:
                         state_module.prev_location = found
                     log(f"Browsing map: {found.location_name}")
         elif loc and loc.get("location"):
-            found = self.data.search_location(loc["location"]["name"])
+            found = self._resolve_by_name(
+                loc["location"]["name"], self.data.search_location,
+                self.data.locations, "location_name")
             if found is not None:
                 with state_lock:
                     act = state_module.current_activity
@@ -314,7 +384,9 @@ class SensorCoordinator:
                     log(f"Location: {found.location_name}")
 
         if loc and loc.get("boss"):
-            found = self.data.search_boss(loc["boss"]["name"])
+            found = self._resolve_by_name(
+                loc["boss"]["name"], self.data.search_boss,
+                self.data.bosses, "boss_name")
             if found is not None:
                 with state_lock:
                     act = state_module.current_activity
@@ -329,7 +401,12 @@ class SensorCoordinator:
                     log(f"Boss: {found.boss_name}")
 
         if domain:
-            found = self.data.search_domain(domain)
+            d_search = menus.get("domain_search") if menus else None
+            found = self.data.search_domain(d_search) if d_search else None
+            if found is None:
+                found = self._resolve_by_name(
+                    domain, self.data.search_domain,
+                    self.data.domains, "domain_name")
             if found is not None:
                 with state_lock:
                     act = state_module.current_activity

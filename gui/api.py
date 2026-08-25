@@ -14,7 +14,13 @@ import sys
 import threading
 from collections import deque
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Frozen (PyInstaller exe): __file__ points inside the bundle, so derive the
+# project root from the exe's own folder - everything else (gui/dist,
+# CONFIG.py, embedded Python) lives next to it.
+if getattr(sys, "frozen", False):
+    ROOT = os.path.dirname(os.path.abspath(sys.executable))
+else:
+    ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
@@ -22,6 +28,7 @@ SHARED_DATA_FILE = os.path.join(ROOT, "gui_shared_data.json")
 SHARED_CONFIG_FILE = os.path.join(ROOT, "shared_config.json")
 EMBEDDED_PYTHON = os.path.join(ROOT, "python3.12.8_embedded", "python.exe")
 MAIN_PY = os.path.join(ROOT, "main.py")
+ENGINE_EXE = os.path.join(ROOT, "RichPresenceEngine.exe")
 
 # Ring buffer of recent engine output lines (oldest at index 0).
 LOG_BUFFER_MAX = 400
@@ -66,6 +73,31 @@ class Api:
             }
         except ImportError:
             self._config_defaults = {}
+        self._ensure_shared_config()
+
+    def _ensure_shared_config(self):
+        """Create shared_config.json with defaults if it doesn't exist yet.
+
+        The engine reads its username/character-name settings from this file
+        at startup; without it a fresh install would fall back to placeholder
+        values and the Traveler slot could never be detected.
+        """
+        if os.path.exists(SHARED_CONFIG_FILE):
+            return
+        data = {
+            **self._config_defaults,
+            "GAME_RESOLUTION": 1080,
+            "USE_GPU": True,
+            "USE_LARGE_IMAGE": True,
+        }
+        try:
+            temp = SHARED_CONFIG_FILE + ".tmp"
+            with open(temp, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4)
+            os.replace(temp, SHARED_CONFIG_FILE)
+            print(f"[OK] Created default config: {SHARED_CONFIG_FILE}")
+        except OSError as e:
+            print(f"Warning: could not create {SHARED_CONFIG_FILE}: {e}")
 
     def _load_character_meta(self):
         """Load rarity/element metadata keyed by lowercase character name."""
@@ -117,8 +149,20 @@ class Api:
         except Exception:
             return ""
 
-    def _get_python_exe(self):
-        return EMBEDDED_PYTHON if os.path.exists(EMBEDDED_PYTHON) else sys.executable
+    def _get_engine_command(self):
+        """Command used to spawn the OCR engine.
+
+        Preference order:
+        1. GenshinEngine.exe sitting next to the GUI (fully-bundled mode,
+           no embedded Python needed)
+        2. Embedded Python running main.py (classic portable layout)
+        3. The current interpreter running main.py (dev fallback)
+        """
+        if os.path.exists(ENGINE_EXE):
+            return [ENGINE_EXE]
+        if os.path.exists(EMBEDDED_PYTHON):
+            return [EMBEDDED_PYTHON, MAIN_PY]
+        return [sys.executable, MAIN_PY]
 
     def _engine_running(self):
         return self.engine_process is not None and self.engine_process.poll() is None
@@ -127,8 +171,11 @@ class Api:
         with self._lock:
             if self._engine_running():
                 return True
-            if not os.path.exists(MAIN_PY):
-                print(f"ERROR: main.py not found at {MAIN_PY}")
+            cmd = self._get_engine_command()
+            # main.py is only needed when spawning via a Python interpreter;
+            # RichPresenceEngine.exe carries its own entrypoint.
+            if len(cmd) > 1 and not os.path.exists(cmd[1]):
+                print(f"ERROR: engine script not found at {cmd[1]}")
                 return False
             try:
                 use_gpu = True
@@ -139,12 +186,17 @@ class Api:
                     pass
                 env = os.environ.copy()
                 env["CUDA_VISIBLE_DEVICES"] = "0" if use_gpu else ""
+                # CREATE_NO_WINDOW: when the GUI itself runs windowless
+                # (pythonw), the engine subprocess would otherwise allocate a
+                # new visible console. Its output is piped to the UI anyway.
+                creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
                 self.engine_process = subprocess.Popen(
-                    [self._get_python_exe(), MAIN_PY],
+                    cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     env=env,
                     cwd=ROOT,
+                    creationflags=creationflags,
                 )
                 # Drain output into the ring buffer so the UI can show it.
                 for stream in (self.engine_process.stdout,):

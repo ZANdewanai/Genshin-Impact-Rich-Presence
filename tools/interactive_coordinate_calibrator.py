@@ -12,6 +12,14 @@ import json
 import time
 import threading
 
+# Use embedded Python path if available
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+EMBEDDED_PYTHON = os.path.join(SCRIPT_DIR, "..", "python3.12.8_embedded", "python.exe")
+if os.path.exists(EMBEDDED_PYTHON):
+    embedded_site_packages = os.path.join(SCRIPT_DIR, "..", "python3.12.8_embedded", "Lib", "site-packages")
+    if os.path.exists(embedded_site_packages):
+        sys.path.insert(0, embedded_site_packages)
+
 # Check for required dependencies
 try:
     from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -32,7 +40,22 @@ parent_dir = os.path.dirname(script_dir)  # Main project directory
 sys.path.insert(0, parent_dir)
 
 # Import CONFIG.py with core/ module structure
-import CONFIG
+# Important: core.datatypes must be imported first to avoid circular import
+# (datatypes.py reads config values which are set by CONFIG.py via set_config_values)
+try:
+    import core.datatypes
+    import CONFIG
+except Exception as e:
+    print(f"Error importing CONFIG: {e}")
+    # Fallback: try to load it differently
+    config_path = os.path.join(parent_dir, "CONFIG.py")
+    if os.path.exists(config_path):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("CONFIG", config_path)
+        CONFIG = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(CONFIG)
+    else:
+        raise
 
 # Import all variables from CONFIG
 GAME_RESOLUTION = CONFIG.GAME_RESOLUTION
@@ -703,7 +726,7 @@ class CoordinateCalibrator(QMainWindow):
                     box.paired_box = temp_boxes[number_name]
                     temp_boxes[number_name].paired_box = box
 
-                    print(f"✅ Paired {name} with {number_name}")
+                    print(f"Paired {name} with {number_name}")
 
         # Add all boxes to the main list and show them
         for name, box in temp_boxes.items():
@@ -901,52 +924,45 @@ class CoordinateCalibrator(QMainWindow):
 
 def main():
     """Main function."""
-    print("🎯 Genshin Impact OCR Coordinate Calibrator - Grid Mode")
+    print("Genshin Impact OCR Coordinate Calibrator - Grid Mode")
     print("=" * 60)
-    print("✨ Features: Grid snapping, Paired character box movement")
     print()
-
-    # Check dependencies
-    if not PYQT_AVAILABLE:
-        print("❌ Cannot start calibrator: PyQt5 is not available")
-        print("💡 Install PyQt5:")
-        print("   pip install PyQt5")
-        return
-
-    print("📋 Instructions:")
-    print("   🎯 Shift+Click to add to group | Alt+Click to remove | Click selected box to drag group | Resize with corners")
-    print("   👥 Character name/number boxes move together | Global snapping for similar boxes")
-    print("   📋 Click 'Copy Coordinates' to copy to clipboard")
-    print("   💾 Click 'Save to File' to save coordinates")
-    print("   🔄 Click 'Reset All' to reset to defaults")
-    print("   ❌ Click 'Close' to exit")
+    print("Features: Grid snapping, Paired character box movement")
     print()
-    print("🎨 Controls:")
-    print("   Grid size buttons: 5px, 10px, 20px")
-    print("   Undo/Redo: ↶ Undo Positions, ↷ Redo Positions (up to 50 steps)")
-    print("   Use buttons to toggle grid visibility and snapping")
+    print("Instructions:")
+    print("  Shift+Click to add to group | Alt+Click to remove | Click selected box to drag group | Resize with corners")
+    print("  Character name/number boxes move together | Global snapping for similar boxes")
+    print("  Click 'Copy Coordinates' to copy to clipboard")
+    print("  Click 'Save to File' to save coordinates")
+    print("  Click 'Reset All' to reset to defaults")
+    print("  Click 'Close' to exit")
     print()
-    print("🚀 Starting calibrator...")
+    print("Controls:")
+    print("  Grid size buttons: 5px, 10px, 20px")
+    print("  Undo/Redo: Undo Positions, Redo Positions (up to 50 steps)")
+    print("  Use buttons to toggle grid visibility and snapping")
+    print()
+    print("Starting calibrator...")
 
     try:
-        print(f"📺 Detected screen resolution: {GAME_RESOLUTION}p")
-        print(f"📏 Coordinates scaled from 1440p base to {GAME_RESOLUTION}p")
+        print(f"Detected screen resolution: {GAME_RESOLUTION}p")
+        print(f"Coordinates scaled from 1440p base to {GAME_RESOLUTION}p")
         print()
 
         app = QApplication(sys.argv)
         calibrator = CoordinateCalibrator()
         calibrator.show()
 
-        print("✅ Calibrator started successfully")
-        print("🎯 Position the overlay over your Genshin Impact window")
-        print("📦 Adjust the bounding boxes to match your OCR regions")
-        print("💡 Tip: Move character name boxes and their number boxes will follow!")
+        print("Calibrator started successfully")
+        print("Position the overlay over your Genshin Impact window")
+        print("Adjust the bounding boxes to match your OCR regions")
+        print("Tip: Move character name boxes and their number boxes will follow!")
         print()
 
         sys.exit(app.exec_())
 
     except Exception as e:
-        print(f"❌ Error starting calibrator: {e}")
+        print(f"Error starting calibrator: {e}")
         import traceback
         traceback.print_exc()
 

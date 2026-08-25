@@ -15,34 +15,76 @@ import os
 import json
 import time
 import threading
+
+# DPI awareness MUST be declared before any window enumeration or screen
+# capture. The PyInstaller bootloader manifest (unlike python.exe's) does not
+# declare it, so without this Windows reports DPI-virtualized (scaled down)
+# window rects on high-DPI displays and every OCR region is misaligned.
+if sys.platform == "win32":
+    import ctypes
+    try:
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)  # PER_MONITOR_AWARE_V2-ish
+    except Exception:
+        try:
+            ctypes.windll.user32.SetProcessDPIAware()
+        except Exception:
+            pass
+
 from PIL import ImageGrab
 
-# Make stdout unbuffered for immediate debug output
-sys.stdout.reconfigure(line_buffering=True)
-sys.stderr.reconfigure(line_buffering=True)
+# Windowed exe (pythonw / PyInstaller console=False) has no console and
+# sys.stdout/sys.stderr are None - guard before touching them.
+if sys.stdout is not None:
+    sys.stdout.reconfigure(line_buffering=True)
+else:
+    sys.stdout = open(os.devnull, "w", encoding="utf-8")
+if sys.stderr is not None:
+    sys.stderr.reconfigure(line_buffering=True)
+else:
+    sys.stderr = open(os.devnull, "w", encoding="utf-8")
 
-# Ensure script directory is in path for local modules
-script_dir = os.path.dirname(os.path.abspath(__file__))
+# When stdout is a PIPE (engine spawned by the GUI), Python defaults to the
+# legacy ANSI codepage - printing OCR'd game text (arrows, accents, CJK)
+# raises UnicodeEncodeError which aborts the detection scan mid-result.
+# Force UTF-8 so game text survives the trip to the GUI log.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+# Frozen (PyInstaller exe): __file__ points inside the bundle - base paths
+# on the exe's own folder instead. core/, CONFIG.py, data/ etc. live there.
+if getattr(sys, "frozen", False):
+    script_dir = os.path.dirname(os.path.abspath(sys.executable))
+    # Some modules (core/datatypes.py) read data files via CWD-relative
+    # paths like "data/bosses.csv" - make that deterministic.
+    os.chdir(script_dir)
+else:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 
-# VERIFY: Must run with embedded Python only
-expected_embedded = os.path.join(script_dir, "python3.12.8_embedded", "python.exe")
-# Case-insensitive comparison for Windows paths
-if sys.executable.lower() != expected_embedded.lower():
-    print("[ERROR] This application must run with the embedded Python interpreter.")
-    print(f"   Current: {sys.executable}")
-    print(f"   Expected: {expected_embedded}")
-    print("")
-    print("   Please use the provided launcher:")
-    print("   - start.bat")
-    print("   - start.ps1")
-    print("   - python3.12.8_embedded/python.exe main.py")
-    print("")
-    input("Press Enter to exit...")
-    sys.exit(1)
+# VERIFY: Must run with embedded Python only (skip when frozen - the exe
+# carries its own interpreter).
+if not getattr(sys, "frozen", False):
+    expected_embedded = os.path.join(script_dir, "python3.12.8_embedded", "python.exe")
+    # Case-insensitive comparison for Windows paths
+    if sys.executable.lower() != expected_embedded.lower():
+        print("[ERROR] This application must run with the embedded Python interpreter.")
+        print(f"   Current: {sys.executable}")
+        print(f"   Expected: {expected_embedded}")
+        print("")
+        print("   Please use the provided launcher:")
+        print("   - start.bat")
+        print("   - start.ps1")
+        print("   - python3.12.8_embedded/python.exe main.py")
+        print("")
+        input("Press Enter to exit...")
+        sys.exit(1)
 
-print(f"[OK] Using embedded Python: {sys.executable}")
+print(f"[OK] Using interpreter: {sys.executable}")
 
 # Import core modules
 from core import (
@@ -72,21 +114,15 @@ from core import ocr_engine
 
 # Import data types and config
 from core.datatypes import (
-    Activity,
-    ActivityType,
     Character,
     Data,
     set_config_values,
 )
 from CONFIG import (
     USE_GPU,
-    SLEEP_PER_ITERATION,
-    PAUSE_STATE_COOLDOWN,
     GENSHIN_WINDOW_CLASS,
     GENSHIN_WINDOW_NAME,
     get_dynamic_coordinates,
-    OCR_CHARNAMES_ONE_IN,
-    DEBUG_CHARACTER_MODE,
     DEBUG_MODE,
     USE_SENSOR_WORKERS,
     USERNAME,

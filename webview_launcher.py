@@ -1,11 +1,27 @@
 import os
-import threading
 import sys
 import http.server
 import socketserver
+import socket
+import threading
 import time
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
+# When launched with pythonw.exe (silent mode) there is no console and
+# sys.stdout/sys.stderr are None - every print() would crash. Route them
+# to the null device so the script behaves identically in both modes.
+if sys.stdout is None or sys.stderr is None:
+    _devnull = open(os.devnull, "w")
+    if sys.stdout is None:
+        sys.stdout = _devnull
+    if sys.stderr is None:
+        sys.stderr = _devnull
+
+# Frozen (PyInstaller exe): __file__ points inside the bundle's temp
+# extraction dir - base everything on the exe's own folder instead.
+if getattr(sys, "frozen", False):
+    script_dir = os.path.dirname(os.path.abspath(sys.executable))
+else:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 
@@ -25,13 +41,27 @@ if not os.path.exists(DIST_DIR):
     print("Build it with:  cd gui && pnpm install && pnpm build")
     sys.exit(1)
 
-# Start a simple HTTP server to serve the built files
-PORT = 8000
+
+def _get_free_port() -> int:
+    """Ask the OS for an available TCP port to avoid hardcoding one."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+# Serve the built files over a local HTTP server on a free port
+PORT = _get_free_port()
 Handler = http.server.SimpleHTTPRequestHandler
+
+
+class ReusableTCPServer(socketserver.TCPServer):
+    allow_reuse_address = True
+    daemon_threads = True
+
 
 def start_http_server():
     os.chdir(DIST_DIR)
-    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+    with ReusableTCPServer(("127.0.0.1", PORT), Handler) as httpd:
         print(f"Serving built UI at http://localhost:{PORT}")
         httpd.serve_forever()
 

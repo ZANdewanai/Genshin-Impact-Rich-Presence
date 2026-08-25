@@ -124,3 +124,17 @@ Genshin-Impact-Rich-Presence.rar
 
 # Sensor test logs (runtime generated)
 sensor_test_*.txt
+
+# PyInstaller (installed into embedded Python for builds)
+python3.12.8_embedded/Scripts/pyinstaller.exe
+python3.12.8_embedded/Scripts/pyi-*.exe
+
+# Build logs
+build_log.txt
+full_build_log.txt
+build_bat_log.txt
+build_engine_log.txt
+
+# Runtime state - regenerated automatically by the engine
+sensor_data/*.json
+gui_shared_data.json

@@ -374,7 +374,7 @@ a window with the same window caption, but with the "DXGIWatchdogThreadWindow" c
 hence, it's important to filter out the exact class & window caption.
 """
 
-DEBUG_MODE = False
+DEBUG_MODE = True
 """
 Set to true to print debug messages.
 """
@@ -386,10 +386,20 @@ MenuSensor writing JSON blackboards + coordinator state machine) instead of
 the legacy sequential detection loop in core/detection.py.
 """
 
-DEBUG_CHARACTER_MODE = False
+DEBUG_CHARACTER_MODE = True
 """
 Set to true to print character detection debug messages.
 Disable to reduce console spam from character detection.
+"""
+
+DEBUG_STATIC_IMAGE_PATH = r"resources\assets\debug_image.jpg"
+"""
+If set to a path (and the file exists), CharSensor will grab its name/number
+regions from this static screenshot instead of the live screen. Useful for
+validating OCR/coordinate calibration against a known capture. Leave as ""
+(empty string) for normal live-screen operation.
+The image must be the same resolution as the configured game resolution so
+the region coordinates line up (the 2560x1440 coordinates are used as-is).
 """
 
 # Base coordinates for 2560x1440 resolution (1440p)

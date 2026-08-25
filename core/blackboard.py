@@ -13,7 +13,12 @@ from pathlib import Path
 
 
 def write_json(path: str, payload: dict) -> None:
-    """Atomically write `payload` with an injected server timestamp."""
+    """Atomically write `payload` with an injected server timestamp.
+
+    os.replace can transiently fail with WinError 5 (Access denied) when a
+    reader holds the destination open at that exact moment on Windows - retry
+    briefly before giving up.
+    """
     payload = dict(payload)
     payload["written_at"] = time.time()
     p = Path(path)
@@ -22,7 +27,15 @@ def write_json(path: str, payload: dict) -> None:
     try:
         with os.fdopen(fd, "w") as f:
             json.dump(payload, f)
-        os.replace(tmp, str(p))
+        last_err = None
+        for _ in range(4):
+            try:
+                os.replace(tmp, str(p))
+                return
+            except OSError as e:
+                last_err = e
+                time.sleep(0.05)
+        raise last_err
     except OSError:
         try:
             os.remove(tmp)

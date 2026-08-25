@@ -132,7 +132,7 @@ function OrnamentDivider({ label }: { label?: string }) {
         <path d="M6 0l1.5 4.5L12 6l-4.5 1.5L6 12 4.5 7.5 0 6l4.5-1.5z"/>
       </svg>
       {label && (
-        <span style={{ fontFamily: "var(--font-heading)", fontSize: "9px", color: "#c8a84b", letterSpacing: "0.18em", opacity: 0.85 }}>
+        <span style={{ fontFamily: "var(--font-heading)", fontSize: "10.5px", color: "#c8a84b", letterSpacing: "0.18em", opacity: 0.85 }}>
           {label}
         </span>
       )}
@@ -161,7 +161,7 @@ function ElBadge({ el }: { el: Element }) {
   return (
     <span className="inline-flex items-center gap-1 px-1.5 py-px rounded-sm" style={{
       background: `${EL_COLOR[el]}18`, border: `1px solid ${EL_COLOR[el]}50`,
-      color: EL_COLOR[el], fontFamily: "var(--font-heading)", fontSize: "8.5px", letterSpacing: "0.09em",
+      color: EL_COLOR[el], fontFamily: "var(--font-heading)", fontSize: "10px", letterSpacing: "0.09em",
     }}>
       {EL_LABEL[el]}
     </span>
@@ -225,14 +225,14 @@ function CharacterSlot({ character, index, isActive }: {
             </div>
           </div>
           <div className="px-2 pt-1 pb-2 flex flex-col gap-1">
-            <span style={{ fontFamily: "var(--font-heading)", fontSize: "11px",
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "12px",
               color: isActive ? "#f0d47a" : "#ede3c4", fontWeight: 600, letterSpacing: "0.04em",
               whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", transition: "color 0.3s" }}>
               {character.name}
             </span>
             <div className="flex items-center justify-between">
               
-              <span style={{ fontFamily: "var(--font-heading)", fontSize: "8px", color: isActive ? "#f0d47a" : "#6a5820", letterSpacing: "0.06em", fontWeight: 500 }}>
+              <span style={{ fontFamily: "var(--font-heading)", fontSize: "9.5px", color: isActive ? "#f0d47a" : "#6a5820", letterSpacing: "0.06em", fontWeight: 500 }}>
                 {character.level != null ? `Lv.${character.level}` : ""}
               </span>
             </div>
@@ -249,7 +249,7 @@ function CharacterSlot({ character, index, isActive }: {
               <circle cx="12" cy="8" r="4"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
             </svg>
           </div>
-          <span style={{ fontFamily: "var(--font-heading)", fontSize: "7.5px", color: "rgba(200,168,75,0.3)", letterSpacing: "0.14em" }}>
+          <span style={{ fontFamily: "var(--font-heading)", fontSize: "9px", color: "rgba(200,168,75,0.3)", letterSpacing: "0.14em" }}>
             EMPTY
           </span>
         </div>
@@ -267,7 +267,7 @@ function InfoRow({ icon, label, value, onClick }: {
       style={{ borderBottom: "1px solid rgba(200,168,75,0.07)" }}>
       <div className="mt-0.5 flex-shrink-0" style={{ color: "#c8a84b", opacity: 0.65 }}>{icon}</div>
       <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-        <span style={{ fontFamily: "var(--font-heading)", fontSize: "8.5px", color: "#6a5820", letterSpacing: "0.16em" }}>
+        <span style={{ fontFamily: "var(--font-heading)", fontSize: "10px", color: "#6a5820", letterSpacing: "0.16em" }}>
           {label}
         </span>
         <span style={{ fontFamily: "var(--font-body)", fontSize: "15px", color: "#ede3c4", lineHeight: 1.3 }}>
@@ -280,49 +280,6 @@ function InfoRow({ icon, label, value, onClick }: {
           <path d="M9 1l4 6-4 6M1 7h12"/>
         </svg>
       )}
-    </div>
-  );
-}
-
-function SelectField({ value, options, onChange, onBlur, label }: {
-  value: string; options: string[]; onChange: (v: string) => void; onBlur: () => void; label: string;
-}) {
-  return (
-    <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(200,168,75,0.07)" }}>
-      <div style={{ fontFamily: "var(--font-heading)", fontSize: "8.5px", color: "#6a5820", letterSpacing: "0.16em", marginBottom: 4 }}>
-        {label}
-      </div>
-      <select autoFocus value={value}
-        onChange={e => { onChange(e.target.value); onBlur(); }} onBlur={onBlur}
-        className="w-full bg-transparent outline-none cursor-pointer"
-        style={{ fontFamily: "var(--font-body)", fontSize: "15px", color: "#ede3c4", border: "none" }}
-      >
-        {options.map(o => (
-          <option key={o} value={o} style={{ background: "#0e1228", color: "#ede3c4" }}>{o}</option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-/* ── Settings row ──────────────────────────────── */
-function SettingRow({ label, description, children }: {
-  label: string; description?: string; children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-3 px-4"
-      style={{ borderBottom: "1px solid rgba(200,168,75,0.07)" }}>
-      <div className="flex flex-col gap-0.5 min-w-0">
-        <span style={{ fontFamily: "var(--font-heading)", fontSize: "11px", color: "#ede3c4", letterSpacing: "0.05em" }}>
-          {label}
-        </span>
-        {description && (
-          <span style={{ fontFamily: "var(--font-body)", fontSize: "12.5px", color: "#6a5820", lineHeight: 1.3 }}>
-            {description}
-          </span>
-        )}
-      </div>
-      {children}
     </div>
   );
 }
@@ -359,7 +316,7 @@ function ApplyButton({ dirty, saved, onApply }: {
   return (
     <button onClick={onApply} className="px-2.5 py-1 rounded cursor-pointer transition-all duration-200 flex-shrink-0"
       style={{
-        fontFamily: "var(--font-heading)", fontSize: "8px", letterSpacing: "0.1em",
+        fontFamily: "var(--font-heading)", fontSize: "9.5px", letterSpacing: "0.1em",
         background: saved ? "rgba(100,210,80,0.15)" : "rgba(200,168,75,0.1)",
         border: saved ? "1px solid rgba(100,210,80,0.4)" : "1px solid rgba(200,168,75,0.35)",
         color: saved ? "#64d250" : "#c8a84b", outline: "none",
@@ -376,7 +333,7 @@ function TextField({ label, hint, value, dirty, saved, onChange, onApply }: {
 }) {
   return (
     <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(200,168,75,0.07)" }}>
-      <div style={{ fontFamily: "var(--font-heading)", fontSize: "8.5px", color: "#6a5820", letterSpacing: "0.16em", marginBottom: 6 }}>
+      <div style={{ fontFamily: "var(--font-heading)", fontSize: "10px", color: "#6a5820", letterSpacing: "0.16em", marginBottom: 6 }}>
         {label}
       </div>
       <div className="flex items-center gap-2">
@@ -424,14 +381,6 @@ function SettingsPanel({ settings, onSave }: {
   const isDirty = (key: keyof Settings) => form[key] !== settings[key];
   const isSaved = (key: keyof Settings) => savedKey === key && !isDirty(key);
 
-  const inputStyle = {
-    flex: 1,
-    background: "transparent", outline: "none", minWidth: 0,
-    fontFamily: "var(--font-heading)", fontSize: "12px", color: "#ede3c4",
-    border: "1px solid rgba(200,168,75,0.2)", borderRadius: 3,
-    padding: "6px 10px", letterSpacing: "0.06em",
-  } as React.CSSProperties;
-
   return (
     <div className="flex flex-col gap-5">
       {/* Identity */}
@@ -444,7 +393,7 @@ function SettingsPanel({ settings, onSave }: {
             hint="✓ Applied live. Your player name, shown in party-related presence text." />
 
           <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(200,168,75,0.07)" }}>
-            <div style={{ fontFamily: "var(--font-heading)", fontSize: "8.5px", color: "#6a5820", letterSpacing: "0.16em", marginBottom: 6 }}>
+            <div style={{ fontFamily: "var(--font-heading)", fontSize: "10px", color: "#6a5820", letterSpacing: "0.16em", marginBottom: 6 }}>
               MAIN CHARACTER
             </div>
             <div className="flex items-center gap-2">
@@ -540,7 +489,7 @@ function LogsPanel({ logs }: { logs: string[] }) {
         {/* Toolbar */}
         <div className="flex items-center justify-between px-3 py-1.5"
           style={{ borderBottom: "1px solid rgba(200,168,75,0.14)" }}>
-          <span style={{ fontSize: "11px", color: "#6a7089" }}>
+          <span style={{ fontSize: "12px", color: "#6a7089" }}>
             {logs.length} {logs.length === 1 ? "line" : "lines"}
             {!autoScroll && logs.length > 0 && (
               <span style={{ color: "#6a5820", fontStyle: "italic" }}> · scrolled up</span>
@@ -551,7 +500,7 @@ function LogsPanel({ logs }: { logs: string[] }) {
             disabled={logs.length === 0}
             className="rounded px-2.5 py-0.5 transition-colors"
             style={{
-              fontSize: "11px",
+              fontSize: "12px",
               fontFamily: "var(--font-body)",
               color: copied ? "#ede3c4" : "#c8a84b",
               border: "1px solid rgba(200,168,75,0.35)",
@@ -631,7 +580,7 @@ function AboutPanel() {
           Genshin Presence
         </div>
 
-          <div style={{ fontFamily: "var(--font-heading)", fontSize: "9px", color: "#6a5820", letterSpacing: "0.2em", marginTop: 4 }}>
+          <div style={{ fontFamily: "var(--font-heading)", fontSize: "10.5px", color: "#6a5820", letterSpacing: "0.2em", marginTop: 4 }}>
             VERSION 3.0
           </div>
 
@@ -653,7 +602,7 @@ function AboutPanel() {
           ].map(({ label, value }) => (
             <div key={label} className="flex flex-col gap-1 px-4 py-2.5"
               style={{ background: "rgba(8,9,26,0.65)" }}>
-              <span style={{ fontFamily: "var(--font-heading)", fontSize: "8.5px", color: "#6a5820", letterSpacing: "0.14em" }}>
+              <span style={{ fontFamily: "var(--font-heading)", fontSize: "10px", color: "#6a5820", letterSpacing: "0.14em" }}>
                 {label}
               </span>
               <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "#ede3c4", lineHeight: 1.3 }}>
@@ -683,7 +632,7 @@ function AboutPanel() {
             >
               <div className="flex items-center gap-2">
                 <span style={{ color: "#c8a84b", fontSize: "13px", opacity: 0.8 }}>{icon}</span>
-                <span style={{ fontFamily: "var(--font-heading)", fontSize: "10px", color: "#ede3c4", letterSpacing: "0.05em" }}>
+                <span style={{ fontFamily: "var(--font-heading)", fontSize: "11.5px", color: "#ede3c4", letterSpacing: "0.05em" }}>
                   {label}
                 </span>
               </div>
@@ -711,7 +660,7 @@ function AboutPanel() {
             <button onClick={handleCopy}
               className="flex items-center gap-1.5 px-3 py-1 rounded cursor-pointer transition-all duration-200"
               style={{
-                fontFamily: "var(--font-heading)", fontSize: "8px", letterSpacing: "0.12em",
+                fontFamily: "var(--font-heading)", fontSize: "9.5px", letterSpacing: "0.12em",
                 color: copied ? "#64d250" : "#6a5820",
                 border: copied ? "1px solid rgba(100,210,80,0.3)" : "1px solid rgba(200,168,75,0.15)",
                 background: "transparent", outline: "none",
@@ -726,7 +675,7 @@ function AboutPanel() {
 }
 
 /* ── Tab bar ───────────────────────────────────── */
-function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
+function TabBar({ active, onChange, needsSetup }: { active: Tab; onChange: (t: Tab) => void; needsSetup?: boolean }) {
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     {
       id: "presence", label: "Presence",
@@ -769,6 +718,10 @@ function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void 
     <div className="flex" style={{ borderBottom: "1px solid rgba(200,168,75,0.14)" }}>
       {tabs.map(tab => {
         const isActive = active === tab.id;
+        // While required settings are unconfigured, the Settings tab presents
+        // itself as "Setup" with a notification dot the user can't miss.
+        const showDot = tab.id === "settings" && !!needsSetup;
+        const label = showDot ? "Setup" : tab.label;
         return (
           <button key={tab.id} onClick={() => onChange(tab.id)}
             className="relative flex items-center gap-1.5 px-4 py-3 cursor-pointer transition-all duration-200 flex-1 justify-center"
@@ -791,11 +744,20 @@ function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void 
             )}
             <span style={{ position: "relative" }}>{tab.icon}</span>
             <span style={{
-              fontFamily: "var(--font-heading)", fontSize: "9.5px",
+              fontFamily: "var(--font-heading)", fontSize: "11px",
               letterSpacing: "0.14em", position: "relative",
             }}>
-              {tab.label.toUpperCase()}
+              {label.toUpperCase()}
             </span>
+            {showDot && (
+              <span title="Configure your username so your character can be detected"
+                className="absolute top-2 right-[calc(50%-34px)] w-2 h-2 rounded-full animate-pulse"
+                style={{
+                  background: "#e8564b",
+                  boxShadow: "0 0 6px 1px rgba(232,86,75,0.7)",
+                }}
+              />
+            )}
           </button>
         );
       })}
@@ -932,6 +894,12 @@ export default function App() {
   const activeChar = party[activeCharacterIndex ?? 0] ?? null;
   const activeEl = activeChar?.element ?? "geo";
 
+  /* The Settings tab nags until the username is actually configured -
+     placeholder defaults ("", "PlayerName", "Player") mean the Traveler
+     slot can't be detected, so this is genuinely required setup. */
+  const un = settings.username.trim().toLowerCase();
+  const needsSetup = un === "" || un === "playername" || un === "player";
+
   return (
     <div className="size-full flex items-center justify-center p-3"
       style={{ background: "radial-gradient(ellipse 80% 60% at 40% 30%,#0c1030 0%,#08091a 65%,#060810 100%)" }}
@@ -991,7 +959,7 @@ export default function App() {
               }}>
                 Genshin Impact
               </div>
-              <div style={{ fontFamily: "var(--font-heading)", fontSize: "8px", color: "#6a5820", letterSpacing: "0.22em", marginTop: 2 }}>
+              <div style={{ fontFamily: "var(--font-heading)", fontSize: "9.5px", color: "#6a5820", letterSpacing: "0.22em", marginTop: 2 }}>
                 RICH PRESENCE
               </div>
             </div>
@@ -1011,7 +979,7 @@ export default function App() {
               boxShadow: connected ? "0 0 6px #64d250" : "none",
             }} />
             <span style={{
-              fontFamily: "var(--font-heading)", fontSize: "8.5px",
+              fontFamily: "var(--font-heading)", fontSize: "10px",
               color: connected ? "#c8a84b" : "#555568", letterSpacing: "0.14em",
             }}>
               {connected ? "CONNECTED" : "OFFLINE"}
@@ -1021,7 +989,7 @@ export default function App() {
 
         {/* ── Tab bar ── */}
         <div className="relative">
-          <TabBar active={tab} onChange={setTab} />
+          <TabBar active={tab} onChange={setTab} needsSetup={needsSetup} />
         </div>
 
         {/* ── Tab content ── */}
@@ -1054,18 +1022,18 @@ export default function App() {
                       boxShadow: `0 0 5px ${EL_COLOR[activeEl]}`,
                     }} />
                     <div className="flex flex-col gap-0.5">
-                      <span style={{ fontFamily: "var(--font-heading)", fontSize: "10px", color: EL_COLOR[activeEl], letterSpacing: "0.06em" }}>
+                      <span style={{ fontFamily: "var(--font-heading)", fontSize: "11.5px", color: EL_COLOR[activeEl], letterSpacing: "0.06em" }}>
                         {activeChar.name}
                       </span>
                       <div className="flex items-center gap-1.5">
                         <ElBadge el={activeEl} />
                         <Stars n={activeChar.rarity ?? 5} color={rarityColor(activeChar.rarity)} />
-                        <span style={{ fontFamily: "var(--font-heading)", fontSize: "8px", color: "#6a5820" }}>
+                        <span style={{ fontFamily: "var(--font-heading)", fontSize: "9.5px", color: "#6a5820" }}>
                           {activeChar.level != null ? `Lv.${activeChar.level}` : ""}
                         </span>
                       </div>
                     </div>
-                    <span style={{ fontFamily: "var(--font-body)", fontStyle: "italic", fontSize: "11px", color: "rgba(200,168,75,0.35)", marginLeft: "auto" }}>
+                    <span style={{ fontFamily: "var(--font-body)", fontStyle: "italic", fontSize: "12px", color: "rgba(200,168,75,0.35)", marginLeft: "auto" }}>
                       Selected
                     </span>
                   </div>
@@ -1109,7 +1077,7 @@ export default function App() {
                     </svg>
                   </div>
                   <div className="flex flex-col min-w-0 flex-1">
-                    <span style={{ fontFamily: "var(--font-heading)", fontSize: "8.5px", color: "#7289da", letterSpacing: "0.14em", marginBottom: 2 }}>
+                    <span style={{ fontFamily: "var(--font-heading)", fontSize: "10px", color: "#7289da", letterSpacing: "0.14em", marginBottom: 2 }}>
                       DISCORD PREVIEW
                     </span>
                     <span style={{ fontFamily: "var(--font-body)", fontSize: "13.5px", color: "#b0b8d8", lineHeight: 1.4 }}>
@@ -1127,13 +1095,13 @@ export default function App() {
 
               {/* Footer */}
               <div className="flex items-center justify-between pt-0.5 md:col-span-2">
-                <span style={{ fontFamily: "var(--font-heading)", fontSize: "7.5px", color: "#3a3020", letterSpacing: "0.14em" }}>
+                <span style={{ fontFamily: "var(--font-heading)", fontSize: "9px", color: "#3a3020", letterSpacing: "0.14em" }}>
                   v3.0 · GENSHIN PRESENCE
                 </span>
                 <button onClick={toggleConnection}
                   className="px-4 py-1.5 rounded cursor-pointer transition-all duration-300"
                   style={{
-                    fontFamily: "var(--font-heading)", fontSize: "9px", letterSpacing: "0.12em",
+                    fontFamily: "var(--font-heading)", fontSize: "10.5px", letterSpacing: "0.12em",
                     color: connected ? "#08091a" : "#c8a84b",
                     background: connected ? "linear-gradient(135deg,#d4b055 0%,#a88c3c 100%)" : "rgba(200,168,75,0.08)",
                     border: connected ? "1px solid #c8a84b" : "1px solid rgba(200,168,75,0.28)",
@@ -1150,45 +1118,48 @@ export default function App() {
           )}
 
           {tab === "settings" && (
-            <>
+                        <>
               <SettingsPanel settings={settings} onSave={updateSettings} />
-
-              <div className="mt-5">
-                <OrnamentDivider label="DEBUG LOGGING" />
-                <div className="mt-3 rounded overflow-hidden"
-                  style={{ background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)" }}
-                >
-                  <div className="flex items-center justify-between gap-4 py-3 px-4"
-                    style={{ borderBottom: "1px solid rgba(200,168,75,0.07)" }}
-                  >
-                    <div className="flex flex-col gap-0.5 min-w-0">
-                      <span style={{ fontFamily: "var(--font-heading)", fontSize: "11px", color: "#ede3c4", letterSpacing: "0.05em" }}>
-                        ENGINE DEBUG LOGS
-                      </span>
-                      <span style={{ fontFamily: "var(--font-body)", fontSize: "12.5px", color: "#6a5820", lineHeight: 1.3 }}>
-                        Verbose engine output in the Logs tab. Maps to CONFIG DEBUG_MODE / DEBUG_CHARACTER_MODE.
-                      </span>
-                    </div>
-                    <ToggleSwitch checked={debugEnabled} onChange={() => updateDebug(!debugEnabled)} />
-                  </div>
-                </div>
-              </div>
             </>
           )}
 
-          {tab === "logs" && (debugEnabled ? (
-            <LogsPanel logs={logs} />
-          ) : (
-            <div className="rounded overflow-hidden"
-              style={{ background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)" }}
-            >
-              <div className="px-4 py-6 text-center">
-                <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "#6a5820", lineHeight: 1.5 }}>
-                  Debug logging is disabled. Enable “Engine Debug Logs” in Settings to view live engine output.
-                </span>
+          {tab === "logs" && (
+            <div>
+              {/* The debug toggle is always visible so it can be switched off even
+                  when debug logging is already enabled — otherwise the Logs tab
+                  only shows the engine output panel with no way to change the
+                  setting (see CONFIG.py DEBUG_MODE defaulting to True). */}
+              <div className="rounded overflow-hidden mb-4"
+                style={{ background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)" }}
+              >
+                <div className="flex items-center justify-between gap-4 py-3 px-4">
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <span style={{ fontFamily: "var(--font-heading)", fontSize: "12px", color: "#ede3c4", letterSpacing: "0.05em" }}>
+                      ENGINE DEBUG LOGS
+                    </span>
+                    <span style={{ fontFamily: "var(--font-body)", fontSize: "12.5px", color: "#6a5820", lineHeight: 1.3 }}>
+                      Verbose engine output for troubleshooting. Maps to CONFIG DEBUG_MODE / DEBUG_CHARACTER_MODE.
+                    </span>
+                  </div>
+                  <ToggleSwitch checked={debugEnabled} onChange={() => updateDebug(!debugEnabled)} />
+                </div>
               </div>
+
+              {debugEnabled ? (
+                <LogsPanel logs={logs} />
+              ) : (
+                <div className="rounded overflow-hidden"
+                  style={{ background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)" }}
+                >
+                  <div className="px-4 py-6 text-center">
+                    <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "#6a5820", lineHeight: 1.5 }}>
+                      Debug logging is disabled. Enable Engine Debug Logs above to view live engine output.
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
-          ))}
+          )}
 
           {tab === "about" && <AboutPanel />}
         </div>

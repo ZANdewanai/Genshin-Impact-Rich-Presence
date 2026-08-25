@@ -17,28 +17,35 @@ translates what it sees into Discord status updates.
 
 ## 🚀 Quick Start
 
-1. Double-click **`start_gui.bat`**
-2. In the GUI's Settings tab, enter:
+1. Download the latest release ZIP from [**GitHub Releases**](https://github.com/ZANdewanai/Genshin-Impact-Rich-Presence/releases) and unzip it.
+2. Double-click **`GenshinRichPresence.exe`**. No terminal, no Python install needed.
+3. On first launch the app auto-creates `shared_config.json`. Open the
+   **Settings** tab and enter:
    - Your Genshin Impact username
    - Your main character (Aether/Lumine)
    - Wanderer name, if you've renamed them in-game
-3. Click **"Start Rich Presence"**
+4. Click **Start Rich Presence.** The app detects the Genshin window
+   automatically and starts updating Discord. Discord must be running.
 
-The app detects the Genshin window automatically and starts updating Discord.
-Discord must be running (desktop app).
+The settings tab shows a pulsing **SETUP** badge until the username is
+configured, then reverts to **SETTINGS**.
+
+> The release folder must remain intact — `RichPresenceEngine.exe` (the OCR +
+> Discord engine) is spawned by the GUI and lives alongside it.
 
 ### Alternative Launch Methods
 
 ```bash
-# GUI mode directly
-python3.12.8_embedded\python.exe webview_launcher.py
-
-# Console mode - same OCR + Discord RPC, no GUI
+# Console-mode engine directly (OCR + Discord RPC, no GUI).
+# Configured via CONFIG.py.
 python3.12.8_embedded\python.exe main.py
+
+# GUI in a terminal (development / debugging)
+python3.12.8_embedded\python.exe webview_launcher.py
 ```
 
-Console mode is configured by editing `CONFIG.py`; the GUI is recommended for
-live monitoring and configuration.
+Console mode is intended for development or environments where the embedded
+Python is used directly; the GUI exe is recommended for normal use.
 
 -----
 
@@ -74,48 +81,6 @@ Advanced users can edit [CONFIG.py](CONFIG.py) directly:
 
 -----
 
-## 📁 Project Structure
-
-```
-├── start_gui.bat / .ps1          # GUI launcher (recommended)
-├── start_embedded.bat / .ps1     # Console-mode launcher
-├── main.py                       # Console entry point (OCR + Discord RPC)
-├── webview_launcher.py           # GUI entry point (pywebview + local HTTP server)
-├── CONFIG.py                     # Advanced/manual configuration
-├── core/
-│   ├── detection.py              # Main detection loop logic
-│   ├── sensors.py                # Sensor workers (char/location/menu scanning)
-│   ├── coordinator.py            # Coordinates sensor workers & blackboard
-│   ├── blackboard.py             # Shared JSON store for sensor results
-│   ├── character_detection.py    # Adaptive party-HUD character detection
-│   ├── ocr_engine.py             # RapidOCR wrapper (DirectML GPU enforcement)
-│   ├── ocr_utils.py              # Screen capture & OCR text utilities
-│   ├── discord_rpc.py            # Rich Presence update thread
-│   ├── state.py                  # Global game-state management
-│   ├── datatypes.py              # Activity/Character/Location types + CSV data
-│   ├── ps_helper.py              # Window/process helpers (win32)
-│   └── log_utils.py              # Timestamped, throttled logging
-├── gui/
-│   ├── api.py                    # Python-side API exposed to the web UI
-│   └── src/                      # React + TypeScript front end (built to gui/dist)
-├── data/                         # Game data (hot-reloaded CSVs)
-│   ├── characters.csv            # Party characters
-│   ├── bosses.csv                # Weekly/world bosses
-│   ├── domains.csv               # Domains
-│   ├── locations.csv             # Locations & points of interest
-│   ├── gamemenus.csv             # Menu screens
-│   ├── character_meta.csv        # Character metadata
-│   └── GAME_DATA_DOCUMENTATION.md
-├── tools/                        # Debug & calibration scripts
-│   └── archive/                  # One-shot asset preparation scripts
-├── docs/                         # Patch notes & coordinate guide
-├── resources/                    # Images, icons, screenshots
-├── requirements.txt              # Python dependencies (for reference)
-└── python3.12.8_embedded/        # Bundled Python 3.12.8 environment
-```
-
-Runtime-generated files (safe to delete when the app is closed):
-`shared_config.json`, `gui_shared_data.json`, `gui_config.json`.
 
 ## 🛠️ Troubleshooting
 
@@ -127,8 +92,8 @@ Alt+tab into Genshin, switch characters, travel around, and watch the console ou
 
 | Problem | Fix |
 |---|---|
-| OCR not detecting text | Ensure the game is in English; update GPU drivers |
-| App won't start | Use `start_gui.bat`; verify `python3.12.8_embedded\` exists; allow it through antivirus |
+| OCR not detecting text | Ensure the game is in English; update GPU drivers; run `tools/test_imagegrab.py` |
+| App won't start | Verify `builds/GenshinRichPresence/` is unzipped intact; allow it through antivirus; ensure `python3.12.8_embedded/` exists alongside the exes |
 | Discord not updating | Confirm the Discord desktop app is running; restart Discord |
 | Poor performance | Close other GPU-intensive apps; update GPU drivers |
 
@@ -136,6 +101,17 @@ Debug tools live in `tools/`: `test_imagegrab.py` (capture test),
 `capture_ocr_regions.py` (region inspection),
 `interactive_coordinate_calibrator.py` (manual coordinate calibration),
 `test_sensors.py` (sensor architecture test).
+
+### Building from source
+
+Double-click **`build.bat`** (or run it from a terminal). It uses the bundled
+Python + PyInstaller to produce a ready-to-distribute folder at
+`builds\GenshinRichPresence\` containing:
+
+- `GenshinRichPresence.exe` — the GUI
+- `RichPresenceEngine.exe` — the headless OCR/Discord engine the GUI spawns
+
+Close the app before building — running exes lock their DLLs.
 
 -----
 
