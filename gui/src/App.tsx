@@ -583,10 +583,6 @@ function AboutPanel() {
           <div style={{ fontFamily: "var(--font-heading)", fontSize: "10.5px", color: "#6a5820", letterSpacing: "0.2em", marginTop: 4 }}>
             VERSION 3.0
           </div>
-
-        <div style={{ fontFamily: "var(--font-body)", fontStyle: "italic", fontSize: "13px", color: "#8a7a5a", marginTop: 8, textAlign: "center", maxWidth: 260, lineHeight: 1.5 }}>
-          Show Teyvat to the world — your party, your world, your adventure.
-        </div>
       </div>
 
       {/* Info cards */}
@@ -618,11 +614,12 @@ function AboutPanel() {
         <OrnamentDivider label="LINKS" />
         <div className="mt-3 grid grid-cols-2 gap-2">
           {[
-            { label: "GitHub Repo", icon: "⧉", sub: "github.com/ZANdewanai/…" },
-            { label: "Report Issue", icon: "⚑", sub: "Bugs & feedback" },
-            { label: "Releases", icon: "≡", sub: "Changelog & downloads" },
-          ].map(({ label, icon, sub }) => (
-            <button key={label} className="flex flex-col gap-1 px-3 py-3 rounded text-left cursor-pointer group transition-all duration-200"
+            { label: "GitHub Repo", icon: "⧉", sub: "github.com/ZANdewanai/…", href: "https://github.com/ZANdewanai/Genshin-Impact-Rich-Presence" },
+            { label: "Report Issue", icon: "⚑", sub: "Bugs & feedback", href: "https://github.com/ZANdewanai/Genshin-Impact-Rich-Presence/issues" },
+            { label: "Releases", icon: "≡", sub: "Changelog & downloads", href: "https://github.com/ZANdewanai/Genshin-Impact-Rich-Presence/releases" },
+          ].map(({ label, icon, sub, href }) => (
+            <a key={label} href={href} target="_blank" rel="noopener noreferrer"
+              className="flex flex-col gap-1 px-3 py-3 rounded text-left cursor-pointer group transition-all duration-200 no-underline"
               style={{
                 background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)",
                 outline: "none",
@@ -636,11 +633,11 @@ function AboutPanel() {
                   {label}
                 </span>
               </div>
-              <span style={{ fontFamily: "var(--font-body)", fontSize: "12px", color: "#6a5820", paddingLeft: 20 }}>
-                {sub}
-              </span>
-            </button>
-          ))}
+               <span style={{ fontFamily: "var(--font-body)", fontSize: "12px", color: "#6a5820", paddingLeft: 20 }}>
+                 {sub}
+               </span>
+             </a>
+           ))}
         </div>
       </div>
 
