@@ -55,8 +55,8 @@ declare global {
         get_settings?(): Promise<Partial<Settings>>;
         save_settings?(patch: Partial<Settings>): Promise<{ ok: boolean }>;
         get_logs?(): Promise<string[]>;
-        get_debug?(): Promise<{ debugMode: boolean; debugCharacterMode: boolean }>;
-        set_debug?(debugMode: boolean, debugCharacterMode: boolean): Promise<{ ok: boolean }>;
+        get_debug?(): Promise<{ debugMode: boolean; debugCharacterMode: boolean; debugStaticImage: boolean; debugStaticImagePath: string }>;
+        set_debug?(debugMode: boolean, debugCharacterMode: boolean, debugStaticImage: boolean, debugStaticImagePath: string): Promise<{ ok: boolean }>;
       };
     };
   }
@@ -779,6 +779,9 @@ export default function App() {
     manekinaName: "Manekina",
   });
   const [debugEnabled, setDebugEnabled] = useState(false);
+  const [debugCharacterEnabled, setDebugCharacterEnabled] = useState(false);
+  const [debugStaticImageEnabled, setDebugStaticImageEnabled] = useState(false);
+  const [debugStaticImagePath, setDebugStaticImagePath] = useState("");
 
   /* Load persisted settings once the backend bridge is available.
      pywebview injects window.pywebview asynchronously (in a thread after
@@ -805,6 +808,9 @@ export default function App() {
         .then(d => {
           if (!cancelled && d && typeof d.debugMode === "boolean") {
             setDebugEnabled(d.debugMode);
+            setDebugCharacterEnabled(d.debugCharacterMode);
+            setDebugStaticImageEnabled(d.debugStaticImage);
+            setDebugStaticImagePath(d.debugStaticImagePath || "");
           }
         })
         .catch(() => {});
@@ -821,11 +827,16 @@ export default function App() {
     }
   };
 
-  /* Toggle engine debug logging (CONFIG DEBUG_MODE / DEBUG_CHARACTER_MODE). */
-  const updateDebug = (enabled: boolean) => {
-    setDebugEnabled(enabled);
+  /* Toggle engine debug logging (CONFIG DEBUG_MODE / DEBUG_CHARACTER_MODE / DEBUG_STATIC_IMAGE). */
+  const updateDebug = (mode: boolean, character: boolean, staticImage: boolean, staticImagePath?: string) => {
+    setDebugEnabled(mode);
+    setDebugCharacterEnabled(character);
+    setDebugStaticImageEnabled(staticImage);
+    if (typeof staticImagePath === "string") {
+      setDebugStaticImagePath(staticImagePath);
+    }
     if (hasBackend()) {
-      window.pywebview!.api.set_debug?.(enabled, enabled)?.catch(() => {});
+      window.pywebview!.api.set_debug?.(mode, character, staticImage, typeof staticImagePath === "string" ? staticImagePath : debugStaticImagePath)?.catch(() => {});
     }
   };
 
@@ -1122,23 +1133,81 @@ export default function App() {
 
           {tab === "logs" && (
             <div>
-              {/* The debug toggle is always visible so it can be switched off even
+              {/* Debug toggles are always visible so they can be switched off even
                   when debug logging is already enabled — otherwise the Logs tab
                   only shows the engine output panel with no way to change the
-                  setting (see CONFIG.py DEBUG_MODE defaulting to True). */}
+                  setting (see CONFIG.py defaults). */}
               <div className="rounded overflow-hidden mb-4"
                 style={{ background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)" }}
               >
-                <div className="flex items-center justify-between gap-4 py-3 px-4">
+                <div className="px-4 py-3">
+                  <span style={{ fontFamily: "var(--font-heading)", fontSize: "12px", color: "#ede3c4", letterSpacing: "0.05em" }}>
+                    ENGINE DEBUG SETTINGS
+                  </span>
+                  <span style={{ fontFamily: "var(--font-body)", fontSize: "12.5px", color: "#6a5820", lineHeight: 1.4, display: "block", marginTop: 4 }}>
+                    Toggle verbose engine output and character-detection logging. Maps to CONFIG DEBUG_MODE, DEBUG_CHARACTER_MODE, and DEBUG_STATIC_IMAGE.
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-4 py-3 px-4"
+                  style={{ borderTop: "1px solid rgba(200,168,75,0.08)" }}
+                >
                   <div className="flex flex-col gap-0.5 min-w-0">
-                    <span style={{ fontFamily: "var(--font-heading)", fontSize: "12px", color: "#ede3c4", letterSpacing: "0.05em" }}>
-                      ENGINE DEBUG LOGS
+                    <span style={{ fontFamily: "var(--font-body)", fontSize: "12.5px", color: "#c8a84b" }}>
+                      Engine Debug Logs
                     </span>
-                    <span style={{ fontFamily: "var(--font-body)", fontSize: "12.5px", color: "#6a5820", lineHeight: 1.3 }}>
-                      Verbose engine output for troubleshooting. Maps to CONFIG DEBUG_MODE / DEBUG_CHARACTER_MODE.
+                    <span style={{ fontFamily: "var(--font-body)", fontSize: "11px", color: "#6a5820", lineHeight: 1.3 }}>
+                      General verbose engine output (DEBUG_MODE)
                     </span>
                   </div>
-                  <ToggleSwitch checked={debugEnabled} onChange={() => updateDebug(!debugEnabled)} />
+                  <ToggleSwitch checked={debugEnabled} onChange={() => updateDebug(!debugEnabled, debugCharacterEnabled, debugStaticImageEnabled)} />
+                </div>
+
+                <div className="flex items-center justify-between gap-4 py-3 px-4"
+                  style={{ borderTop: "1px solid rgba(200,168,75,0.08)" }}
+                >
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <span style={{ fontFamily: "var(--font-body)", fontSize: "12.5px", color: "#c8a84b" }}>
+                      Character Detection Debug
+                    </span>
+                    <span style={{ fontFamily: "var(--font-body)", fontSize: "11px", color: "#6a5820", lineHeight: 1.3 }}>
+                      Extra OCR debug output for character name detection (DEBUG_CHARACTER_MODE)
+                    </span>
+                  </div>
+                  <ToggleSwitch checked={debugCharacterEnabled} onChange={() => updateDebug(debugEnabled, !debugCharacterEnabled, debugStaticImageEnabled)} />
+                </div>
+
+                <div className="flex items-center justify-between gap-4 py-3 px-4"
+                  style={{ borderTop: "1px solid rgba(200,168,75,0.08)" }}
+                >
+                  <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                    <span style={{ fontFamily: "var(--font-body)", fontSize: "12.5px", color: "#c8a84b" }}>
+                      Static Image Debug
+                    </span>
+                    <span style={{ fontFamily: "var(--font-body)", fontSize: "11px", color: "#6a5820", lineHeight: 1.3 }}>
+                      Read character name regions from a static screenshot instead of the live screen (DEBUG_STATIC_IMAGE)
+                    </span>
+                    <input
+                      type="text"
+                      value={debugStaticImagePath}
+                      onChange={e => {
+                        setDebugStaticImagePath(e.target.value);
+                        updateDebug(debugEnabled, debugCharacterEnabled, debugStaticImageEnabled, e.target.value);
+                      }}
+                      placeholder="debug_images\debug_image.jpg"
+                      className="mt-1 px-2 py-1 rounded text-xs"
+                      style={{
+                        background: "rgba(8,9,26,0.5)",
+                        border: "1px solid rgba(200,168,75,0.2)",
+                        color: "#ede3c4",
+                        fontFamily: "var(--font-body)",
+                        outline: "none",
+                        width: "100%",
+                        maxWidth: 320,
+                      }}
+                    />
+                  </div>
+                  <ToggleSwitch checked={debugStaticImageEnabled} onChange={() => updateDebug(debugEnabled, debugCharacterEnabled, !debugStaticImageEnabled, debugStaticImagePath)} />
                 </div>
               </div>
 

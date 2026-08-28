@@ -60,18 +60,18 @@ zhongli,char_zhongli,Zhongli
 zibai,char_zibai,Zibai
 ------,INAZUMA,------
 arataki itto,char_arataki_itto,Arataki Itto
-ayaka,char_kamisato_ayaka,Kamisato Ayaka
-ayato,char_kamisato_ayato,Kamisato Ayato
+kamisato ayaka,char_kamisato_ayaka,Kamisato Ayaka
+kamisato ayato,char_kamisato_ayato,Kamisato Ayato
 dahlia,char_dahlia,Dahlia
 gorou,char_gorou,Gorou
-heizou,char_shikanoin_heizou,Shikanoin Heizou
-kazuha,char_kaedehara_kazuha,Kaedehara Kazuha
+shikanoin heizou,char_shikanoin_heizou,Shikanoin Heizou
+kaedehara kazuha,char_kaedehara_kazuha,Kaedehara Kazuha
 kirara,char_kirara,Kirara
-kokomi,char_sangonomiya_kokomi,Sangonomiya Kokomi
+sangonomiya kokomi,char_sangonomiya_kokomi,Sangonomiya Kokomi
 kuki shinobu,char_kuki_shinobu,Kuki Shinobu
-miko,char_yae_miko,Yae Miko
+yae miko,char_yae_miko,Yae Miko
 raiden shogun,char_raiden_shogun,Raiden Shogun
-sara,char_kujo_sara,Kujo Sara
+kujo sara,char_kujo_sara,Kujo Sara
 sayu,char_sayu,Sayu
 thoma,char_thoma,Thoma
 yoimiya,char_yoimiya,Yoimiya

@@ -68,10 +68,9 @@ Advanced users can edit [CONFIG.py](CONFIG.py) directly:
 - **Screen capture → OCR → activity state.** The engine grabs the game window
   and reads region-specific text: location names, boss names, domain names,
   party slots, and menus.
-- **Sensor worker architecture.** Character, location, and menu regions are
+ - **Sensor worker architecture.** Character, location, and menu regions are
   scanned in dedicated worker threads coordinated via a shared blackboard,
-  keeping the main loop responsive. A legacy sequential loop remains available
-  (`USE_SENSOR_WORKERS = False`).
+  keeping the main loop responsive.
 - **Adaptive character detection.** If UI scaling shifts the party HUD, the
   character name regions self-adjust within bounds instead of failing.
 - **Hot-reloaded data.** The CSV files in `data/` reload on change — you can
@@ -93,7 +92,7 @@ Alt+tab into Genshin, switch characters, travel around, and watch the console ou
 | Problem | Fix |
 |---|---|
 | OCR not detecting text | Ensure the game is in English; update GPU drivers; run `tools/test_imagegrab.py` |
-| App won't start | Verify `builds/GenshinRichPresence/` is unzipped intact; allow it through antivirus; ensure `python3.12.8_embedded/` exists alongside the exes |
+| App won't start | Allow the app through antivirus; ensure the release folder is unzipped intact with all files including `_internal/` |
 | Discord not updating | Confirm the Discord desktop app is running; restart Discord |
 | Poor performance | Close other GPU-intensive apps; update GPU drivers |
 

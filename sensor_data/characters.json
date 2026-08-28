@@ -1,1 +1,1 @@
-{"slots": [null, null, null, null, null, null], "active_slot_hint": null, "hud_visible": false, "written_at": 1787628622.0932176}
+{"slots": [null, {"name": "Zhongli", "image_key": "char_zhongli", "cached": false}, {"name": "ZANdewanai", "image_key": "char_aether", "cached": false}, {"name": "Columbina", "image_key": "char_columbina", "cached": false}, null], "active_slot_hint": 1, "hud_visible": true, "written_at": 1787890076.9202209}

@@ -9,6 +9,7 @@ from typing import Optional, Callable
 
 from core.datatypes import Activity, ActivityType, Character, Location, DEBUG_MODE
 from core.log_utils import log as log_ts, should_log as log_should_log
+from CONFIG import MAX_PARTY_SLOTS
 
 
 # =============================================================================
@@ -30,8 +31,8 @@ ocr_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="ocr")
 current_active_character: int = 0
 last_active_character: int = 0  # Remember the last detected active character
 
-# Character data for all 6 party slots
-current_characters: list[Optional[Character]] = [None, None, None, None, None, None]
+# Character data for all party slots (5 in current Genshin).
+current_characters: list[Optional[Character]] = [None] * MAX_PARTY_SLOTS
 
 # Flag to track if characters were truly detected this cycle (vs cached from before)
 # Initialized to True so first detection cycle works immediately
@@ -184,7 +185,7 @@ def clear_all_characters():
     """Clear all character data."""
     global current_characters
     with state_lock:
-        current_characters = [None, None, None, None, None, None]
+        current_characters = [None] * MAX_PARTY_SLOTS
 
 
 def reset_game_start_time():

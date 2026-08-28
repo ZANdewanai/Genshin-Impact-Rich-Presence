@@ -1,11 +1,14 @@
 NAME,RARITY,ELEMENT
-aether,5,
+------,ANOTHER WORLD,------
+aether,5,adaptive
 aloy,5,cryo
-lumine,5,
-wonderland manekin,5,
-wonderland manekina,5,
-dainsleif,4,hydro
+lumine,5,adaptive
+wonderland manekin,5,adaptive
+wonderland manekina,5,adaptive
+------,KHAENRI'AH,------
+dainsleif,5,hydro
 skirk,5,cryo
+------,MONDSTADT,------
 albedo,5,geo
 amber,4,pyro
 barbara,4,hydro
@@ -32,6 +35,7 @@ sucrose,4,anemo
 venti,5,anemo
 varka,5,anemo
 durin,5,pyro
+------,LIYUE,------
 baizhu,5,dendro
 beidou,4,electro
 chongyun,4,cryo
@@ -55,22 +59,24 @@ yumemizuki mizuki,5,anemo
 yun jin,4,geo
 zhongli,5,geo
 zibai,5,geo
+------,INAZUMA,------
 arataki itto,5,geo
-ayaka,5,cryo
-ayato,5,hydro
+kamisato ayaka,5,cryo
+kamisato ayato,5,hydro
 dahlia,4,hydro
 gorou,4,geo
-heizou,4,anemo
+shikanoin heizou,4,anemo
 kaedehara kazuha,5,anemo
 kirara,4,dendro
-kokomi,5,hydro
+sangonomiya kokomi,5,hydro
 kuki shinobu,4,electro
-miko,5,electro
+yae miko,5,electro
 raiden shogun,5,electro
-sara,4,electro
+kujo sara,4,electro
 sayu,4,anemo
 thoma,4,pyro
 yoimiya,5,pyro
+------,SUMERU,------
 alhaitham,5,dendro
 candace,4,hydro
 collei,4,dendro
@@ -85,6 +91,7 @@ nilou,5,hydro
 sethos,4,electro
 tighnari,5,dendro
 wanderer,5,anemo
+------,FONTAINE,------
 arlecchino,5,pyro
 charlotte,4,cryo
 chevreuse,4,pyro
@@ -100,10 +107,12 @@ navia,5,geo
 neuvillette,5,hydro
 sigewinne,5,hydro
 wriothesley,5,cryo
+------,SNEZHNAYA,------
 tartaglia,5,hydro
 odette,4,hydro
 alyosha,4,electro
 sandrone,4,electro
+------,NATLAN,------
 kachina,4,geo
 kinich,5,dendro
 mavuika,5,pyro
@@ -111,6 +120,7 @@ mualani,5,hydro
 ororon,4,electro
 varesa,5,electro
 xilonen,5,geo
+------,NOD-KRAI,------
 aino,4,hydro
 flins,5,electro
 ineffa,5,electro

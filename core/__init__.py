@@ -10,15 +10,13 @@ from core.state import (
     reset_game_start_time, write_gui_shared_data,
     shutdown_ocr_executor,
 )
-from core.ocr_utils import capture_and_process_ocr, calculate_keyword_match_score, calculate_location_confidence
-from core.character_detection import CharacterRegionManager
+from core.ocr_utils import capture_and_process_ocr, calculate_keyword_match_score, calculate_location_confidence, process_map_text
 from core.discord_rpc import (
     start_rpc_thread, stop_rpc_thread, is_rpc_alive, join_rpc_thread,
     get_party_info_string
 )
 from core.detection import (
-    run_detection_iteration, update_coordinates_if_needed,
-    detect_characters_with_adaptation, process_map_text,
+    update_coordinates_if_needed,
     RESOLUTION_CHECK_INTERVAL
 )
 
@@ -34,14 +32,11 @@ __all__ = [
     'reset_game_start_time', 'write_gui_shared_data',
     'shutdown_ocr_executor',
     # OCR
-    'capture_and_process_ocr', 'calculate_keyword_match_score', 'calculate_location_confidence',
-    # Character detection
-    'CharacterRegionManager',
+    'capture_and_process_ocr', 'calculate_keyword_match_score', 'calculate_location_confidence', 'process_map_text',
     # Discord RPC
     'start_rpc_thread', 'stop_rpc_thread', 'is_rpc_alive', 'join_rpc_thread',
     'get_party_info_string',
     # Detection
-    'run_detection_iteration', 'update_coordinates_if_needed',
-    'detect_characters_with_adaptation', 'process_map_text',
+    'update_coordinates_if_needed',
     'RESOLUTION_CHECK_INTERVAL',
 ]

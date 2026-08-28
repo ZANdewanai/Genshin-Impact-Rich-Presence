@@ -379,25 +379,25 @@ DEBUG_MODE = True
 Set to true to print debug messages.
 """
 
-USE_SENSOR_WORKERS = True
-"""
-Use the new multi-thread sensor architecture (CharSensor/LocationSensor/
-MenuSensor writing JSON blackboards + coordinator state machine) instead of
-the legacy sequential detection loop in core/detection.py.
-"""
-
 DEBUG_CHARACTER_MODE = True
 """
 Set to true to print character detection debug messages.
 Disable to reduce console spam from character detection.
 """
 
-DEBUG_STATIC_IMAGE_PATH = r"resources\assets\debug_image.jpg"
+DEBUG_STATIC_IMAGE = False
 """
-If set to a path (and the file exists), CharSensor will grab its name/number
-regions from this static screenshot instead of the live screen. Useful for
-validating OCR/coordinate calibration against a known capture. Leave as ""
-(empty string) for normal live-screen operation.
+Set to true to enable static image debug mode.
+
+When enabled, CharSensor will grab its name/number regions from the image
+specified by DEBUG_STATIC_IMAGE_PATH instead of the live screen. Useful for
+validating OCR/coordinate calibration against a known capture.
+"""
+
+DEBUG_STATIC_IMAGE_PATH = r"debug_images\debug_image.jpg"
+"""
+Path to the static screenshot used when DEBUG_STATIC_IMAGE is True.
+
 The image must be the same resolution as the configured game resolution so
 the region coordinates line up (the 2560x1440 coordinates are used as-is).
 """
@@ -408,40 +408,81 @@ BASE_RESOLUTION_HEIGHT = 1440
 
 # Store original coordinates before scaling
 # Character number regions now use full bounding boxes (x1, y1, x2, y2) for more robust detection
-BASE_NUMBER_4P_COORD = [
-    (2480, 350, 2510, 380),  # Char 1 - centered at (2495, 365)
-    (2480, 472, 2510, 502),  # Char 2 - centered at (2495, 487)
-    (2480, 592, 2510, 622),  # Char 3 - centered at (2495, 607)
-    (2480, 717, 2510, 747),  # Char 4 - centered at (2495, 732)
+
+# CANONICAL PARTY HUD COORDINATES
+# Each party size (1P through 5P) has its own coordinate set
+# Calibrated from debug_party_N_slots.jpg via calibrate_party_layouts.py
+# (stored in sensor_data/party_layouts.json)
+
+# Party 1 (single character - trial/solo)
+BASE_NAMES_1P_COORD = [
+    (2115, 515, 2380, 600),
 ]
 
+BASE_NUMBER_1P_COORD = [
+    (2450, 545, 2480, 575),
+]
+
+# Party 2
+BASE_NAMES_2P_COORD = [
+    (2115, 395, 2380, 480),
+    (2115, 595, 2380, 635),
+]
+
+BASE_NUMBER_2P_COORD = [
+    (2450, 425, 2480, 455),
+    (2450, 600, 2480, 630),
+]
+
+# Party 3
+BASE_NAMES_3P_COORD = [
+    (2115, 375, 2380, 445),
+    (2115, 495, 2380, 565),
+    (2115, 585, 2380, 685),
+]
+
+BASE_NUMBER_3P_COORD = [
+    (2450, 400, 2480, 420),
+    (2450, 520, 2480, 550),
+    (2450, 630, 2480, 660),
+]
+
+# Party 4
 BASE_NAMES_4P_COORD = [
-    (2165, 320, 2362, 391),  # Character 1
-    (2165, 445, 2362, 517),  # Character 2
-    (2165, 575, 2360, 650),  # Character 3
-    (2165, 705, 2362, 778),  # Character 4
+    (2115, 305, 2380, 375),
+    (2115, 465, 2380, 565),
+    (2115, 575, 2380, 615),
+    (2115, 725, 2380, 795),
 ]
 
-BASE_NUMBER_6P_COORD = [
-    (2480, 350, 2510, 380),   # Char 1 - centered at (2495, 365)
-    (2480, 472, 2510, 502),   # Char 2 - centered at (2495, 487)
-    (2480, 592, 2510, 622),   # Char 3 - centered at (2495, 607)
-    (2480, 717, 2510, 747),   # Char 4 - centered at (2495, 732)
-    (2480, 842, 2510, 872),   # Char 5 - centered at (2495, 857)
-    (2480, 967, 2510, 997),   # Char 6 - centered at (2495, 982)
+BASE_NUMBER_4P_COORD = [
+    (2450, 335, 2480, 355),
+    (2450, 500, 2480, 530),
+    (2450, 610, 2480, 640),
+    (2450, 755, 2480, 785),
 ]
 
-BASE_NAMES_6P_COORD = [
-    (2165, 320, 2362, 391),   # Character 1
-    (2165, 445, 2362, 517),   # Character 2
-    (2165, 575, 2360, 650),   # Character 3
-    (2165, 705, 2362, 778),   # Character 4
-    (2165, 835, 2362, 908),   # Character 5
-    (2165, 965, 2362, 1038),  # Character 6
+# Party 5 (full party)
+BASE_NAMES_5P_COORD = [
+    (2115, 275, 2380, 315),
+    (2115, 385, 2380, 425),
+    (2115, 515, 2380, 555),
+    (2115, 665, 2380, 735),
+    (2115, 755, 2380, 795),
 ]
+
+BASE_NUMBER_5P_COORD = [
+    (2450, 290, 2480, 300),
+    (2450, 400, 2480, 420),
+    (2450, 530, 2480, 550),
+    (2450, 690, 2480, 710),
+    (2450, 770, 2480, 780),
+]
+
+MAX_PARTY_SLOTS = 5
 
 BASE_ACTIVITY_COORD = (1880, 20, 2436, 77)
-BASE_BOSS_COORD = (700, 20, 1956, 77)
+BASE_BOSS_COORD = (680, 10, 2005, 110)
 BASE_DOMAIN_COORD = (1680, 160, 2416, 257)
 BASE_PARTY_SETUP_COORD = (0, 20, 896, 97)
 BASE_LOCATION_COORD = (701, 240, 1834, 342)
@@ -459,6 +500,35 @@ def get_dynamic_coordinates():
     # Minimum reasonable window size for Genshin (width, height)
     MIN_WINDOW_SIZE = (800, 600)
 
+    # Party size -> (names, numbers) base coordinate sets, canonical 1P-5P
+    party_sets = {
+        1: (BASE_NAMES_1P_COORD, BASE_NUMBER_1P_COORD),
+        2: (BASE_NAMES_2P_COORD, BASE_NUMBER_2P_COORD),
+        3: (BASE_NAMES_3P_COORD, BASE_NUMBER_3P_COORD),
+        4: (BASE_NAMES_4P_COORD, BASE_NUMBER_4P_COORD),
+        5: (BASE_NAMES_5P_COORD, BASE_NUMBER_5P_COORD),
+    }
+
+    def scaled_party_sets(scale_x, scale_y):
+        """Return resolution-scaled per-party-size coordinate dict."""
+        out = {}
+        for size, (names, numbers) in party_sets.items():
+            out[f"NAMES_{size}P_COORD"] = [
+                (
+                    round(x1 * scale_x), round(y1 * scale_y),
+                    round(x2 * scale_x), round(y2 * scale_y),
+                )
+                for (x1, y1, x2, y2) in names
+            ]
+            out[f"NUMBER_{size}P_COORD"] = [
+                (
+                    round(x1 * scale_x), round(y1 * scale_y),
+                    round(x2 * scale_x), round(y2 * scale_y),
+                )
+                for (x1, y1, x2, y2) in numbers
+            ]
+        return out
+
     try:
         # Get the actual Genshin window dimensions
         from core import ps_helper
@@ -475,10 +545,7 @@ def get_dynamic_coordinates():
                         f"Detected window too small ({actual_width}x{actual_height}), using base coordinates"
                     )
                 return {
-                    "NUMBER_4P_COORD": BASE_NUMBER_4P_COORD,
-                    "NAMES_4P_COORD": BASE_NAMES_4P_COORD,
-                    "NUMBER_6P_COORD": BASE_NUMBER_6P_COORD,
-                    "NAMES_6P_COORD": BASE_NAMES_6P_COORD,
+                    **scaled_party_sets(1.0, 1.0),
                     "BOSS_COORD": BASE_BOSS_COORD,
                     "LOCATION_COORD": BASE_LOCATION_COORD,
                     "MAP_LOC_COORD": BASE_MAP_LOC_COORD,
@@ -494,44 +561,10 @@ def get_dynamic_coordinates():
             scale_x = actual_width / BASE_RESOLUTION_WIDTH
             scale_y = actual_height / BASE_RESOLUTION_HEIGHT
 
-            # Scale all coordinate arrays
+            # Scale all coordinate arrays (canonical 1P-5P party sets +
+            # the non-party regions)
             scaled_coords = {
-                "NUMBER_4P_COORD": [
-                    (
-                        round(x1 * scale_x),
-                        round(y1 * scale_y),
-                        round(x2 * scale_x),
-                        round(y2 * scale_y),
-                    )
-                    for x1, y1, x2, y2 in BASE_NUMBER_4P_COORD
-                ],
-                "NAMES_4P_COORD": [
-                    (
-                        round(x1 * scale_x),
-                        round(y1 * scale_y),
-                        round(x2 * scale_x),
-                        round(y2 * scale_y),
-                    )
-                    for x1, y1, x2, y2 in BASE_NAMES_4P_COORD
-                ],
-                "NUMBER_6P_COORD": [
-                    (
-                        round(x1 * scale_x),
-                        round(y1 * scale_y),
-                        round(x2 * scale_x),
-                        round(y2 * scale_y),
-                    )
-                    for x1, y1, x2, y2 in BASE_NUMBER_6P_COORD
-                ],
-                "NAMES_6P_COORD": [
-                    (
-                        round(x1 * scale_x),
-                        round(y1 * scale_y),
-                        round(x2 * scale_x),
-                        round(y2 * scale_y),
-                    )
-                    for x1, y1, x2, y2 in BASE_NAMES_6P_COORD
-                ],
+                **scaled_party_sets(scale_x, scale_y),
                 "BOSS_COORD": (
                     round(BASE_BOSS_COORD[0] * scale_x),
                     round(BASE_BOSS_COORD[1] * scale_y),
@@ -580,10 +613,7 @@ def get_dynamic_coordinates():
 
     # Fallback to base coordinates if detection fails
     return {
-        "NUMBER_4P_COORD": BASE_NUMBER_4P_COORD,
-        "NAMES_4P_COORD": BASE_NAMES_4P_COORD,
-        "NUMBER_6P_COORD": BASE_NUMBER_6P_COORD,
-        "NAMES_6P_COORD": BASE_NAMES_6P_COORD,
+        **scaled_party_sets(1.0, 1.0),
         "BOSS_COORD": BASE_BOSS_COORD,
         "LOCATION_COORD": BASE_LOCATION_COORD,
         "MAP_LOC_COORD": BASE_MAP_LOC_COORD,
@@ -597,10 +627,16 @@ def get_dynamic_coordinates():
 DYNAMIC_COORDINATES, DETECTED_RESOLUTION = get_dynamic_coordinates()
 
 # Make coordinates available globally
-NUMBER_4P_COORD = DYNAMIC_COORDINATES["NUMBER_4P_COORD"]
+NAMES_1P_COORD = DYNAMIC_COORDINATES["NAMES_1P_COORD"]
+NUMBER_1P_COORD = DYNAMIC_COORDINATES["NUMBER_1P_COORD"]
+NAMES_2P_COORD = DYNAMIC_COORDINATES["NAMES_2P_COORD"]
+NUMBER_2P_COORD = DYNAMIC_COORDINATES["NUMBER_2P_COORD"]
+NAMES_3P_COORD = DYNAMIC_COORDINATES["NAMES_3P_COORD"]
+NUMBER_3P_COORD = DYNAMIC_COORDINATES["NUMBER_3P_COORD"]
 NAMES_4P_COORD = DYNAMIC_COORDINATES["NAMES_4P_COORD"]
-NUMBER_6P_COORD = DYNAMIC_COORDINATES["NUMBER_6P_COORD"]
-NAMES_6P_COORD = DYNAMIC_COORDINATES["NAMES_6P_COORD"]
+NUMBER_4P_COORD = DYNAMIC_COORDINATES["NUMBER_4P_COORD"]
+NAMES_5P_COORD = DYNAMIC_COORDINATES["NAMES_5P_COORD"]
+NUMBER_5P_COORD = DYNAMIC_COORDINATES["NUMBER_5P_COORD"]
 BOSS_COORD = DYNAMIC_COORDINATES["BOSS_COORD"]
 LOCATION_COORD = DYNAMIC_COORDINATES["LOCATION_COORD"]
 MAP_LOC_COORD = DYNAMIC_COORDINATES["MAP_LOC_COORD"]

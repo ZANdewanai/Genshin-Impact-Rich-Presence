@@ -6,7 +6,7 @@ from asyncio import new_event_loop, set_event_loop
 import pypresence as discord
 
 from core.datatypes import Activity, ActivityType, DEBUG_MODE
-from CONFIG import DISC_APP_ID, USE_URL_ASSETS, ASSET_BASE_URL
+from CONFIG import DISC_APP_ID, USE_URL_ASSETS, ASSET_BASE_URL, MAX_PARTY_SLOTS
 
 # Seconds between presence updates. Discord rate-limits UpdateActivity to
 # 5 updates per 20 seconds, so keep this at 4s or above.
@@ -97,7 +97,7 @@ def get_party_info_string(current_characters):
     """Generate party info string for Discord RPC."""
     party_members = [
         char.character_display_name
-        for char in current_characters[:6]
+        for char in current_characters[:MAX_PARTY_SLOTS]
         if char is not None
     ]
 

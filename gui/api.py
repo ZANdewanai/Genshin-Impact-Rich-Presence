@@ -231,7 +231,7 @@ class Api:
             "location": "Unknown",
             "activity": "None",
             "timestamp": None,
-            "party": [None, None, None, None, None, None],
+            "party": [None, None, None, None, None],
             "active_character_index": -1,
         }
         data = {}
@@ -245,7 +245,7 @@ class Api:
         names = data.get("active_characters") or []
         keys = data.get("active_character_image_keys") or []
         party = []
-        for i in range(6):
+        for i in range(5):
             name = names[i] if i < len(names) else None
             if not name or name == "None":
                 party.append(None)
@@ -342,32 +342,50 @@ class Api:
             import CONFIG as _cfg
             dflt_mode = bool(_cfg.DEBUG_MODE)
             dflt_char = bool(_cfg.DEBUG_CHARACTER_MODE)
+            dflt_static = bool(_cfg.DEBUG_STATIC_IMAGE)
+            dflt_path = str(_cfg.DEBUG_STATIC_IMAGE_PATH or "")
         except ImportError:
             dflt_mode = False
             dflt_char = False
+            dflt_static = False
+            dflt_path = ""
         return {
             "debugMode": bool(shared.get("DEBUG_MODE", dflt_mode)),
             "debugCharacterMode": bool(shared.get("DEBUG_CHARACTER_MODE", dflt_char)),
+            "debugStaticImage": bool(shared.get("DEBUG_STATIC_IMAGE", dflt_static)),
+            "debugStaticImagePath": str(shared.get("DEBUG_STATIC_IMAGE_PATH", dflt_path)),
         }
 
-    def set_debug(self, debug_mode, debug_character_mode):
+    def set_debug(self, debug_mode, debug_character_mode, debug_static_image, debug_static_image_path=""):
         """Persist debug flags to shared_config.json (live) and CONFIG.py (canonical)."""
         debug_mode = bool(debug_mode)
         debug_character_mode = bool(debug_character_mode)
+        debug_static_image = bool(debug_static_image)
+        debug_static_image_path = str(debug_static_image_path or "").strip()
         shared = self._read_json(SHARED_CONFIG_FILE)
         shared["DEBUG_MODE"] = debug_mode
         shared["DEBUG_CHARACTER_MODE"] = debug_character_mode
+        shared["DEBUG_STATIC_IMAGE"] = debug_static_image
+        shared["DEBUG_STATIC_IMAGE_PATH"] = debug_static_image_path
         try:
             with open(SHARED_CONFIG_FILE, "w", encoding="utf-8") as f:
                 json.dump(shared, f, indent=4)
         except OSError as e:
             print(f"Warning: could not save shared_config.json: {e}")
+        # Update live proxy objects so the change takes effect immediately
+        # in all threads, not just on next restart.
+        try:
+            import core.datatypes as _dt
+            _dt.DEBUG_MODE.value = debug_mode
+            _dt.DEBUG_CHARACTER_MODE.value = debug_character_mode
+        except Exception:
+            pass
         # Keep CONFIG.py canonical so a fresh engine start inherits the choice.
-        self._write_config_debug(debug_mode, debug_character_mode)
+        self._write_config_debug(debug_mode, debug_character_mode, debug_static_image, debug_static_image_path)
         return {"ok": True}
 
-    def _write_config_debug(self, debug_mode, debug_character_mode):
-        """Rewrite the DEBUG_MODE / DEBUG_CHARACTER_MODE lines in CONFIG.py in place."""
+    def _write_config_debug(self, debug_mode, debug_character_mode, debug_static_image, debug_static_image_path):
+        """Rewrite the DEBUG_* lines in CONFIG.py in place."""
         try:
             import re
             cfg_path = os.path.join(ROOT, "CONFIG.py")
@@ -381,6 +399,16 @@ class Api:
             text = re.sub(
                 r"^DEBUG_CHARACTER_MODE\s*=.*$",
                 f"DEBUG_CHARACTER_MODE = {str(debug_character_mode)}",
+                text, count=1, flags=re.M,
+            )
+            text = re.sub(
+                r"^DEBUG_STATIC_IMAGE\s*=.*$",
+                f"DEBUG_STATIC_IMAGE = {str(debug_static_image)}",
+                text, count=1, flags=re.M,
+            )
+            text = re.sub(
+                r"^DEBUG_STATIC_IMAGE_PATH\s*=.*$",
+                f'DEBUG_STATIC_IMAGE_PATH = r"{debug_static_image_path}"',
                 text, count=1, flags=re.M,
             )
             with open(cfg_path, "w", encoding="utf-8") as f:

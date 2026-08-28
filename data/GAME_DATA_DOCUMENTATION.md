@@ -20,13 +20,13 @@ lumine,                  char_lumine,          Lumine
 ```
 
 **Guidelines:**
-- Contains all playable characters from Mondstadt to Nod-Krai
+- Contains all playable characters from Mondstadt to Snezhnaya (including Nod-Krai)
 - **Search phrase**: Should match character names in the character selection screen (right panel), not full names
 - **Image assets**: Located in `../resources/assets/characters/` (e.g., `char_kirara.png` becomes `char_kirara`)
 - **Display name**: Human-readable name shown in Discord Rich Presence
 - **Tip**: For travelers, use separate entries for Aether (`traveler`) and Lumine (`lumine`)
 
-**Current Coverage:** 100+ characters including latest Natlan additions (Chasca, Mavuika, etc.)
+**Current Coverage:** 123 characters (v2.6: 80) — expanded from Fontaine update through Snezhnaya and Nod-Krai
 
 ### [Domains](domains.csv)
 
@@ -49,7 +49,7 @@ obsession,               Tower of Abject Pride | Obsession,  forgery,     domain
   - `limited` - Limited-time event domains
 - **Image assets**: Located in `../resources/assets/domains/`
 
-**Current Coverage:** 250+ domains across all regions including Natlan and Nod-Krai
+**Current Coverage:** 258 domains across all regions (v2.6: 53) — reorganized into I-IV difficulty tiers with full coverage through Snezhnaya and Nod-Krai
 
 **Notes:**
 - Weekly bosses in Trounce Domains are included here
@@ -72,7 +72,7 @@ wuwang hill,             Wuwang Hill,   Bishui Plain, Liyue,        emblem_liyue
 - **Image assets**: Located in `../resources/assets/emblems/`
 - **Coverage**: Cities, landmarks, special areas, teapot, taverns, etc.
 
-**Current Coverage:** 400+ locations including all regions and special areas
+**Current Coverage:** 495 locations including all regions and special areas up to Snezhnaya and Nod-Krai (v2.6: 255)
 
 **Tips:**
 - Use shortest unique phrase possible for long names
@@ -93,7 +93,7 @@ anemo hypostasis,        Anemo Hypostasis, boss_anemo_hypostasis
 - **Image assets**: Located in `../resources/assets/bosses/`
 - **Note**: Trounce Domain bosses are in `domains.csv`, not here
 
-**Current Coverage:** 40+ world bosses including latest additions
+**Current Coverage:** 50 world bosses (v2.6: 28) including latest additions through Snezhnaya and Nod-Krai
 
 **Examples:**
 - `anemo hypostasis` (not `beth`)
@@ -115,7 +115,7 @@ mailbox,                 Looking at the Mailbox,            In Menus, icon_mailb
 - **Context**: Where the detection occurs (In Menus, In Archive, Spyral Abyss, etc.)
 - **Icon assets**: Located in `../resources/assets/icons/`
 
-**Coverage:** Complete menu system including reputation, tutorials, inventory, quests, achievements, etc.
+**Coverage:** 111 menu entries covering common activities (reputation, tutorials, inventory, quests, achievements, cooking, crafting, abyss floors, cutscenes, etc.)
 
 ## 🛠️ Editing Guidelines
 

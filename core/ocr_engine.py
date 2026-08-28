@@ -122,12 +122,18 @@ class Reader:
             print(f"[CRITICAL] GPU validation failed: {e}")
             raise
 
-    def readtext(self, image, allowlist=None, **kwargs):
+    def readtext(self, image, allowlist=None, wait=True, **kwargs):
         """
         Process image with RapidOCR
         
         RapidOCR returns: ( [[bbox, text, confidence_string], ...], [timing_info] )
         Standard result format: [(bbox, text, confidence_float), ...]
+        
+        When ``wait`` is False the call does NOT queue behind other OCR users:
+        it acquires the shared OCR lock with a short timeout and raises
+        TimeoutError instead of blocking. Low-priority/high-frequency consumers
+        (LocationSensor) use this so a long CharSensor fallback sweep can't
+        starve location updates - they simply retry on their next tick.
         
         RapidOCR output is converted into this standard format.
         """
@@ -135,9 +141,21 @@ class Reader:
             raise RuntimeError("RapidOCR reader not initialized")
         
         from core.state import ocr_lock
-        with ocr_lock:
-            result_tuple = self.reader(image)
-        
+        if wait:
+            with ocr_lock:
+                result_tuple = self.reader(image)
+        else:
+            # Non-blocking path: short-timeout acquire, ALWAYS paired with a
+            # release. (A previous version acquired here without releasing -
+            # every successful non-wait read then deadlocked all other
+            # sensors on the shared OCR lock forever.)
+            if not ocr_lock.acquire(timeout=0.05):
+                raise TimeoutError("OCR engine busy")
+            try:
+                result_tuple = self.reader(image)
+            finally:
+                ocr_lock.release()
+            
         # Extract the detections (first element of tuple), handle None case
         detections = []
         if result_tuple and len(result_tuple) > 0 and result_tuple[0] is not None:

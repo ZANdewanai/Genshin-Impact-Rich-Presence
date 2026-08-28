@@ -11,6 +11,29 @@ import tempfile
 import time
 from pathlib import Path
 
+# ---------------------------------------------------------------------------
+# Single source of truth for sensor cadences and blackboard freshness windows.
+#
+# Every staleness limit is expressed as a multiple of the producing sensor's
+# interval, so tuning one interval here automatically keeps all consumers in
+# sync (previously these constants were scattered across coordinator.py,
+# sensors.py and character_detection.py with unrelated magic numbers).
+# ---------------------------------------------------------------------------
+
+# Producer intervals (seconds). Must match the intervals passed to each
+# Sensor class constructor in core/coordinator.py.
+CHAR_SCAN_INTERVAL = 2.0      # CharSensor
+LOCATION_SCAN_INTERVAL = 0.5  # LocationSensor
+MENU_SCAN_INTERVAL = 2.0      # MenuSensor
+
+# Consumer freshness windows (values preserve the previously-scattered
+# hardcoded limits, now expressed relative to their producer's interval).
+CHAR_MAX_AGE_COORDINATOR = 5 * CHAR_SCAN_INTERVAL        # party-slot consumption: 10s
+CHAR_MAX_AGE_HUD = 3 * CHAR_SCAN_INTERVAL                # HUD-evidence freshness: 6s
+CHAR_MAX_AGE_REGION_MANAGER = 2.5 * CHAR_SCAN_INTERVAL   # detect_occupied_slots: 5s
+LOCATION_MAX_AGE = 30 * LOCATION_SCAN_INTERVAL           # location.json: 15s
+MENU_MAX_AGE = 2 * MENU_SCAN_INTERVAL                    # menus.json: 4s
+
 
 def write_json(path: str, payload: dict) -> None:
     """Atomically write `payload` with an injected server timestamp.

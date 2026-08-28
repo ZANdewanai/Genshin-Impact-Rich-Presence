@@ -32,6 +32,7 @@ class _LiveBool:
 
 
 DEBUG_MODE = _LiveBool(False)
+DEBUG_CHARACTER_MODE = _LiveBool(False)
 MC_AETHER = True
 WANDERER_NAME = "Wanderer"
 MANEKIN_NAME = "Manekin"
@@ -39,12 +40,14 @@ MANEKINA_NAME = "Manekina"
 USERNAME = "Player"
 GAME_RESOLUTION = 1080
 
-def set_config_values(debug_mode=False, mc_aether=True, wanderer_name="Wanderer", manekin_name="Manekin", manekina_name="Manekina", username="Player", game_resolution=1080):
+def set_config_values(debug_mode=False, debug_character_mode=False, mc_aether=True, wanderer_name="Wanderer", manekin_name="Manekin", manekina_name="Manekina", username="Player", game_resolution=1080):
     """Set configuration values to avoid circular dependency with CONFIG.py"""
     global MC_AETHER, WANDERER_NAME, MANEKIN_NAME, MANEKINA_NAME, USERNAME, GAME_RESOLUTION
-    # DEBUG_MODE is a live proxy object - mutate it in place so every module
-    # holding a reference (from-import) sees the updated value.
+    # DEBUG_MODE and DEBUG_CHARACTER_MODE are live proxy objects - mutate them
+    # in place so every module holding a reference (from-import) sees the
+    # updated value.
     DEBUG_MODE.value = bool(debug_mode)
+    DEBUG_CHARACTER_MODE.value = bool(debug_character_mode)
     MC_AETHER = mc_aether
     WANDERER_NAME = wanderer_name
     MANEKIN_NAME = manekin_name
@@ -633,14 +636,17 @@ class Data(PatternMatchingEventHandler):
 
         Has caching to reduce CPU.
         """
-        if len(charname_text) < self.characters_shortest_search:
+        normalized_text = charname_text.lower().replace('\n', ' ').replace('\r', ' ')
+        normalized_text = ' '.join(normalized_text.split())
+
+        if len(normalized_text) < self.characters_shortest_search:
             return None
 
-        if charname_text.lower() in self.party_capture_cache:
-            return self.party_capture_cache[charname_text.lower()]
+        if normalized_text in self.party_capture_cache:
+            return self.party_capture_cache[normalized_text]
 
         charname_match = [
-            c for c in self.characters if c.search_str in charname_text.lower()
+            c for c in self.characters if c.search_str in normalized_text
         ]
         charname_match.sort(key=lambda c: len(c.search_str), reverse=True)
         if DEBUG_MODE and len(charname_match) > 1:
@@ -649,7 +655,7 @@ class Data(PatternMatchingEventHandler):
             )
             print("Picking longest match")
         if len(charname_match) > 0:
-            self.party_capture_cache[charname_text.lower()] = charname_match[0]
+            self.party_capture_cache[normalized_text] = charname_match[0]
             return charname_match[0]
 
         # Fuzzy fallback: OCR often drops/merges a letter in character names
@@ -658,10 +664,10 @@ class Data(PatternMatchingEventHandler):
         fuzzy_matches = []
         for character in self.characters:
             ratio1 = difflib.SequenceMatcher(
-                None, charname_text.lower(), character.search_str.lower()
+                None, normalized_text, character.search_str.lower()
             ).ratio()
             ratio2 = difflib.SequenceMatcher(
-                None, character.search_str.lower(), charname_text.lower()
+                None, character.search_str.lower(), normalized_text
             ).ratio()
             similarity = max(ratio1, ratio2)
             if similarity >= 0.87:  # High bar - must be a near-identical name
@@ -675,10 +681,10 @@ class Data(PatternMatchingEventHandler):
                     f'FUZZY: Matched "{charname_text}" to "{char.character_display_name}" '
                     f'(similarity: {fuzzy_matches[0][1]:.2f})'
                 )
-            self.party_capture_cache[charname_text.lower()] = char
+            self.party_capture_cache[normalized_text] = char
             return char
 
-        self.party_capture_cache[charname_text.lower()] = None
+        self.party_capture_cache[normalized_text] = None
         return None
 
     def search_domain(self, domain_text) -> Optional[Domain]:

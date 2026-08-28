@@ -36,8 +36,8 @@ def main():
     reader = Reader(["en"], gpu=USE_GPU)
 
     def char_coords():
-        from CONFIG import NAMES_6P_COORD, NUMBER_6P_COORD
-        return NAMES_6P_COORD, NUMBER_6P_COORD
+        from CONFIG import NAMES_5P_COORD, NUMBER_5P_COORD
+        return NAMES_5P_COORD, NUMBER_5P_COORD
 
     def loc_coords():
         from CONFIG import LOCATION_COORD, BOSS_COORD, MAP_LOC_COORD
@@ -48,7 +48,7 @@ def main():
         return {"gamemenu": PARTY_SETUP_COORD, "domain": DOMAIN_COORD}
 
     sensors = [
-        CharSensor(reader, data, char_coords, str(OUT / "characters.json"), interval=2.0),
+        CharSensor(reader, data, str(OUT / "characters.json"), interval=2.0),
         LocationSensor(reader, data, loc_coords, str(OUT / "location.json"), interval=1.0),
         MenuSensor(reader, data, menu_coords, str(OUT / "menus.json"), interval=1.5),
     ]

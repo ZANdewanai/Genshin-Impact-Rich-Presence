@@ -29,10 +29,11 @@ def main():
     if len(sys.argv) > 1:
         image_path = sys.argv[1]
 
-    # If a path was passed, point CONFIG at it so CharSensor loads it.
+    # If a path was passed, point CONFIG at it and enable static-image mode.
     if image_path:
         import CONFIG
         CONFIG.DEBUG_STATIC_IMAGE_PATH = image_path
+        CONFIG.DEBUG_STATIC_IMAGE = True
 
     # Load the image up-front to confirm it's real/readable.
     if not image_path:
@@ -54,7 +55,7 @@ def main():
     print(f"Image: {p}  ({img.width}x{img.height})")
 
     # Coordinates: CharSensor in static mode crops names/numbers from the image.
-    from CONFIG import NAMES_6P_COORD, NUMBER_6P_COORD
+    from CONFIG import NAMES_5P_COORD, NUMBER_5P_COORD
 
     dump_dir = root / "debug_plates"
     dump_dir.mkdir(exist_ok=True)
@@ -64,11 +65,11 @@ def main():
     # Otsu-binarize (auto polarity) so the digit is a clean white glyph on black.
     import cv2
     print("\n=== name regions & plates ===")
-    for i in range(6):
-        nb = NAMES_6P_COORD[i]
+    for i in range(5):
+        nb = NAMES_5P_COORD[i]
         ns = img.crop(nb)
         ns.save(dump_dir / f"slot{i}_name.png")
-        pb = NUMBER_6P_COORD[i]
+        pb = NUMBER_5P_COORD[i]
         ps = img.crop(pb)
         gray = ps.convert("L")
         up = gray.resize((max(1, gray.width * 3), max(1, gray.height * 3)))
@@ -94,13 +95,9 @@ def main():
     from core.sensors import CharSensor
     reader = Reader(["en"], gpu=USE_GPU)
 
-    def char_coords():
-        from CONFIG import NAMES_6P_COORD, NUMBER_6P_COORD
-        return NAMES_6P_COORD, NUMBER_6P_COORD
-
     data = Data()
     out = root / "sensor_data" / "characters.json"
-    sensor = CharSensor(reader, data, char_coords, str(out), interval=2.0)
+    sensor = CharSensor(reader, data, str(out), interval=2.0)
 
     # Force the static image even if CONFIG point is relative.
     sensor._static_img = img.convert("RGB")

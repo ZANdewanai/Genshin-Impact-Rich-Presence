@@ -19,7 +19,7 @@ if parent_dir not in sys.path:
 # Import coordinates from CONFIG (now imports core.ps_helper locally)
 from CONFIG import (
     LOCATION_COORD, BOSS_COORD, PARTY_SETUP_COORD, DOMAIN_COORD,
-    MAP_LOC_COORD, ACTIVITY_COORD, NAMES_6P_COORD, NUMBER_6P_COORD
+    MAP_LOC_COORD, ACTIVITY_COORD, NAMES_5P_COORD, NUMBER_5P_COORD
 )
 
 
@@ -60,8 +60,8 @@ def main():
     capture_and_save_region(DOMAIN_COORD, "domain_ocr_region")
     capture_and_save_region(MAP_LOC_COORD, "map_location_ocr_region")
     capture_and_save_region(ACTIVITY_COORD, "activity_ocr_region")
-    capture_and_save_region(NAMES_6P_COORD, "character_names_ocr_region")
-    capture_and_save_region(NUMBER_6P_COORD, "character_numbers_ocr_region")
+    capture_and_save_region(NAMES_5P_COORD, "character_names_ocr_region")
+    capture_and_save_region(NUMBER_5P_COORD, "character_numbers_ocr_region")
 
     print("=" * 50)
     print("All OCR regions captured! Check the 'debug_images' folder.")

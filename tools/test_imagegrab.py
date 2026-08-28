@@ -22,7 +22,7 @@ if parent_dir not in sys.path:
 from PIL import ImageGrab
 
 from CONFIG import (
-    NUMBER_6P_COORD, NAMES_6P_COORD, ACTIVE_CHARACTER_THRESH,
+    NUMBER_5P_COORD, NAMES_5P_COORD, ACTIVE_CHARACTER_THRESH,
     NAME_CONF_THRESH, LOCATION_COORD, BOSS_COORD, DOMAIN_COORD,
     PARTY_SETUP_COORD, OCR_CHARNAMES_ONE_IN, OCR_LOC_ONE_IN,
     OCR_BOSS_ONE_IN, OCR_DOMAIN_ONE_IN, ALLOWLIST, ALLOWLIST2,
@@ -44,7 +44,7 @@ SHOW_PARTY_SETUP = False
 
 if __name__ == "__main__": # run only if this file is explicitly being run
     current_active_character = 0 # 1-indexed. 0 is none.
-    curr_char_names = ["", "", "", "", "", ""]
+    curr_char_names = ["", "", "", "", ""]
     curr_loc = "" # Location/boss/domain name
     game_paused = False
     domain_cooldown = 0
@@ -58,16 +58,16 @@ if __name__ == "__main__": # run only if this file is explicitly being run
         #### CAPTURE ACTIVE CHARACTER (every loop)
         
         try:
-            # NUMBER_6P_COORD now contains 4-tuple bounding boxes (x1, y1, x2, y2)
+            # NUMBER_5P_COORD now contains 4-tuple bounding boxes (x1, y1, x2, y2)
             # Use a fixed offset point within the box for brightness detection
             charnumber_cap = [
                 ImageGrab.grab(bbox=(
-                    NUMBER_6P_COORD[i][0] + 15,
-                    NUMBER_6P_COORD[i][1] + 15,
-                    NUMBER_6P_COORD[i][0] + 16,
-                    NUMBER_6P_COORD[i][1] + 16
+                    NUMBER_5P_COORD[i][0] + 15,
+                    NUMBER_5P_COORD[i][1] + 15,
+                    NUMBER_5P_COORD[i][0] + 16,
+                    NUMBER_5P_COORD[i][1] + 16
                 )).getpixel((0,0))
-                for i in range(6)
+                for i in range(5)
             ]
         except OSError:
             print("OSError: Cannot capture screen. Try running as admin if this issue persists.")
@@ -93,7 +93,7 @@ if __name__ == "__main__": # run only if this file is explicitly being run
             
             if loop_count % OCR_CHARNAMES_ONE_IN == 0 or len([a for a in curr_char_names if a == ""]) > 0:
                 try:
-                    charname_cap = [np.array(ImageGrab.grab(bbox=NAMES_6P_COORD[i])) for i in range(6)]
+                    charname_cap = [np.array(ImageGrab.grab(bbox=NAMES_5P_COORD[i])) for i in range(5)]
                 except OSError:
                     print("OSError: Cannot capture screen. Try running as admin if this issue persists.")
                     time.sleep(100)

@@ -97,14 +97,11 @@ from core import (
     reset_game_start_time,
     write_gui_shared_data,
     shutdown_ocr_executor,
-    # Character detection
-    CharacterRegionManager,
     # Discord RPC
     start_rpc_thread,
     stop_rpc_thread,
     join_rpc_thread,
     # Detection loop
-    run_detection_iteration,
     update_coordinates_if_needed,
     RESOLUTION_CHECK_INTERVAL,
 )
@@ -124,7 +121,7 @@ from CONFIG import (
     GENSHIN_WINDOW_NAME,
     get_dynamic_coordinates,
     DEBUG_MODE,
-    USE_SENSOR_WORKERS,
+    DEBUG_CHARACTER_MODE,
     USERNAME,
     MC_AETHER,
     WANDERER_NAME,
@@ -163,6 +160,7 @@ if os.path.exists(shared_config_path):
 # Set config values in datatypes module to avoid circular dependency
 set_config_values(
     debug_mode=DEBUG_MODE,
+    debug_character_mode=DEBUG_CHARACTER_MODE,
     mc_aether=MC_AETHER,
     wanderer_name=WANDERER_NAME,
     manekin_name=MANEKIN_NAME,
@@ -182,70 +180,12 @@ reader = ocr_engine.Reader(["en"], gpu=USE_GPU)
 print("OCR started.")
 print("_______________________________________________________________")
 
-# Initialize character region manager
-character_region_manager = CharacterRegionManager(reader)
+# Initialize sensor coordinator
+from core.coordinator import SensorCoordinator
 
-# Initialize sensor coordinator if enabled
-coordinator = None
-if USE_SENSOR_WORKERS:
-    from core.coordinator import SensorCoordinator
-    import core.detection as _detection
-    coordinator = SensorCoordinator(reader, DATA, character_region_manager)
-    # MenuSensor already OCRs DOMAIN/GAMEMENU (cached + throttled); tell the
-    # main detection loop not to re-OCR them uncached every iteration.
-    _detection.SENSOR_WORKERS_ACTIVE = True
-    print("[OK] Sensor worker architecture enabled "
-          "(CharSensor / LocationSensor / MenuSensor)")
-
-
-# Handle command line arguments for manual control
-def handle_adaptive_character_commands():
-    """Handle manual control commands for the adaptive character system"""
-    if len(sys.argv) > 1:
-        command = sys.argv[1]
-
-        if command == "reset_char_positions":
-            character_region_manager.reset_to_base_positions()
-            print("[OK] Character positions reset to base coordinates")
-            sys.exit(0)
-        elif command == "log_char_status":
-            character_region_manager.log_status()
-            sys.exit(0)
-        elif command == "disable_char_adaptation":
-            character_region_manager.adaptation_enabled = False
-            print("[LOCKED] Character adaptation disabled")
-            sys.exit(0)
-        elif command == "enable_char_adaptation":
-            character_region_manager.adaptation_enabled = True
-            print("[UNLOCKED] Character adaptation enabled")
-            sys.exit(0)
-        elif command == "test_char_adaptation":
-            print("[TEST] Testing character adaptation system...")
-            occupied_slots, confidence_scores = (
-                character_region_manager.detect_occupied_slots()
-            )
-            character_region_manager.log_status()
-            print(f"[RESULT] Test Results: Occupied slots: {occupied_slots}")
-            print(f"[DATA] Confidence scores: {[round(c, 2) for c in confidence_scores]}")
-            sys.exit(0)
-
-
-handle_adaptive_character_commands()
-
-# Print adaptive system status
-print("Character Adaptive OCR System Status:")
-print(f"   Adaptation enabled: {character_region_manager.adaptation_enabled}")
-print(f"   Max vertical shift: {character_region_manager.max_vertical_shift}px")
-print(f"   Movement step: {character_region_manager.movement_step}px")
-print(f"   Base coordinates: {character_region_manager.base_name_positions}")
-print("[OK] Adaptive character detection system initialized!")
-print("Use command line arguments to control the system:")
-print("   python main.py reset_char_positions")
-print("   python main.py log_char_status")
-print("   python main.py disable_char_adaptation")
-print("   python main.py enable_char_adaptation")
-print("   python main.py test_char_adaptation")
-print("_______________________________________________________________")
+coordinator = SensorCoordinator(reader, DATA)
+print("[OK] Sensor worker architecture enabled "
+      "(CharSensor / LocationSensor / MenuSensor)")
 
 # Reset game timer on startup for fresh session
 reset_game_start_time()
@@ -331,7 +271,7 @@ while not shutdown_event.is_set():
     if (
         loop_count == 0 or loop_count % (RESOLUTION_CHECK_INTERVAL * 10) == 0
     ):  # Check every ~10 minutes
-        update_coordinates_if_needed(character_region_manager)
+        update_coordinates_if_needed()
 
     # Check if Genshin is in foreground
     if not ps_helper.check_genshin_is_foreground():
@@ -363,34 +303,14 @@ while not shutdown_event.is_set():
             print("GenshinImpact.exe resumed. Resuming OCR.")
 
     # Run one detection iteration
-    if coordinator is not None:
-        # Sensor architecture: workers scan in their own threads; the main
-        # loop only consumes their JSON outputs via the coordinator.
-        try:
-            sleep_duration = coordinator.tick()
-        except Exception as e:
-            print(f"[ERROR] Coordinator error: {e}")
-            if DEBUG_MODE:
-                import traceback
-                traceback.print_exc()
-            sleep_duration = 1.0
-    else:
-        # Legacy sequential detection loop
-        try:
-            full_screen = ImageGrab.grab()
-            try:
-                sleep_duration = run_detection_iteration(
-                    reader, DATA, character_region_manager, loop_count, full_screen=full_screen
-                )
-            finally:
-                full_screen.close()
-        except Exception as e:
-            print(f"[ERROR] Error in detection iteration: {e}")
-            if DEBUG_MODE:
-                import traceback
-
-                traceback.print_exc()
-            sleep_duration = 1.0  # Use longer sleep on error to avoid spamming
+    try:
+        sleep_duration = coordinator.tick()
+    except Exception as e:
+        print(f"[ERROR] Coordinator error: {e}")
+        if DEBUG_MODE:
+            import traceback
+            traceback.print_exc()
+        sleep_duration = 1.0
 
     # Write data to shared file for GUI every 10 iterations (approx every 1.5 seconds)
     if loop_count % 10 == 0:
