@@ -101,7 +101,7 @@ class LocationSensor(BaseSensor):
         ):
             map_text = self._ocr_text("maploc", maploc_bbox)
             if map_text:
-                from core.detection import process_map_text
+                from core.ocr_utils import process_map_text
                 cleaned = process_map_text(map_text, self.data)
                 if cleaned:
                     found = self.data.search_location(cleaned)

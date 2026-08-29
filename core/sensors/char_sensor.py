@@ -381,6 +381,31 @@ class CharSensor(BaseSensor):
                         f"did not match any known character")
 
         if not matched:
+            # OCR failed on this slot. If we had a previous successful
+            # detection for this physical box, keep it rather than
+            # clearing the slot - the party HUD is still visible and
+            # the character is still there, just a transient OCR miss.
+            # Only clear when there was never a detection here.
+            if cache.get("name"):
+                self._slot_cache[i] = {
+                    **cache,
+                    "fp": cur,
+                    "sample": cur.ravel()[::4],
+                }
+                return {
+                    "ordinal": cache.get("ordinal", i + 1),
+                    "digit_read": False,
+                    "entry": {
+                        "name": cache["name"],
+                        "image_key": cache.get("image_key"),
+                        "cached": True,
+                    },
+                    "brightness": self._plate_brightness(
+                        numbers_coord[i], cache.get("dy", 0)
+                    ),
+                    "tri_col0": cache.get("tri_col0", 0),
+                    "triangle_found": bool(cache.get("triangle_found", False)),
+                }
             self._slot_cache[i] = None
             return None
 

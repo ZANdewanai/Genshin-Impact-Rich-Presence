@@ -1,12 +1,18 @@
 {
   "active_characters": [
-    "None"
+    "Zhongli",
+    "ZANdewanai",
+    "Columbina",
+    "Varesa"
   ],
   "location": "Unknown",
-  "activity": "Gamemenu",
+  "activity": "Location",
   "active_character_index": -1,
-  "timestamp": 1787889393.0381625,
+  "timestamp": 1787892832.579785,
   "active_character_image_keys": [
-    ""
+    "char_zhongli",
+    "char_aether",
+    "char_columbina",
+    "char_varesa"
   ]
 }
