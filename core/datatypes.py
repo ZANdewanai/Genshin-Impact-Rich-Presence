@@ -527,6 +527,11 @@ class Data(PatternMatchingEventHandler):
         Have a short cooldown period between executing the modification handler.
         """
 
+        # Load all data CSVs up front and start the change watcher. Without
+        # this the engine started with empty character/location/boss/domain
+        # tables until a CSV was modified on disk.
+        self.load_all()
+
     def _load_characters(self):
         """Load characters.csv and apply name substitutions (Traveler/Wanderer/Manekin)."""
         identity = _identity_settings()
@@ -569,7 +574,14 @@ class Data(PatternMatchingEventHandler):
             [len(c.search_str) for c in self.characters], default=0
         )
         self.party_capture_cache.clear()
-        print(f"characters.csv modified. Updated characters: {len(self.characters)} characters.")
+        print(f"Loaded characters.csv: {len(self.characters)} characters")
+
+    def load_all(self):
+        """Load every data CSV. Called once from __init__ (the watchdog
+        handler only fires on later file modifications, so initial loading
+        must happen here - previously it never did, leaving the engine with
+        empty tables until a CSV happened to be touched)."""
+        self._rebuild_characters()
 
         try:
             with open("data/domains.csv", "r") as csvfile:
@@ -578,40 +590,43 @@ class Data(PatternMatchingEventHandler):
                     Domain(*row) for row in reader if row and row[0] != "------"
                 ]
                 self.domains_shortest_search = min(
-                    [len(domain.search_str) for domain in self.domains], default=0
+                    [len(domain.search_str) for domain in self.domains],
+                    default=0,
                 )
                 print(f"Loaded domains.csv: {len(self.domains)} domains")
         except Exception as e:
             print(f"Error loading data/domains.csv: {e}")
 
         try:
-            with open("data/locations.csv", "r") as csvfile:
+            with open("data/locations.csv", "r", encoding="utf-8") as csvfile:
                 reader = csv.reader(csvfile, delimiter=",", escapechar="\\")
                 self.locations = [
                     Location(*row) for row in reader if row and row[0] != "------"
                 ]
                 self.locations_shortest_search = min(
-                    [len(location.search_str) for location in self.locations], default=0
+                    [len(location.search_str) for location in self.locations],
+                    default=0,
                 )
                 print(f"Loaded locations.csv: {len(self.locations)} locations")
         except Exception as e:
             print(f"Error loading data/locations.csv: {e}")
 
         try:
-            with open("data/gamemenus.csv", "r") as csvfile:
+            with open("data/gamemenus.csv", "r", encoding="utf-8") as csvfile:
                 reader = csv.reader(csvfile, delimiter=",", escapechar="\\")
                 self.gamemenus = [
                     Gamemenu(*row) for row in reader if row and row[0] != "------"
                 ]
                 self.gamemenus_shortest_search = min(
-                    [len(gamemenu.search_str) for gamemenu in self.gamemenus], default=0
+                    [len(gamemenu.search_str) for gamemenu in self.gamemenus],
+                    default=0,
                 )
                 print(f"Loaded gamemenus.csv: {len(self.gamemenus)} gamemenus")
         except Exception as e:
             print(f"Error loading data/gamemenus.csv: {e}")
 
         try:
-            with open("data/bosses.csv", "r") as csvfile:
+            with open("data/bosses.csv", "r", encoding="utf-8") as csvfile:
                 reader = csv.reader(csvfile, delimiter=",")
                 self.bosses = [
                     Boss(*row) for row in reader if row and row[0] != "------"
