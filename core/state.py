@@ -272,7 +272,7 @@ def write_gui_shared_data():
         try:
             with open(temp_path, "w") as f:
                 json.dump(data, f, indent=2)
-            if DEBUG_MODE:
+            if DEBUG_MODE and log_should_log("gui_write", 5.0):
                 print(f"DEBUG write_gui_shared_data: Wrote to {shared_path}")
             # Atomic rename on Windows
             if os.path.exists(shared_path):

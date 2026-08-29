@@ -267,6 +267,18 @@ class SensorCoordinator:
                 if different and cur is not None:
                     set_active_character(hint)
                     log(f'Active character: "{cur.character_display_name}"')
+        elif (
+            chars
+            and chars.get("active_slot_hint") is None
+            and state_module.current_active_character != 0
+            and state_module.current_activity.activity_type
+            not in (ActivityType.LOADING, ActivityType.PARTY_SETUP)
+        ):
+            # active_slot_hint was lost (entering menu/pause) while we had a
+            # detected active character. Reset so the CharSensor debounce can
+            # re-acquire it on the next overworld scan; without this reset the
+            # old confirmed value would prevent the coordinator from updating.
+            set_active_character(0)
 
         # ---- activity state machine --------------------------------------
         party_flag = bool(menus and menus.get("party_setup"))

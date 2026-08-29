@@ -13,6 +13,7 @@ import csv
 import time
 import os
 import difflib
+import threading
 
 # Debug mode - will be set by calling code to avoid circular dependency
 # NOTE: This is a live proxy object, NOT a plain bool. Modules do
@@ -511,41 +512,44 @@ class Data(PatternMatchingEventHandler):
         Have a short cooldown period between executing the modification handler.
         """
 
-        try:
-            with open("data/characters.csv", "r") as csvfile:
-                reader = csv.reader(csvfile, delimiter=",")
-                self.characters = []
-                for row in reader:
-                    if not row or row[0] == "------":
-                        continue
-                    c = Character(*row)
-                    if (MC_AETHER and c.search_str == "aether") or (
-                        not MC_AETHER and c.search_str == "lumine"
-                    ):
-                        c.search_str = USERNAME.lower()
-                        c.character_display_name = USERNAME
+    def _load_characters(self):
+        """Load characters.csv and apply name substitutions (Traveler/Wanderer/Manekin)."""
+        with open("data/characters.csv", "r") as csvfile:
+            reader = csv.reader(csvfile, delimiter=",")
+            characters = []
+            for row in reader:
+                if not row or row[0] == "------":
+                    continue
+                c = Character(*row)
+                if (MC_AETHER and c.search_str == "aether") or (
+                    not MC_AETHER and c.search_str == "lumine"
+                ):
+                    c.search_str = USERNAME.lower()
+                    c.character_display_name = USERNAME
 
-                    if c.search_str == "wanderer":
-                        c.search_str = WANDERER_NAME.lower()
-                        c.character_display_name = WANDERER_NAME
+                if c.search_str == "wanderer":
+                    c.search_str = WANDERER_NAME.lower()
+                    c.character_display_name = WANDERER_NAME
 
-                    if c.search_str == "wonderland manekin":
-                        c.search_str = MANEKIN_NAME.lower()
-                        c.character_display_name = MANEKIN_NAME
+                if c.search_str == "wonderland manekin":
+                    c.search_str = MANEKIN_NAME.lower()
+                    c.character_display_name = MANEKIN_NAME
 
-                    if c.search_str == "wonderland manekina":
-                        c.search_str = MANEKINA_NAME.lower()
-                        c.character_display_name = MANEKINA_NAME
+                if c.search_str == "wonderland manekina":
+                    c.search_str = MANEKINA_NAME.lower()
+                    c.character_display_name = MANEKINA_NAME
 
-                    self.characters.append(c)
+                characters.append(c)
+        return characters
 
-                self.characters_shortest_search = min(
-                    [len(character.search_str) for character in self.characters],
-                    default=0,
-                )
-                print(f"Loaded characters.csv: {len(self.characters)} characters")
-        except Exception as e:
-            print(f"Error loading data/characters.csv: {e}")
+    def _rebuild_characters(self):
+        """Reload characters.csv and clear the search cache."""
+        self.characters = self._load_characters()
+        self.characters_shortest_search = min(
+            [len(c.search_str) for c in self.characters], default=0
+        )
+        self.party_capture_cache.clear()
+        print(f"characters.csv modified. Updated characters: {len(self.characters)} characters.")
 
         try:
             with open("data/domains.csv", "r") as csvfile:
@@ -865,45 +869,7 @@ class Data(PatternMatchingEventHandler):
                     print(f"Error loading data/bosses.csv: {e}")
             case "characters.csv":
                 try:
-                    with open("data/characters.csv", "r") as csvfile:
-                        reader = csv.reader(csvfile, delimiter=",")
-                        temp = []
-                        for row in reader:
-                            if not row or row[0] == "------":
-                                continue
-                            c = Character(*row)
-                            if (MC_AETHER and c.search_str == "aether") or (
-                                not MC_AETHER and c.search_str == "lumine"
-                            ):
-                                c.search_str = USERNAME.lower()
-                                c.character_display_name = USERNAME
-
-                            if c.search_str == "wanderer":
-                                c.search_str = WANDERER_NAME.lower()
-                                c.character_display_name = WANDERER_NAME
-
-                            if c.search_str == "wonderland manekin":
-                                c.search_str = MANEKIN_NAME.lower()
-                                c.character_display_name = MANEKIN_NAME
-
-                            if c.search_str == "wonderland manekina":
-                                c.search_str = MANEKINA_NAME.lower()
-                                c.character_display_name = MANEKINA_NAME
-
-                            temp.append(c)
-
-                        self.characters = temp
-                        self.characters_shortest_search = min(
-                            [
-                                len(character.search_str)
-                                for character in self.characters
-                            ],
-                            default=0,
-                        )
-                        self.party_capture_cache.clear()  # Clear cache when CSV is reloaded
-                        print(
-                            f"characters.csv modified. Updated characters: {len(self.characters)} characters."
-                        )
+                    self._rebuild_characters()
                 except Exception as e:
                     print(f"Error loading data/characters.csv: {e}")
             case "domains.csv":

@@ -125,23 +125,22 @@ from CONFIG import (
     USERNAME,
     MC_AETHER,
     WANDERER_NAME,
+    MANEKIN_NAME,
+    MANEKINA_NAME,
+    GAME_RESOLUTION,
 )
-
-# Fallbacks for settings normally supplied via shared_config.json by the GUI
-MANEKIN_NAME = "Manekin"
-MANEKINA_NAME = "Manekina"
-GAME_RESOLUTION = 1080
 
 from core import ps_helper
 import core.state
 
-# Load shared config from GUI if available
+# Load shared config from GUI if available - GUI overrides CONFIG.py defaults
 shared_config_path = os.path.join(script_dir, "shared_config.json")
 if os.path.exists(shared_config_path):
     try:
         with open(shared_config_path, "r") as f:
             shared_config = json.load(f)
-            # Update global variables if present in shared config
+            # Update CONFIG module values if present in shared config
+            import CONFIG as _cfg
             for key in [
                 "USERNAME",
                 "MC_AETHER",
@@ -152,7 +151,7 @@ if os.path.exists(shared_config_path):
                 "USE_GPU",
             ]:
                 if key in shared_config:
-                    globals()[key] = shared_config[key]
+                    setattr(_cfg, key, shared_config[key])
                     print(f"Updated {key} from shared config: {shared_config[key]}")
     except Exception as e:
         print(f"Failed to load shared config: {e}")
