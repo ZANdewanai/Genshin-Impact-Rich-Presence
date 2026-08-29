@@ -4,7 +4,6 @@ import os
 import json
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
 from typing import Optional, Callable
 
 from core.datatypes import Activity, ActivityType, Character, Location, DEBUG_MODE
@@ -20,8 +19,6 @@ shutdown_event = threading.Event()
 state_lock = threading.RLock()
 ocr_lock = threading.Lock()
 
-ocr_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="ocr")
-
 
 # =============================================================================
 # Game State Variables
@@ -33,10 +30,6 @@ last_active_character: int = 0  # Remember the last detected active character
 
 # Character data for all party slots (5 in current Genshin).
 current_characters: list[Optional[Character]] = [None] * MAX_PARTY_SLOTS
-
-# Flag to track if characters were truly detected this cycle (vs cached from before)
-# Initialized to True so first detection cycle works immediately
-currently_active_characters_valid: bool = True
 
 # Activity tracking
 prev_non_idle_activity: Activity = Activity(ActivityType.LOADING, False)
@@ -57,28 +50,9 @@ current_timer_type = "global"
 menu_start_time: Optional[int] = None
 """Timer for menu activities - starts when entering menus."""
 
-# Game pause state
-game_paused = False
-"""True if the game is found to be paused in the previous iteration."""
-
-game_pause_state_cooldown = 0
-"""Cooldown before committing pause/unpause state to current_activity."""
-
-game_pause_state_displayed = False
-"""Shows the last displayed game pause state (to prevent spam)."""
-
 # Inactive detection
 ingame_pause_ocr = False
-"""Set to True when genshin is minimized (internal use)."""
-
-inactive_detection_cooldown = 0
-"""Limits other detections if some inactive action is detected."""
-
-inactive_detection_mode: Optional[ActivityType] = None
-"""What was the inactive activity that was last detected."""
-
-reload_party_flag = False
-"""Set to True after party setup screen is detected."""
+"""Set to True when genshin is minimized/lost focus (OCR scanning pauses)."""
 
 # Coordinate tracking
 current_resolution = None
@@ -145,13 +119,6 @@ def update_activity(activity: Activity):
         current_activity = activity
 
 
-def update_prev_non_idle_activity(activity: Activity):
-    """Update previous non-idle activity thread-safely."""
-    global prev_non_idle_activity
-    with state_lock:
-        prev_non_idle_activity = activity
-
-
 def set_active_character(idx: int):
     """Set the current active character index."""
     global current_active_character, last_active_character
@@ -181,13 +148,6 @@ def update_character(slot_idx: int, character: Optional[Character]):
                 print(f"DEBUG current_characters after update: {[c.character_display_name if c else 'None' for c in current_characters]}")
 
 
-def clear_all_characters():
-    """Clear all character data."""
-    global current_characters
-    with state_lock:
-        current_characters = [None] * MAX_PARTY_SLOTS
-
-
 def reset_game_start_time():
     """Reset the game start timer."""
     global game_start_time
@@ -195,14 +155,6 @@ def reset_game_start_time():
 
     with state_lock:
         game_start_time = time.time()
-
-
-def shutdown_ocr_executor():
-    """Shutdown the OCR thread pool executor."""
-    global ocr_executor
-    if ocr_executor is not None:
-        ocr_executor.shutdown(wait=False)
-        ocr_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="ocr")
 
 
 # =============================================================================
@@ -270,15 +222,11 @@ def write_gui_shared_data():
         shared_path = _get_shared_data_path()
         temp_path = shared_path + ".tmp"
         try:
-            with open(temp_path, "w") as f:
+            with open(temp_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
             if DEBUG_MODE and log_should_log("gui_write", 5.0):
                 print(f"DEBUG write_gui_shared_data: Wrote to {shared_path}")
-            # Atomic rename on Windows
-            if os.path.exists(shared_path):
-                os.replace(temp_path, shared_path)
-            else:
-                os.rename(temp_path, shared_path)
+            os.replace(temp_path, shared_path)  # atomic on Windows
         except Exception as e:
             # Clean up temp file if something went wrong
             if os.path.exists(temp_path):

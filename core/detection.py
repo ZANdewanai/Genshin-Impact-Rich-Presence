@@ -92,6 +92,20 @@ def update_coordinates_if_needed():
                 DOMAIN_COORD = new_coordinates["DOMAIN_COORD"]
                 PARTY_SETUP_COORD = new_coordinates["PARTY_SETUP_COORD"]
 
+                # Keep CONFIG's per-party-size coordinate sets in sync too:
+                # CharSensor reads NAMES_1P_COORD...NUMBER_5P_COORD directly
+                # from the CONFIG module on every scan, and CONFIG only
+                # computes them once at import time. Without this, a
+                # resolution change would leave the party HUD coordinates
+                # stuck at the old scale.
+                try:
+                    import CONFIG as _cfg
+                    for _key, _val in new_coordinates.items():
+                        if _key.endswith("_COORD"):
+                            setattr(_cfg, _key, _val)
+                except Exception:
+                    pass
+
                 resolution_log = f"{'Updated' if state_module._last_resolution_check > 0 else 'Initialized'} coordinates for resolution: {new_resolution[0]}x{new_resolution[1]}"
                 if resolution_log != state_module._last_coordinate_log:
                     print(resolution_log)

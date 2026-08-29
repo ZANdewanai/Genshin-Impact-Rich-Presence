@@ -52,13 +52,25 @@ class CharSensor(BaseSensor):
     def _load_static_image(self):
         """Load (or clear) the static debug image per DEBUG_STATIC_IMAGE flag."""
         try:
-            from CONFIG import DEBUG_STATIC_IMAGE, DEBUG_STATIC_IMAGE_PATH
-            if DEBUG_STATIC_IMAGE and DEBUG_STATIC_IMAGE_PATH:
-                from pathlib import Path
-                p = Path(__file__).resolve().parent.parent.parent / DEBUG_STATIC_IMAGE_PATH
-                if Path(DEBUG_STATIC_IMAGE_PATH).exists():
-                    p = Path(DEBUG_STATIC_IMAGE_PATH)
+            from core.shared_config import get_shared_config
+            shared = get_shared_config()
+            try:
+                import CONFIG as _cfg
+                enabled = shared.get("DEBUG_STATIC_IMAGE", _cfg.DEBUG_STATIC_IMAGE)
+                path = shared.get("DEBUG_STATIC_IMAGE_PATH", _cfg.DEBUG_STATIC_IMAGE_PATH)
+            except ImportError:
+                enabled = shared.get("DEBUG_STATIC_IMAGE", False)
+                path = shared.get("DEBUG_STATIC_IMAGE_PATH", "")
+            if enabled and path:
+                p = Path(path)
+                alt = Path(__file__).resolve().parent.parent.parent / path
                 if p.is_file():
+                    pass
+                elif alt.is_file():
+                    p = alt
+                else:
+                    p = None
+                if p:
                     self._static_img = Image.open(p).convert("RGB")
                     log(f"[{self.name}] static-image debug mode: {p}")
                     return

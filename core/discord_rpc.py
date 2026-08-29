@@ -257,11 +257,10 @@ def start_rpc_thread(current_activity_ref, current_characters_ref, game_start_ti
                      current_timer_type_ref, last_active_character_ref):
     """Start the Discord RPC thread."""
     global _rpc_thread
-    
-    # Clear shutdown event and previous_update cache for fresh start
+
+    # Clear shutdown event for a fresh start
     _shutdown_event.clear()
-    discord_rpc_loop.__globals__['previous_update'] = None
-    
+
     _rpc_thread = threading.Thread(
         daemon=True,
         target=discord_rpc_loop,

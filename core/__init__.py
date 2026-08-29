@@ -8,9 +8,8 @@ from core.state import (
     get_current_activity, get_current_characters, get_game_start_time,
     get_current_timer_type, get_last_active_character,
     reset_game_start_time, write_gui_shared_data,
-    shutdown_ocr_executor,
 )
-from core.ocr_utils import capture_and_process_ocr, calculate_keyword_match_score, calculate_location_confidence, process_map_text
+from core.ocr_utils import process_map_text
 from core.discord_rpc import (
     start_rpc_thread, stop_rpc_thread, is_rpc_alive, join_rpc_thread,
     get_party_info_string
@@ -30,9 +29,8 @@ __all__ = [
     'get_current_activity', 'get_current_characters', 'get_game_start_time',
     'get_current_timer_type', 'get_last_active_character',
     'reset_game_start_time', 'write_gui_shared_data',
-    'shutdown_ocr_executor',
-    # OCR
-    'capture_and_process_ocr', 'calculate_keyword_match_score', 'calculate_location_confidence', 'process_map_text',
+    # Map text
+    'process_map_text',
     # Discord RPC
     'start_rpc_thread', 'stop_rpc_thread', 'is_rpc_alive', 'join_rpc_thread',
     'get_party_info_string',

@@ -12,10 +12,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from core.datatypes import Data, set_config_values
-
-# Enable debug logging so sensor errors are visible during the test
-set_config_values(debug_mode=True)
+from core.datatypes import Data
+# Debug logging is enabled via shared_config.json ("DEBUG_MODE": true) --
+# no programmatic override needed since flags read the shared config live.
 
 from core.sensors import CharSensor, LocationSensor, MenuSensor
 from core.blackboard import read_json

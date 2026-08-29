@@ -372,49 +372,11 @@ class Api:
                 json.dump(shared, f, indent=4)
         except OSError as e:
             print(f"Warning: could not save shared_config.json: {e}")
-        # Update live proxy objects so the change takes effect immediately
-        # in all threads, not just on next restart.
-        try:
-            import core.datatypes as _dt
-            _dt.DEBUG_MODE.value = debug_mode
-            _dt.DEBUG_CHARACTER_MODE.value = debug_character_mode
-        except Exception:
-            pass
-        # Keep CONFIG.py canonical so a fresh engine start inherits the choice.
-        self._write_config_debug(debug_mode, debug_character_mode, debug_static_image, debug_static_image_path)
+        # Debug flags are live _ConfigFlag views onto shared_config.json
+        # (see core.datatypes), so they take effect immediately in the
+        # engine's threads with no extra plumbing. CONFIG.py is never
+        # rewritten - it only holds static defaults.
         return {"ok": True}
-
-    def _write_config_debug(self, debug_mode, debug_character_mode, debug_static_image, debug_static_image_path):
-        """Rewrite the DEBUG_* lines in CONFIG.py in place."""
-        try:
-            import re
-            cfg_path = os.path.join(ROOT, "CONFIG.py")
-            with open(cfg_path, "r", encoding="utf-8") as f:
-                text = f.read()
-            text = re.sub(
-                r"^DEBUG_MODE\s*=.*$",
-                f"DEBUG_MODE = {str(debug_mode)}",
-                text, count=1, flags=re.M,
-            )
-            text = re.sub(
-                r"^DEBUG_CHARACTER_MODE\s*=.*$",
-                f"DEBUG_CHARACTER_MODE = {str(debug_character_mode)}",
-                text, count=1, flags=re.M,
-            )
-            text = re.sub(
-                r"^DEBUG_STATIC_IMAGE\s*=.*$",
-                f"DEBUG_STATIC_IMAGE = {str(debug_static_image)}",
-                text, count=1, flags=re.M,
-            )
-            text = re.sub(
-                r"^DEBUG_STATIC_IMAGE_PATH\s*=.*$",
-                f'DEBUG_STATIC_IMAGE_PATH = r"{debug_static_image_path}"',
-                text, count=1, flags=re.M,
-            )
-            with open(cfg_path, "w", encoding="utf-8") as f:
-                f.write(text)
-        except Exception as e:
-            print(f"Warning: could not update CONFIG.py debug flags: {e}")
 
     def shutdown(self):
         """Kill the engine subprocess when the window closes."""

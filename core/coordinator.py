@@ -63,7 +63,6 @@ class SensorCoordinator:
     def __init__(self, reader, data, output_dir="sensor_data"):
         self.reader = reader
         self.data = data
-        import os
         out = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))), output_dir
         )
@@ -181,25 +180,19 @@ class SensorCoordinator:
         return get_shared_config()
 
     def _sync_shared_config(self):
-        """Sync debug flags from shared_config so GUI toggles take effect
-        without restarting the engine."""
+        """React to shared_config.json changes mid-session.
+
+        Debug flags (DEBUG_MODE etc.) are live _ConfigFlag views and need no
+        syncing; only the CharSensor's static-image debug mode needs to be
+        told to reload its image when the path/flag changes.
+        """
         try:
             shared = self._read_shared_config()
-            if "DEBUG_MODE" in shared:
-                import core.datatypes as _dt
-                _dt.DEBUG_MODE.value = bool(shared["DEBUG_MODE"])
-            if "DEBUG_CHARACTER_MODE" in shared:
-                import core.datatypes as _dt
-                _dt.DEBUG_CHARACTER_MODE.value = bool(shared["DEBUG_CHARACTER_MODE"])
-            if "DEBUG_STATIC_IMAGE" in shared:
-                import CONFIG as _cfg
-                if hasattr(_cfg, "DEBUG_STATIC_IMAGE"):
-                    _cfg.DEBUG_STATIC_IMAGE = bool(shared["DEBUG_STATIC_IMAGE"])
-            new_path = shared.get("DEBUG_STATIC_IMAGE_PATH")
-            if new_path is not None and new_path != getattr(self, "_last_static_image_path", None):
-                self._last_static_image_path = new_path
-                if hasattr(self.char_sensor, "_load_static_image"):
-                    self.char_sensor._load_static_image()
+            new_key = (shared.get("DEBUG_STATIC_IMAGE"),
+                       shared.get("DEBUG_STATIC_IMAGE_PATH"))
+            if new_key != getattr(self, "_last_static_image_key", None):
+                self._last_static_image_key = new_key
+                self.char_sensor._load_static_image()
         except Exception:
             pass
 

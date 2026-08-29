@@ -117,6 +117,14 @@ gui_config.json
 builds/
 dist/
 
+# Vendored embedded Python (release artifact, never in git)
+python3.12.8_embedded/
+
+# IDE / agent dirs
+.idea/
+.kilo/
+.ruff_cache/
+
 # IDE and misc
 GrabArea.exe
 history.txt
@@ -137,5 +145,10 @@ build_engine_log.txt
 
 # Runtime state - regenerated automatically by the engine
 sensor_data/*.json
+!sensor_data/templates/*
 gui_shared_data.json
 /.kilo
+
+# Throwaway/debug debris
+_*.py
+_*.txt

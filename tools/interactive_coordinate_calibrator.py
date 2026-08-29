@@ -40,8 +40,8 @@ parent_dir = os.path.dirname(script_dir)  # Main project directory
 sys.path.insert(0, parent_dir)
 
 # Import CONFIG.py with core/ module structure
-# Important: core.datatypes must be imported first to avoid circular import
-# (datatypes.py reads config values which are set by CONFIG.py via set_config_values)
+# Important: core.datatypes must be imported first so its CONFIG import
+# (used for coordinate defaults) resolves before direct CONFIG use.
 try:
     import core.datatypes
     import CONFIG

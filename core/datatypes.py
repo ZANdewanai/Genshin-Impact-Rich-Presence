@@ -15,46 +15,61 @@ import os
 import difflib
 import threading
 
-# Debug mode - will be set by calling code to avoid circular dependency
-# NOTE: This is a live proxy object, NOT a plain bool. Modules do
-# `from core.datatypes import DEBUG_MODE` at import time (before main.py has
-# called set_config_values), which would freeze a plain False forever. With
-# this proxy the imported reference stays valid and `if DEBUG_MODE:` always
-# evaluates the CURRENT config value.
-class _LiveBool:
-    def __init__(self, value: bool = False):
-        self.value = value
+# Debug flags - live views onto shared_config.json.
+# Modules do `from core.datatypes import DEBUG_MODE` and just use it in
+# boolean contexts; the object re-reads shared_config on every truthiness
+# check (mtime-gated, one stat() per call - see core/shared_config.py), so
+# GUI toggles take effect immediately in every thread with no setter needed.
+class _ConfigFlag:
+    def __init__(self, key: str, default: bool = False):
+        self._key = key
+        self._default = default
 
     def __bool__(self) -> bool:
-        return bool(self.value)
+        from core.shared_config import get_shared_config
+        value = get_shared_config().get(self._key)
+        if value is None:
+            # Fall back to the CONFIG.py default for keys the shared file
+            # doesn't carry (e.g. a config created before debug toggles
+            # existed in the GUI).
+            try:
+                import CONFIG
+                value = getattr(CONFIG, self._key, self._default)
+            except Exception:
+                value = self._default
+        return bool(value)
 
     def __repr__(self) -> str:
-        return repr(bool(self.value))
+        return repr(bool(self))
 
 
-DEBUG_MODE = _LiveBool(False)
-DEBUG_CHARACTER_MODE = _LiveBool(False)
-MC_AETHER = True
-WANDERER_NAME = "Wanderer"
-MANEKIN_NAME = "Manekin"
-MANEKINA_NAME = "Manekina"
-USERNAME = "Player"
-GAME_RESOLUTION = 1080
+DEBUG_MODE = _ConfigFlag("DEBUG_MODE", False)
+DEBUG_CHARACTER_MODE = _ConfigFlag("DEBUG_CHARACTER_MODE", False)
 
-def set_config_values(debug_mode=False, debug_character_mode=False, mc_aether=True, wanderer_name="Wanderer", manekin_name="Manekin", manekina_name="Manekina", username="Player", game_resolution=1080):
-    """Set configuration values to avoid circular dependency with CONFIG.py"""
-    global MC_AETHER, WANDERER_NAME, MANEKIN_NAME, MANEKINA_NAME, USERNAME, GAME_RESOLUTION
-    # DEBUG_MODE and DEBUG_CHARACTER_MODE are live proxy objects - mutate them
-    # in place so every module holding a reference (from-import) sees the
-    # updated value.
-    DEBUG_MODE.value = bool(debug_mode)
-    DEBUG_CHARACTER_MODE.value = bool(debug_character_mode)
-    MC_AETHER = mc_aether
-    WANDERER_NAME = wanderer_name
-    MANEKIN_NAME = manekin_name
-    MANEKINA_NAME = manekina_name
-    USERNAME = username
-    GAME_RESOLUTION = game_resolution
+
+def _identity_settings() -> dict:
+    """Username / Traveler / renameable-character settings, with defaults.
+
+    shared_config.json (written by the GUI) is authoritative; CONFIG.py
+    supplies the defaults for keys it doesn't carry.
+    """
+    from core.shared_config import get_shared_config
+    shared = get_shared_config()
+    try:
+        import CONFIG as _cfg
+    except Exception:
+        _cfg = None
+    def _get(key, default):
+        if key in shared:
+            return shared[key]
+        return getattr(_cfg, key, default) if _cfg is not None else default
+    return {
+        "USERNAME": _get("USERNAME", "Player"),
+        "MC_AETHER": bool(_get("MC_AETHER", True)),
+        "WANDERER_NAME": _get("WANDERER_NAME", "Wanderer"),
+        "MANEKIN_NAME": _get("MANEKIN_NAME", "Manekin"),
+        "MANEKINA_NAME": _get("MANEKINA_NAME", "Manekina"),
+    }
 
 
 class Boss:
@@ -514,30 +529,35 @@ class Data(PatternMatchingEventHandler):
 
     def _load_characters(self):
         """Load characters.csv and apply name substitutions (Traveler/Wanderer/Manekin)."""
-        with open("data/characters.csv", "r") as csvfile:
+        identity = _identity_settings()
+        username = identity["USERNAME"]
+        wanderer_name = identity["WANDERER_NAME"]
+        manekin_name = identity["MANEKIN_NAME"]
+        manekina_name = identity["MANEKINA_NAME"]
+        with open("data/characters.csv", "r", encoding="utf-8") as csvfile:
             reader = csv.reader(csvfile, delimiter=",")
             characters = []
             for row in reader:
                 if not row or row[0] == "------":
                     continue
                 c = Character(*row)
-                if (MC_AETHER and c.search_str == "aether") or (
-                    not MC_AETHER and c.search_str == "lumine"
+                if (identity["MC_AETHER"] and c.search_str == "aether") or (
+                    not identity["MC_AETHER"] and c.search_str == "lumine"
                 ):
-                    c.search_str = USERNAME.lower()
-                    c.character_display_name = USERNAME
+                    c.search_str = username.lower()
+                    c.character_display_name = username
 
                 if c.search_str == "wanderer":
-                    c.search_str = WANDERER_NAME.lower()
-                    c.character_display_name = WANDERER_NAME
+                    c.search_str = wanderer_name.lower()
+                    c.character_display_name = wanderer_name
 
                 if c.search_str == "wonderland manekin":
-                    c.search_str = MANEKIN_NAME.lower()
-                    c.character_display_name = MANEKIN_NAME
+                    c.search_str = manekin_name.lower()
+                    c.character_display_name = manekin_name
 
                 if c.search_str == "wonderland manekina":
-                    c.search_str = MANEKINA_NAME.lower()
-                    c.character_display_name = MANEKINA_NAME
+                    c.search_str = manekina_name.lower()
+                    c.character_display_name = manekina_name
 
                 characters.append(c)
         return characters
