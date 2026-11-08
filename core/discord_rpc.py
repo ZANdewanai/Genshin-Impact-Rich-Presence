@@ -93,8 +93,11 @@ def get_asset_url(image_key: str) -> str:
         return f"{base_url}{subfolder}{filename}"
 
 
-def get_party_info_string(current_characters):
+def get_party_info_string(current_characters, is_shadow_realm=False):
     """Generate party info string for Discord RPC."""
+    if is_shadow_realm:
+        return "Solo expedition"
+    
     party_members = [
         char.character_display_name
         for char in current_characters[:MAX_PARTY_SLOTS]
@@ -158,18 +161,26 @@ def discord_rpc_loop(current_activity_ref, current_characters_ref, game_start_ti
             params = current_activity.to_update_params_dict()
 
             # Handle special markers for dynamic content
+            # Check if current activity is shadow realm
+            current_act = current_activity
+            is_shadow_realm = (
+                current_act.activity_type == ActivityType.LOCATION
+                and current_act.activity_data is not None
+                and getattr(current_act.activity_data, "location_name", "").lower() == "a shadow realm"
+            )
+
             if params.get("state") == "LOCATION_PARTY_INFO":
                 # Replace with current party information
-                params["state"] = f"Party: {get_party_info_string(current_characters)}"
+                params["state"] = f"Party: {get_party_info_string(current_characters, is_shadow_realm)}"
             elif params.get("state") == "MAP_PARTY_INFO":
                 # Handle map location party info
-                params["state"] = f"Party: {get_party_info_string(current_characters)}"
+                params["state"] = f"Party: {get_party_info_string(current_characters, is_shadow_realm)}"
             elif "PARTY_INFO_MARKER" in params.get("state", ""):
                 # Handle party info marker in other activity types
                 if params.get("state") == "PARTY_INFO_MARKER":
-                    params["state"] = f"Party: {get_party_info_string(current_characters)}"
+                    params["state"] = f"Party: {get_party_info_string(current_characters, is_shadow_realm)}"
                 else:
-                    params["state"] = params["state"].replace(" | PARTY_INFO_MARKER", f" | Party: {get_party_info_string(current_characters)}")
+                    params["state"] = params["state"].replace(" | PARTY_INFO_MARKER", f" | Party: {get_party_info_string(current_characters, is_shadow_realm)}")
 
             # Special handling for LOADING state with character data
             # Swap images: large = character, small = paimon, and show "Playing as [character]"

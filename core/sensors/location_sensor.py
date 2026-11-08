@@ -2,49 +2,48 @@
 
 Each sensor runs its own loop, grabs only its own screen regions, skips OCR
 when a region is pixel-identical to the previous scan, and publishes its
-findings to its own JSON file on the blackboard. Sensors never block each
-other; the coordinator (main) consumes the JSON files.
-
-Threading note: ONNX inference releases the GIL, so threads genuinely run in
-parallel for OCR work while staying far simpler than multiprocessing.
+findings to the in-memory blackboard. Sensors never block each other; the
+coordinator (main) consumes the blackboard entries.
 """
 
 import time
 
 from core import keys as K
-from core.blackboard import write_json, read_json
+from core.blackboard import blackboard, CHAR_MAX_AGE_HUD, MENU_MAX_AGE
+from core.search_index import SearchIndex
 
 
 from .base import BaseSensor
 
-class LocationSensor(BaseSensor):
-    """Location label + world boss + map location + commission -> location.json"""
 
-    def __init__(self, reader, data, coords_provider, output_path,
-                 interval=1.0, boss_every=30, characters_path=None,
-                 menus_path=None):
-        super().__init__("LocationSensor", output_path, interval)
+class LocationSensor(BaseSensor):
+    """Location label + world boss + map location + commission -> location blackboard"""
+
+    def __init__(self, reader, data, search_index, coords_provider, output_key,
+                 interval=1.0, boss_every=30, characters_key=None, menus_key=None):
+        super().__init__("LocationSensor", output_key, interval)
         self.reader = reader
         self.data = data
+        self.search_index = search_index
         self.coords_provider = coords_provider  # callable -> (loc, boss, maploc)
         self.boss_every = boss_every
-        self.characters_path = characters_path
-        self.menus_path = menus_path
+        self._characters_key = characters_key
+        self._menus_key = menus_key
         self._tick = 0
         self._cache = {}
 
     def _hud_visible(self) -> bool:
         """Party HUD on screen? Read from the characters blackboard."""
-        if not self.characters_path:
+        if not self._characters_key:
             return False
-        chars = read_json(self.characters_path, max_age=6.0)
+        chars = blackboard.read(self._characters_key, max_age=CHAR_MAX_AGE_HUD)
         return bool(chars and chars.get(K.HUD_VISIBLE))
 
     def _in_known_menu(self) -> bool:
         """True if the menus blackboard currently reports a recognized menu."""
-        if not self.menus_path:
+        if not self._menus_key:
             return False
-        menus = read_json(self.menus_path, max_age=6.0)
+        menus = blackboard.read(self._menus_key, max_age=MENU_MAX_AGE)
         if not menus:
             return False
         return bool(
@@ -64,7 +63,7 @@ class LocationSensor(BaseSensor):
             if "mission accept" in loc_text.lower():
                 payload[K.COMMISSION] = True
             else:
-                found = self.data.search_location(loc_text)
+                found = self.search_index.search_location(loc_text)
                 if found is not None:
                     payload[K.LOCATION] = {
                         "name": found.location_name,
@@ -76,7 +75,7 @@ class LocationSensor(BaseSensor):
             self._last_boss_raw = boss_text
             self._last_boss_raw_ts = time.time()
             if boss_text:
-                found = self.data.search_boss(boss_text)
+                found = self.search_index.search_boss(boss_text)
                 if found is not None:
                     payload[K.BOSS] = {
                         "name": found.boss_name,
@@ -102,15 +101,13 @@ class LocationSensor(BaseSensor):
             map_text = self._ocr_text("maploc", maploc_bbox)
             if map_text:
                 from core.ocr_utils import process_map_text
-                cleaned = process_map_text(map_text, self.data)
+                cleaned = process_map_text(map_text, self.search_index)
                 if cleaned:
-                    found = self.data.search_location(cleaned)
+                    found = self.search_index.search_location(cleaned)
                     if found is not None:
                         payload[K.MAP_LOCATION] = {
                             "name": found.location_name,
                             "search_str": found.search_str,
                         }
 
-        write_json(self.output_path, payload)
-
-
+        blackboard.write(self.output_path, payload)

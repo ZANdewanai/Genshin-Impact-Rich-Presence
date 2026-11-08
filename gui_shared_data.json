@@ -1,12 +1,24 @@
 {
   "active_characters": [
-    "ZANdewanai"
+    "Qiqi",
+    "Odette",
+    "Yae Miko",
+    "Kamisato Ayaka"
   ],
   "location": "Unknown",
-  "activity": "Location",
-  "active_character_index": 1,
-  "timestamp": 1788039335.5509777,
+  "activity": "Loading",
+  "active_character_index": -1,
+  "timestamp": 1793664736.6819324,
+  "discord_details": "",
+  "discord_state": "Loading",
+  "discord_large_image": "menu_paimon",
+  "discord_large_text": "",
+  "discord_small_image": "",
+  "discord_small_text": "",
   "active_character_image_keys": [
-    "char_unknown"
+    "char_qiqi",
+    "char_odette",
+    "char_yae_miko",
+    "char_kamisato_ayaka"
   ]
 }

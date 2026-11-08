@@ -1,17 +1,13 @@
 """Coordinate resolution monitoring.
 
-Legacy detection loop removed — sensor architecture (CharSensor /
-LocationSensor / MenuSensor + coordinator) is the only supported path now.
-This module only keeps the resolution-change watcher and its globals.
+Checks for Genshin window resolution changes and updates coordinates.
 """
 
 import time
 
-from core import ps_helper, state as state_module
+from core import ps_helper
+from core import state as state_module
 
-from CONFIG import (
-    get_dynamic_coordinates,
-)
 
 # Resolution check interval (seconds)
 RESOLUTION_CHECK_INTERVAL = 60
@@ -19,29 +15,19 @@ RESOLUTION_CHECK_INTERVAL = 60
 # Resolution change threshold
 RESOLUTION_CHANGE_THRESHOLD = 10
 
-# Coordinate globals updated by update_coordinates_if_needed().
-NUMBER_4P_COORD = None
-NAMES_4P_COORD = None
-BOSS_COORD = None
-LOCATION_COORD = None
-MAP_LOC_COORD = None
-ACTIVITY_COORD = None
-DOMAIN_COORD = None
-PARTY_SETUP_COORD = None
-
 
 def update_coordinates_if_needed():
     """
     Checks if Genshin window resolution has changed and updates coordinates accordingly.
     Called both for initialization and for continuous monitoring.
     """
-    global NUMBER_4P_COORD, NAMES_4P_COORD, BOSS_COORD, LOCATION_COORD
-    global MAP_LOC_COORD, ACTIVITY_COORD, DOMAIN_COORD, PARTY_SETUP_COORD
+    # Lazy import to avoid circular import with CONFIG
+    from CONFIG import get_dynamic_coordinates
 
     try:
         current_time = time.time()
 
-        # Check if we need to monitor for resolution changes (every RESOLUTION_CHECK_INTERVAL seconds)
+        # Check if we need to monitor for resolution changes
         if (
             state_module.current_resolution is not None
             and (current_time - state_module._last_resolution_check) >= RESOLUTION_CHECK_INTERVAL
@@ -67,9 +53,7 @@ def update_coordinates_if_needed():
                         )
 
                     # Force re-detection of coordinates
-                    state_module.current_resolution = (
-                        None  # Reset to trigger re-initialization below
-                    )
+                    state_module.current_resolution = None
             else:
                 state_module.current_resolution = None
 
@@ -81,30 +65,6 @@ def update_coordinates_if_needed():
             if new_coordinates and new_resolution:
                 state_module.current_resolution = new_resolution
                 state_module.current_coordinates = new_coordinates
-
-                # Update global coordinate variables
-                NUMBER_4P_COORD = new_coordinates["NUMBER_4P_COORD"]
-                NAMES_4P_COORD = new_coordinates["NAMES_4P_COORD"]
-                BOSS_COORD = new_coordinates["BOSS_COORD"]
-                LOCATION_COORD = new_coordinates["LOCATION_COORD"]
-                MAP_LOC_COORD = new_coordinates["MAP_LOC_COORD"]
-                ACTIVITY_COORD = new_coordinates["ACTIVITY_COORD"]
-                DOMAIN_COORD = new_coordinates["DOMAIN_COORD"]
-                PARTY_SETUP_COORD = new_coordinates["PARTY_SETUP_COORD"]
-
-                # Keep CONFIG's per-party-size coordinate sets in sync too:
-                # CharSensor reads NAMES_1P_COORD...NUMBER_5P_COORD directly
-                # from the CONFIG module on every scan, and CONFIG only
-                # computes them once at import time. Without this, a
-                # resolution change would leave the party HUD coordinates
-                # stuck at the old scale.
-                try:
-                    import CONFIG as _cfg
-                    for _key, _val in new_coordinates.items():
-                        if _key.endswith("_COORD"):
-                            setattr(_cfg, _key, _val)
-                except Exception:
-                    pass
 
                 resolution_log = f"{'Updated' if state_module._last_resolution_check > 0 else 'Initialized'} coordinates for resolution: {new_resolution[0]}x{new_resolution[1]}"
                 if resolution_log != state_module._last_coordinate_log:

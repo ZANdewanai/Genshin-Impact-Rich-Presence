@@ -40,10 +40,16 @@ def run_pyinstaller() -> None:
     for spec in SPECS:
         print(f"  Building {spec} ...")
         cmd = [str(PYTHON), "-m", "PyInstaller", spec,
-               "--noconfirm", "--distpath", str(BUILDS)]
+               "--noconfirm", "--distpath", str(BUILDS),
+               "--workpath", str(BUILDS / "_tmp_build")]
         result = subprocess.run(cmd, cwd=PROJECT_ROOT)
         if result.returncode != 0:
             sys.exit(f"PyInstaller failed for {spec} - see output above.")
+
+    # Clean up PyInstaller's temporary work folder
+    tmp = BUILDS / "_tmp_build"
+    if tmp.exists():
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 def assemble() -> None:

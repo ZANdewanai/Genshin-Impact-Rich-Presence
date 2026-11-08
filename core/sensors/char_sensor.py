@@ -10,44 +10,87 @@ parallel for OCR work while staying far simpler than multiprocessing.
 """
 
 import time
+import csv
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageGrab
 
 from core import keys as K
-from core.blackboard import write_json, read_json
+from core.blackboard import blackboard, CHAR_MAX_AGE_HUD
 from core.datatypes import DEBUG_MODE, DEBUG_CHARACTER_MODE
 from core.log_utils import log, record_ocr
-
+from core.search_index import SearchIndex
+from CONFIG import BASE_RESOLUTION_WIDTH, BASE_RESOLUTION_HEIGHT, BASE_PARTY_AREA, DETECTED_RESOLUTION
 
 
 from .base import BaseSensor, _looks_same
-class CharSensor(BaseSensor):
-    """Party name slots + active-slot brightness hint -> characters.json
 
-    Uses the 5 pre-calibrated party size coordinate sets (1P-5P) directly.
-    Automatically detects which party size is active by finding the coordinate
-    set that yields the most valid character detections. No adaptation, no
-    vertical shifting, no 6-party fallback.
+# Debug image cache for visual inspection
+_DEBUG_CACHE_DIR = Path(__file__).resolve().parent.parent.parent / "debug_cache"
+_DEBUG_CACHE_DIR.mkdir(exist_ok=True)
+
+
+class CharSensor(BaseSensor):
+    """Party name detection using a single OCR pass over the entire party area.
+    
+    One bounding box covers the entire party list. Single OCR pass extracts
+    all names, party size = count of matched names, slots assigned by 
+    vertical order (top-to-bottom). Active character detected via white
+    box highlight + triangle indicator.
     """
 
-    def __init__(self, reader, data, output_path, interval=2.0,
-                 party_size=None, menus_path=None):
-        super().__init__("CharSensor", output_path, interval)
+    def __init__(self, reader, data, search_index, output_key, interval=2.0):
+        super().__init__("CharSensor", output_key, interval)
         self.reader = reader
         self.data = data
-        self._party_size = party_size  # If set, use this; if None, auto-detect
-        self._menus_path = menus_path  # menus.json for HUD-hidden gating
-        self._last_detected_party_size = None  # Cached auto-detected party size
-        self._slot_cache = [None] * 5  # Max 5 slots; will be trimmed to actual party_size
+        self.search_index = search_index
+        self._output_key = output_key
+        self._last_party_size = None
+        self._name_cache = []
         self._last_round_success = False
         self._debounce = {"candidate": None, "confirmed": None}
-        # Optional static-screenshot mode: grab regions from a file instead of
-        # the live screen. Lets us repro trial/partial/solo party layouts from
-        # screenshots users supply, without triggering those in-game ourselves.
         self._static_img = None
         self._load_static_image()
+        # Load the single party area bounding box
+        self._party_area = self._load_party_area()
+        # Load special UI text patterns
+        self._special_ui = self._load_special_ui()
+
+    def _load_special_ui(self):
+        """Load special UI text patterns from CSV."""
+        special = []
+        try:
+            with open("data/special_ui.csv", "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row.get("search_str", "").startswith("-----"):
+                        continue
+                    search_str = row.get("search_str", "").lower()
+                    if search_str:
+                        special.append({
+                            "search_str": search_str,
+                            "display_name": row.get("display_name", ""),
+                            "activity_type": row.get("activity_type", ""),
+                            "image_key": row.get("image_key", ""),
+                        })
+        except Exception as e:
+            if DEBUG_MODE:
+                log(f"[CharSensor] Failed to load special_ui.csv: {e}")
+        return special
+
+    def _load_party_area(self):
+        """Load the single party area bounding box from CONFIG."""
+        base_coords = BASE_PARTY_AREA
+        actual_w, actual_h = DETECTED_RESOLUTION
+        scale_x = actual_w / BASE_RESOLUTION_WIDTH
+        scale_y = actual_h / BASE_RESOLUTION_HEIGHT
+        return (
+            round(base_coords[0] * scale_x),
+            round(base_coords[1] * scale_y),
+            round(base_coords[2] * scale_x),
+            round(base_coords[3] * scale_y),
+        )
 
     def _load_static_image(self):
         """Load (or clear) the static debug image per DEBUG_STATIC_IMAGE flag."""
@@ -78,112 +121,77 @@ class CharSensor(BaseSensor):
             pass
         self._static_img = None
 
-    def _get_coords_for_party_size(self, party_size):
-        """Get names/number coordinates for a specific party size (1-5).
+    def reset_slot_cache(self):
+        """Reset internal cache - called by coordinator on state transitions."""
+        # New single-box sensor doesn't use per-slot cache, but keep for coordinator compatibility
+        pass
 
-        Uses the resolution-scaled canonical per-party-size coordinate sets
-        from CONFIG (NAMES_1P_COORD ... NAMES_5P_COORD).
-        """
-        from CONFIG import (
-            NAMES_1P_COORD, NUMBER_1P_COORD,
-            NAMES_2P_COORD, NUMBER_2P_COORD,
-            NAMES_3P_COORD, NUMBER_3P_COORD,
-            NAMES_4P_COORD, NUMBER_4P_COORD,
-            NAMES_5P_COORD, NUMBER_5P_COORD,
-        )
-        names_map = {
-            1: NAMES_1P_COORD,
-            2: NAMES_2P_COORD,
-            3: NAMES_3P_COORD,
-            4: NAMES_4P_COORD,
-            5: NAMES_5P_COORD,
-        }
-        numbers_map = {
-            1: NUMBER_1P_COORD,
-            2: NUMBER_2P_COORD,
-            3: NUMBER_3P_COORD,
-            4: NUMBER_4P_COORD,
-            5: NUMBER_5P_COORD,
-        }
-        names_coord = names_map.get(party_size)
-        numbers_coord = numbers_map.get(party_size)
-        if names_coord is None or numbers_coord is None:
-            raise ValueError(f"Invalid party_size: {party_size}. Must be 1-5.")
-        return names_coord, numbers_coord
+    @staticmethod
+    def _join_name_fragments(results):
+        """Join confident OCR fragments top-to-bottom into one name string."""
+        fragments = [
+            r for r in results
+            if r[2] > 0.6 and len(r[1].strip()) > 2
+        ]
+        fragments.sort(key=lambda r: r[0][0][1])
+        return " ".join(r[1].strip() for r in fragments)
 
-    def _detect_party_size(self, names_coord, numbers_coord):
-        """Re-probe all 5 canonical party configurations and pick the one
-        whose slots yield the most MATCHED characters.
+    def _split_and_search_names(self, text):
+        """Split merged OCR text into candidate names and search each.
+        Returns list of matched character dicts (may be empty)."""
+        from core.shared_config import get_shared_config
+        cfg = get_shared_config()
+        custom = cfg.get("USERNAME")
+        
+        search_strs = []
+        for char in self.search_index.data.characters:
+            search_strs.append(char.search_str.lower())
+            if " " in char.search_str:
+                search_strs.append(char.search_str.lower().replace(" ", ""))
+        if custom:
+            search_strs.append(custom.lower())
+            if " " in custom:
+                search_strs.append(custom.lower().replace(" ", ""))
+        
+        search_strs.sort(key=len, reverse=True)
+        
+        text_lower = text.lower()
+        matched = []
+        used_positions = set()
+        
+        for search_str in search_strs:
+            if search_str in text_lower:
+                start = text_lower.index(search_str)
+                end = start + len(search_str)
+                overlap = any(not (end <= s or start >= e) for s, e in used_positions)
+                if not overlap:
+                    c = self.search_index.search_character(search_str)
+                    if c:
+                        matched.append({"name": c.character_display_name, "image_key": c.image_key})
+                        used_positions.add((start, end))
+        
+        if len(matched) < 5:
+            c = self.search_index.search_character(text)
+            if c and not any(m["name"] == c.character_display_name for m in matched):
+                matched.append({"name": c.character_display_name, "image_key": c.image_key})
+        
+        return matched
 
-        Raw OCR text is not enough: menu screens and UI overlap produce
-        garbage that would let a wrong layout win. Only names that actually
-        resolve to a known character count as a detection.
-        """
-        best_party_size = None
-        best_detections = 0
+    def _match_character(self, text):
+        from core.shared_config import get_shared_config
+        cfg = get_shared_config()
+        custom = cfg.get("USERNAME")
+        if custom and text.strip().lower() == custom.strip().lower():
+            traveler = "char_lumine" if cfg.get("MC_AETHER") is False else "char_aether"
+            return {"name": custom.strip(), "image_key": traveler}
+        c = self.search_index.search_character(text)
+        if c is None:
+            return None
+        return {"name": c.character_display_name, "image_key": c.image_key}
 
-        # Try each party size from 1 to 5
-        for ps in range(1, 6):
-            try:
-                coords, num_coords = self._get_coords_for_party_size(ps)
-                detections = 0
-                for i in range(len(coords)):
-                    crop = self._grab(coords[i])
-                    cur = self._prep(crop)
-                    crop.close()
-                    t0 = time.perf_counter()
-                    try:
-                        results = self.reader.readtext(cur)
-                    except Exception:
-                        results = []
-                    record_ocr("CHAR_SLOTS", (time.perf_counter() - t0) * 1000.0)
-                    text = self._join_name_fragments(results)
-                    # Count as detection only if the text MATCHES a character
-                    if text and self._match_character(text) is not None:
-                        detections += 1
-                if detections > best_detections:
-                    best_detections = detections
-                    best_party_size = ps
-            except Exception:
-                continue
-
-        if best_party_size is None and DEBUG_MODE:
-            log(f"[{self.name}] Party size probe found no matched characters "
-                f"on any layout (HUD likely hidden)")
-        return best_party_size
-
-    def _get_coords_provider(self):
-        """Get names/number coordinates for the active party size (explicit or auto-detected)."""
-        if self._party_size is not None:
-            # Explicit party_size provided
-            names_coord, numbers_coord = self._get_coords_for_party_size(self._party_size)
-            # Ensure slot_cache matches party_size
-            if len(self._slot_cache) != self._party_size:
-                self._slot_cache = [None] * self._party_size
-            return names_coord, numbers_coord
-
-        # Auto-detect party size - re-probed whenever the cached size was
-        # invalidated (see Phase 2b in scan() / reset_slot_cache())
-        if self._last_detected_party_size is None:
-            # Start with 5P (most common) as a probe baseline
-            names_coord, numbers_coord = self._get_coords_for_party_size(5)
-            detected = self._detect_party_size(names_coord, numbers_coord)
-            if detected is not None:
-                if detected != self._last_detected_party_size:
-                    log(f"[CharSensor] Auto-detected party size: {detected}P")
-                self._last_detected_party_size = detected
-            else:
-                # No layout matched (HUD hidden / menu screen). Fall back to
-                # 5P for this round; the next scan re-detects.
-                self._last_detected_party_size = 5
-                if DEBUG_MODE:
-                    log(f"[CharSensor] Party size unknown - defaulting to 5P probe this round")
-
-        # Ensure slot_cache matches detected party size
-        if len(self._slot_cache) != self._last_detected_party_size:
-            self._slot_cache = [None] * self._last_detected_party_size
-
-        return self._get_coords_for_party_size(self._last_detected_party_size)
+    def _prep(self, img):
+        """Preprocess image for OCR - simple grayscale conversion."""
+        return np.array(img.convert("L"))
 
     def _grab(self, bbox):
         """Crop from the static debug image when set, else the live screen."""
@@ -191,280 +199,109 @@ class CharSensor(BaseSensor):
             return self._static_img.crop(bbox)
         return ImageGrab.grab(bbox=bbox)
 
-    def reset_slot_cache(self):
-        """Reset the character slot OCR cache to force fresh reads.
+    def _bbox_to_tuple(self, bbox):
+        """Convert OCR polygon bbox [[x1,y1],[x2,y1],[x2,y2],[x1,y2]] to (x1,y1,x2,y2)."""
+        xs = [p[0] for p in bbox]
+        ys = [p[1] for p in bbox]
+        return min(xs), min(ys), max(xs), max(ys)
+
+    def _detect_triangle_right_of_name(self, merged_bbox, party_offset):
+        """Scan the region right of the name text for the white filled triangle (🞀).
+        Uses merged bbox right edge (widest line) for horizontal, merged center for vertical."""
+        mxs = [p[0] for p in merged_bbox]
+        mys = [p[1] for p in merged_bbox]
+        mx1, my1, mx2, my2 = min(mxs), min(mys), max(mxs), max(mys)
         
-        This is called when the game state changes significantly (e.g., exiting
-        a cutscene), forcing the CharSensor to re-OCR all character slots instead
-        of using potentially stale cached results.
-        """
-        # Reset auto-detected party size so it re-detects on next scan
-        self._last_detected_party_size = None
-        # Reset slot cache to max size (5); will be trimmed when party size is detected
-        self._slot_cache = [None] * 5
-        self._last_round_success = False
-        # Drop the active-slot debounce too - the confirmed hint belongs to
-        # the OLD party/layout and would otherwise be published until a new
-        # candidate confirms.
-        self._debounce = {"candidate": None, "confirmed": None}
-        if DEBUG_MODE:
-            log(f"[{self.name}] Reset character slot cache, will re-detect party size")
-
-    @staticmethod
-    def _join_name_fragments(results):
-        """Join confident OCR fragments top-to-bottom into one name string.
-
-        Two-line names (Kaedehara Kazuha, Yumemizuki Mizuki, ...) come back
-        as separate rows - ALL confident rows are joined so the full name
-        substring-matches the CSV's full-name search_str.
-        """
-        fragments = [
-            r for r in results
-            if r[2] > 0.6 and len(r[1].strip()) > 2
-        ]
-        fragments.sort(key=lambda r: r[0][0][1])  # by top y coordinate
-        return " ".join(r[1].strip() for r in fragments)
-
-    def _match_character(self, text):
-        from core.shared_config import get_shared_config
-        cfg = get_shared_config()
-        custom = cfg.get("USERNAME")
-        if custom and text.strip().lower() == custom.strip().lower():
-            # Respect the MC_AETHER traveler choice from shared config
-            traveler = "char_lumine" if cfg.get("MC_AETHER") is False else "char_aether"
-            return {"name": custom.strip(), "image_key": traveler}
-        c = self.data.search_character(text)
-        if c is None:
-            return None
-        return {"name": c.character_display_name, "image_key": c.image_key}
-
-    # Digits shown on the party-member number plates (1-6).
-    _NUMBER_DIGITS = "0123456789"
-
-    def _read_number_digit(self, bbox, dy=0):
-        """OCR the number plate paired with a name box.
-
-        ``dy`` is the vertical offset the matching name was found at, so the
-        plate is read at the SAME shift the name used (they move together).
-        Returns the integer party ordinal (1-6), or ``None`` if no confident
-        single digit is read. A failed read simply retries next scan.
-        """
-        x1, y1, x2, y2 = bbox
-        y_top = max(0, y1 + dy)
-        if y2 + dy <= y_top:  # shifted fully off-screen
-            return None
-        crop = self._grab((x1, y_top, x2, y2 + dy))
-        gray = crop.convert("L")
-        crop.close()
-        # Number plates are tiny (~30x30): upscale 3x and binarize instead.
-        # Use a fixed threshold that works reliably for both polarities.
-        up = gray.resize((max(1, gray.width * 3), max(1, gray.height * 3)))
-        arr = np.array(up.point(lambda x: 0 if x < 128 else 255))
-        t0 = time.perf_counter()
+        # Convert crop-relative bbox to screen coordinates
+        px, py = party_offset
+        mx1 += px
+        my1 += py
+        mx2 += px
+        my2 += py
+        
+        # Vertical center of merged bbox (triangle sits between lines)
+        center_y = (my1 + my2) // 2
+        y_start = center_y - 12
+        y_end = center_y + 12  # 24px tall
+        
+        # Triangle is a few pixels right of merged bbox right edge (widest line)
+        scan_x1 = mx2 + 2
+        scan_x2 = mx2 + 20  # 18px wide - covers the triangle
+        
+        crop = self._grab((scan_x1, y_start, scan_x2, y_end))
+        
+        # Save for debugging
+        if DEBUG_CHARACTER_MODE:
+            ts = int(time.time() * 1000)
+            crop.save(_DEBUG_CACHE_DIR / f"triangle_scan_{ts}.png")
+        
         try:
-            results = self.reader.readtext(arr, allowlist=self._NUMBER_DIGITS)
-        except Exception:
-            results = []
-        record_ocr("CHAR_NUMBERS", (time.perf_counter() - t0) * 1000.0)
-        for r in results:
-            txt = r[1].strip()
-            if r[2] >= 0.5 and len(txt) == 1 and txt.isdigit():
-                d = int(txt)
-                if 1 <= d <= 6:
-                    return d
-        return None
-
-    def _plate_brightness(self, bbox, dy=0):
-        """Grayscale mean of a number plate (legacy, used as fallback)."""
-        x1, y1, x2, y2 = bbox
-        y_top = max(0, y1 + dy)
-        if y2 + dy <= y_top:
-            return 0.0
-        c = self._grab((x1, y_top, x2, y2 + dy))
-        try:
-            return float(np.array(c.convert("L")).mean())
+            arr = np.array(crop.convert("L"))
+            if arr.size == 0:
+                return False
+            
+            # Threshold for PURE WHITE pixels only (245-255)
+            white_mask = (arr > 245).astype(np.uint8)
+            
+            # Proper filled triangle detection (🞀): narrow at top, widening toward bottom
+            # Scan columns left-to-right, check vertical profile
+            h, w = white_mask.shape
+            if w < 8 or h < 16:
+                return False
+            
+            # For each column, count white pixels from top to bottom
+            col_profiles = []
+            for x in range(w):
+                col = white_mask[:, x]
+                # Find first and last white pixel
+                white_indices = np.where(col)[0]
+                if len(white_indices) > 0:
+                    top = white_indices[0]
+                    bottom = white_indices[-1]
+                    height = bottom - top + 1
+                    col_profiles.append((x, top, bottom, height))
+                else:
+                    col_profiles.append((x, -1, -1, 0))
+            
+            # Look for triangle pattern: consecutive columns with increasing height
+            # Triangle is ~16px wide, ~21px tall, filled
+            for i in range(len(col_profiles) - 7):
+                window = col_profiles[i:i+8]
+                heights = [p[3] for p in window]
+                tops = [p[1] for p in window]
+                bottoms = [p[2] for p in window]
+                
+                # All columns must have white pixels
+                if any(h == 0 for h in heights):
+                    continue
+                
+                # Heights should increase (triangle widening)
+                increasing = all(heights[j] <= heights[j+1] for j in range(7))
+                
+                # Top should be roughly aligned (flat top of triangle)
+                top_aligned = max(tops) - min(tops) <= 3
+                
+                # Bottom should be roughly aligned (flat bottom)
+                bottom_aligned = max(bottoms) - min(bottoms) <= 3
+                
+                # Total height ~21px
+                avg_height = sum(heights) / 8
+                height_ok = 16 <= avg_height <= 26
+                
+                if increasing and top_aligned and bottom_aligned and height_ok:
+                    if DEBUG_CHARACTER_MODE:
+                        log(f"[CharSensor] Filled triangle (🞀) detected at column {i}-{i+7}!")
+                    return True
+                    
+            return False
         finally:
-            c.close()
-
-    def _triangle_metrics(self, names_coord, dy=0):
-        """Detect the active-character ◂ indicator to the right of the name.
-
-        The active character has a solid white left-pointing triangle in the
-        leftmost ~8px of the right 40px section of the name box. The rest of
-        that 40px strip is the dim background between the name and the number
-        plate. Inactive slots show only name-text fragments in that area.
-
-        Returns (col0_count, col0_count) - the caller can apply a column-count
-        test (col0_count >= 15) to identify the active slot.
-        Returns (0, 0) if the region is off-screen.
-        """
-        x1, y1, x2, y2 = names_coord
-        y_top = max(0, y1 + dy)
-        if y2 + dy <= y_top:
-            return 0, 0
-        c = self._grab((x1, y_top, x2, y2 + dy))
-        try:
-            arr = np.array(c.convert("L"))
-            # Resolution-independent: the ◂ triangle sits in the rightmost
-            # ~20% of the name box (the 1440p box is 197px wide, triangle
-            # column at x=157 ≈ 0.797). Test the leftmost column of that
-            # strip; the active slot's solid white triangle fills it, while
-            # inactive slots show only scattered text pixels.
-            right_strip_x = int(arr.shape[1] * 157 / 197)
-            bright = arr[:, right_strip_x:] > 200
-            col0_count = int(bright[:, 0].sum())
-            return col0_count, col0_count
-        finally:
-            c.close()
-
-    def _capture_slot(self, i, names_coord, numbers_coord):
-        """Resolve the character shown at physical crop index ``i`` and read
-        its paired number plate to learn the TRUE party ordinal.
-
-        The number plate is paired with the name box in the same canonical
-        coordinate set, so the digit is authoritative: a character that
-        drifts between two calibrated slots (e.g. a sparse/partial party) is
-        still placed in its real party slot, and rearranging the party is
-        reflected correctly. Returns an entry dict, or ``None`` if nothing
-        was found.
-        """
-        crop = self._grab(names_coord[i])
-        cur = self._prep(crop)
-        crop.close()
-        cache = self._slot_cache[i] or {}
-
-        # Pixel-identical short-circuit: reuse the cached name, but ALWAYS
-        # re-read the paired plate so renumbering a stationary bar (party
-        # rearranged/shrunk/grown) is still caught, and to keep the active
-        # brightness hint fresh.
-        if (
-            _looks_same(cache.get("fp"), cache.get("sample"), cur)
-            and cache.get("name")
-        ):
-            dy = cache.get("dy", 0)
-            digit = self._read_number_digit(numbers_coord[i], dy)
-            ordinal = digit if digit else cache.get("ordinal", i + 1)
-            tri_col0, _ = self._triangle_metrics(names_coord[i], dy)
-            triangle_found = bool(cache.get("triangle_found", False))
-            self._slot_cache[i] = {
-                **cache, "ordinal": ordinal,
-                "tri_col0": tri_col0,
-                "triangle_found": triangle_found,
-            }
-            return {
-                "ordinal": ordinal,
-                "digit_read": digit is not None,
-                "entry": {
-                    "name": cache["name"],
-                    "image_key": cache.get("image_key"),
-                    "cached": True,
-                },
-                "brightness": self._plate_brightness(numbers_coord[i], dy),
-                "tri_col0": tri_col0,
-                "triangle_found": triangle_found,
-            }
-
-        # Single capture at the canonical coordinates - no shifting.
-        attempts = [(names_coord[i], 0)]
-
-        matched = None
-        used_dy = 0
-        used_cur = None
-        for coords, dy in attempts:
-            c = self._grab(coords)
-            arr = self._prep(c)
-            c.close()
-            t0 = time.perf_counter()
-            try:
-                results = self.reader.readtext(arr)
-            except Exception:
-                results = []
-            record_ocr("CHAR_SLOTS", (time.perf_counter() - t0) * 1000.0)
-            text = self._join_name_fragments(results)
-            if text:
-                m = self._match_character(text)
-                if m:
-                    matched = m
-                    used_dy = dy
-                    used_cur = arr
-                    break
-                if DEBUG_CHARACTER_MODE:
-                    log(f"[{self.name}] slot{i}: OCR text {text!r} "
-                        f"did not match any known character")
-
-        if not matched:
-            # OCR failed on this slot. If we had a previous successful
-            # detection for this physical box, keep it rather than
-            # clearing the slot - the party HUD is still visible and
-            # the character is still there, just a transient OCR miss.
-            # Only clear when there was never a detection here.
-            if cache.get("name"):
-                self._slot_cache[i] = {
-                    **cache,
-                    "fp": cur,
-                    "sample": cur.ravel()[::4],
-                }
-                return {
-                    "ordinal": cache.get("ordinal", i + 1),
-                    "digit_read": False,
-                    "entry": {
-                        "name": cache["name"],
-                        "image_key": cache.get("image_key"),
-                        "cached": True,
-                    },
-                    "brightness": self._plate_brightness(
-                        numbers_coord[i], cache.get("dy", 0)
-                    ),
-                    "tri_col0": cache.get("tri_col0", 0),
-                    "triangle_found": bool(cache.get("triangle_found", False)),
-                }
-            self._slot_cache[i] = None
-            return None
-
-        # Read the paired plate at the SAME offset the name was found, so the
-        # ordinal stays bonded to the character even under adaptation.
-        digit = self._read_number_digit(numbers_coord[i], used_dy)
-        ordinal = digit if digit else i + 1
-        tri_col0, _ = self._triangle_metrics(names_coord[i], used_dy)
-        # Triangle detected when col 0 of the right strip has >= ~17% of the
-        # box height as bright pixels (>200) - 15px at the 1440p box height
-        # of 86px. Scales with the resolution-scaled coordinate sets.
-        box_height = names_coord[i][3] - names_coord[i][1]
-        triangle_found = tri_col0 >= max(5, int(box_height * 15 / 86))
-        self._slot_cache[i] = {
-            "fp": used_cur,
-            "sample": used_cur.ravel()[::4],
-            "name": matched["name"],
-            "image_key": matched.get("image_key"),
-            "ordinal": ordinal,
-            "dy": used_dy,
-            "tri_col0": tri_col0,
-            "triangle_found": triangle_found,
-        }
-        return {
-            "ordinal": ordinal,
-            "digit_read": digit is not None,
-            "entry": {**matched, "cached": False},
-            "brightness": self._plate_brightness(numbers_coord[i], used_dy),
-            "tri_col0": tri_col0,
-            "triangle_found": triangle_found,
-        }
-
+            crop.close()
 
     def _in_known_menu(self) -> bool:
-        """True if menus.json currently reports a recognized menu/cutscene.
-
-        During menus and cutscenes the overworld party HUD is guaranteed
-        hidden, so the 5-configuration detection probe and slot OCR are
-        pure waste - the scan can short-circuit.
-        """
-        if not self._menus_path:
-            return False
-        menus = read_json(self._menus_path, max_age=6.0)
+        """True if menus blackboard currently reports a recognized menu/cutscene."""
+        menus = blackboard.read("menus", max_age=6.0)
         if not menus:
             return False
-        # domain label only shows BEFORE entering the domain (HUD hidden
-        # during that transition); inside the domain it disappears.
         return bool(
             menus.get(K.GAMEMENU)
             or menus.get(K.PARTY_SETUP)
@@ -472,105 +309,161 @@ class CharSensor(BaseSensor):
         )
 
     def scan(self):
-        # Short-circuit while a recognized menu/cutscene is on screen: the
-        # party HUD cannot be visible, so skip the probe + slot OCR entirely.
         if self._in_known_menu():
-            write_json(
-                self.output_path,
+            blackboard.write(
+                self._output_key,
                 {K.SLOTS: [], K.ACTIVE_SLOT_HINT: None, K.HUD_VISIBLE: False},
             )
             return
 
-        names_coord, numbers_coord = self._get_coords_provider()
-        slot_count = len(names_coord)
-        slots = [None] * (slot_count + 1)  # +1 to allow slot 0 to be unused (party slots are 1-indexed)
-        any_success = False
-        # Each resolved entry carries the TRUE party ordinal (from the paired
-        # number plate), the character entry, and the plate brightness used for
-        # the active-slot hint.
-        found = []
+        party_area = self._party_area
+        if not party_area:
+            blackboard.write(
+                self._output_key,
+                {K.SLOTS: [], K.ACTIVE_SLOT_HINT: None, K.HUD_VISIBLE: False},
+            )
+            return
 
-        # ---- Phase 1: capture at the canonical coordinates -----------------
-        # The per-party-size sets are calibrated exactly - no vertical
-        # shifting, no ±80 fallback hunting. A miss is a miss: it either
-        # means the HUD is hidden or the party layout changed, and Phase 2
-        # below handles both by re-probing all 5 configurations.
-        for i in range(slot_count):
-            res = self._capture_slot(i, names_coord, numbers_coord)
-            if res is not None:
-                found.append(res)
+        crop = self._grab(self._party_area)
+        
+        # Save full party area for debugging
+        if DEBUG_CHARACTER_MODE:
+            ts = int(time.time() * 1000)
+            crop.save(_DEBUG_CACHE_DIR / f"party_area_{ts}.png")
+        
+        cur = self._prep(crop)
+        crop.close()
+
+        t0 = time.perf_counter()
+        try:
+            results = self.reader.readtext(cur)
+        except Exception:
+            results = []
+        record_ocr("CHAR_PARTY_FULL", (time.perf_counter() - t0) * 1000.0)
+
+        fragments = [
+            r for r in results
+            if r[2] > 0.6 and len(r[1].strip()) > 2
+        ]
+        fragments.sort(key=lambda r: r[0][0][1])
+        
+        # Merge vertically adjacent fragments (multi-line names like "Kamisato Ayaka")
+        merged_fragments = []
+        for frag in fragments:
+            if not merged_fragments:
+                merged_fragments.append(frag)
+                continue
+            
+            last = merged_fragments[-1]
+            last_bbox = last[0]
+            curr_bbox = frag[0]
+            
+            last_y = (last_bbox[0][1] + last_bbox[2][1]) / 2
+            curr_y = (curr_bbox[0][1] + curr_bbox[2][1]) / 2
+            y_diff = curr_y - last_y
+            
+            # If vertically close (within ~40px), merge them
+            if y_diff < 40:
+                # Merge text
+                merged_text = last[1].strip() + " " + frag[1].strip()
+                # Merge bbox - expand to cover both
+                last_xs = [p[0] for p in last_bbox]
+                last_ys = [p[1] for p in last_bbox]
+                curr_xs = [p[0] for p in curr_bbox]
+                curr_ys = [p[1] for p in curr_bbox]
+                merged_bbox = [
+                    [min(last_xs + curr_xs), min(last_ys + curr_ys)],
+                    [max(last_xs + curr_xs), min(last_ys + curr_ys)],
+                    [max(last_xs + curr_xs), max(last_ys + curr_ys)],
+                    [min(last_xs + curr_xs), max(last_ys + curr_ys)],
+                ]
+                merged_fragments[-1] = (merged_bbox, merged_text, max(last[2], frag[2]))
+            else:
+                merged_fragments.append(frag)
+        
+        fragments = merged_fragments
+
+        if DEBUG_CHARACTER_MODE:
+            for frag in fragments:
+                log(f"[CharSensor] Fragment: '{frag[1].strip()}' conf={frag[2]:.2f} y={frag[0][0][1]:.0f}")
+
+        # Check for special UI patterns from CSV
+        special_match = None
+        for frag in fragments:
+            text = frag[1].strip().lower()
+            for pattern in self._special_ui:
+                if pattern["search_str"] in text:
+                    special_match = pattern
+                    if DEBUG_CHARACTER_MODE:
+                        log(f"[CharSensor] Special UI match: {pattern['search_str']} -> {pattern['display_name']}")
+                    break
+            if special_match:
+                break
+
+        found = []
+        for i, frag in enumerate(fragments):
+            text = frag[1].strip()
+            matched = self._match_character(text)
+            if not matched:
+                split_matches = self._split_and_search_names(frag[1])
+                if split_matches:
+                    matched = split_matches[0]
+
+            if matched:
+                bbox = frag[0]
+                y_center = (bbox[0][1] + bbox[2][1]) / 2
+                found.append({
+                    "name": matched["name"],
+                    "image_key": matched["image_key"],
+                    "y_center": y_center,
+                    "bbox": bbox,
+                })
+
         any_success = bool(found)
         self._last_round_success = any_success
 
-        # ---- Phase 2: total miss => drop the cached party size -------------
-        # The party HUD either vanished (menu/cutscene) or the layout changed
-        # (party resized). Either way the cached coordinate set is no longer
-        # trustworthy: the next scan must re-probe ALL 5 canonical party
-        # configurations via _detect_party_size.
-        if not any_success and self._party_size is None and (
-            self._last_detected_party_size is not None
-        ):
-            self._last_detected_party_size = None
-            if DEBUG_MODE:
-                log(f"[{self.name}] No party found on cached layout - "
-                    f"will re-detect party size across all 5 configurations")
+        found.sort(key=lambda f: f["y_center"])
 
-        # ---- Phase 3: place into slots by TRUE party ordinal, with dedup ----
-        # A lone character sitting between calibrated slots can be caught at
-        # several physical boxes; each resolves to (ideally) the SAME ordinal.
-        # Guarantee one character occupies exactly one party slot: on a name
-        # collision we keep the entry whose ordinal came from a real plate read
-        # (more reliable than a fallback to the physical box index).
+        slots = [None] * 6
         placed = []
-        placed_names = set()
-        seen_slots = set()
-        for f in sorted(found, key=lambda x: not x.get("digit_read", False)):
-            entry = f.get("entry") or {}
-            name = entry.get("name")
-            ord_ = f.get("ordinal")
-            if not name or not (isinstance(ord_, int) and 1 <= ord_ <= slot_count):
-                continue
-            if name in placed_names or ord_ in seen_slots or slots[ord_] is not None:
-                continue
-            slots[ord_] = entry
+        for i, f in enumerate(found[:5]):
+            ordinal = i + 1
+            slots[ordinal] = {"name": f["name"], "image_key": f["image_key"]}
+            f["ordinal"] = ordinal
             placed.append(f)
-            placed_names.add(name)
-            seen_slots.add(ord_)
 
-        # ---- Phase 4: active-slot hint from the ◂ indicator by ordinal ----
-        # The active character has a solid white left-pointing triangle in the
-        # leftmost section of the right 40px of the name box. Inactive slots
-        # show only name-text fragments there. Use the shape test (left8 mean
-        # high AND clearly above mid-section mean) to identify the active slot.
+        any_success = bool(found)
+
+        # Active slot detection: scan for triangle indicator (▶) on ALL slots
         hint = None
-        active_candidates = [f for f in placed if f.get("triangle_found")]
-        if len(active_candidates) == 1:
-            hint = active_candidates[0]["ordinal"]
-        elif len(placed) >= 2:
-            # Fallback: if no single triangle detected, use brightness
-            srt = sorted(placed, key=lambda t: t["brightness"])
-            if (srt[1]["brightness"] - srt[0]["brightness"]) >= max(
-                25, int(srt[1]["brightness"] * 0.12)
-            ):
-                hint = srt[0]["ordinal"]
-        elif len(placed) == 1:
-            # Single-character party (e.g. trial character story quests):
-            # the lone detected character IS the active one.
-            hint = placed[0]["ordinal"]
+        party_offset = (self._party_area[0], self._party_area[1]) if self._party_area else (0, 0)
+        for f in placed:
+            has_triangle = self._detect_triangle_right_of_name(f["bbox"], party_offset)
+            if has_triangle:
+                hint = f["ordinal"]
+                if DEBUG_CHARACTER_MODE:
+                    log(f"[CharSensor] Active slot: {hint} ({f['name']}) - triangle detected")
+                break
+        
+        if hint is None and DEBUG_CHARACTER_MODE:
+            log(f"[CharSensor] No triangle detected on any slot")
 
         d = self._debounce
-        if hint is not None and hint == d["candidate"]:
-            d["confirmed"] = hint
+        if hint is not None:
+            if hint == d["candidate"]:
+                d["confirmed"] = hint
+            else:
+                d["candidate"] = hint
         else:
-            d["candidate"] = hint
+            d["candidate"] = None
 
-        write_json(
-            self.output_path,
-            {
-                K.SLOTS: slots,
-                K.ACTIVE_SLOT_HINT: d["confirmed"],
-                K.HUD_VISIBLE: any_success,
-            },
+        output_slots = [None] * 6
+        for f in found[:5]:
+            ordinal = f["ordinal"]
+            output_slots[ordinal] = {"name": f["name"], "image_key": f["image_key"]}
+
+        blackboard.write(
+            self._output_key,
+            {K.SLOTS: output_slots, K.ACTIVE_SLOT_HINT: d["confirmed"], K.HUD_VISIBLE: bool(found),
+             "special_ui": special_match},
         )
-
-

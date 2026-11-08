@@ -62,17 +62,19 @@ class Api:
         except ImportError:
             self.use_url_assets = False
             self.asset_base_url = ""
+        # Identity defaults from shared_config (live) or core.datatypes._identity_settings()
+        # (which itself falls back to CONFIG.py for legacy keys we kept for backward compat)
         try:
-            import CONFIG as _cfg
-            self._config_defaults = {
-                "USERNAME": _cfg.USERNAME,
-                "MC_AETHER": _cfg.MC_AETHER,
-                "WANDERER_NAME": _cfg.WANDERER_NAME,
-                "MANEKIN_NAME": _cfg.MANEKIN_NAME,
-                "MANEKINA_NAME": _cfg.MANEKINA_NAME,
-            }
+            from core.datatypes import _identity_settings
+            self._config_defaults = _identity_settings()
         except ImportError:
-            self._config_defaults = {}
+            self._config_defaults = {
+                "USERNAME": "Player",
+                "MC_AETHER": True,
+                "WANDERER_NAME": "Wanderer",
+                "MANEKIN_NAME": "Manekin",
+                "MANEKINA_NAME": "Manekina",
+            }
         self._ensure_shared_config()
 
     def _ensure_shared_config(self):

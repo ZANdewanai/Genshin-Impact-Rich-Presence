@@ -1,24 +1,13 @@
-"""Atomic JSON blackboard for inter-component state exchange.
+"""In-memory blackboard for inter-component state exchange.
 
-Each writer owns exactly one file; readers apply staleness checks based on
-the embedded timestamp. Files are written atomically (temp + rename) so a
-reader never sees a partial write.
+Replaces file-based JSON blackboard with thread-safe shared state.
 """
 
-import json
-import os
-import tempfile
 import time
-from pathlib import Path
+import threading
+from dataclasses import dataclass, field
+from typing import Any, Optional
 
-# ---------------------------------------------------------------------------
-# Single source of truth for sensor cadences and blackboard freshness windows.
-#
-# Every staleness limit is expressed as a multiple of the producing sensor's
-# interval, so tuning one interval here automatically keeps all consumers in
-# sync (previously these constants were scattered across coordinator.py,
-# sensors.py and character_detection.py with unrelated magic numbers).
-# ---------------------------------------------------------------------------
 
 # Producer intervals (seconds). Must match the intervals passed to each
 # Sensor class constructor in core/coordinator.py.
@@ -26,8 +15,7 @@ CHAR_SCAN_INTERVAL = 2.0      # CharSensor
 LOCATION_SCAN_INTERVAL = 0.5  # LocationSensor
 MENU_SCAN_INTERVAL = 2.0      # MenuSensor
 
-# Consumer freshness windows (values preserve the previously-scattered
-# hardcoded limits, now expressed relative to their producer's interval).
+# Consumer freshness windows (multiples of producer interval).
 CHAR_MAX_AGE_COORDINATOR = 5 * CHAR_SCAN_INTERVAL        # party-slot consumption: 10s
 CHAR_MAX_AGE_HUD = 3 * CHAR_SCAN_INTERVAL                # HUD-evidence freshness: 6s
 CHAR_MAX_AGE_REGION_MANAGER = 2.5 * CHAR_SCAN_INTERVAL   # detect_occupied_slots: 5s
@@ -35,47 +23,52 @@ LOCATION_MAX_AGE = 30 * LOCATION_SCAN_INTERVAL           # location.json: 15s
 MENU_MAX_AGE = 2 * MENU_SCAN_INTERVAL                    # menus.json: 4s
 
 
-def write_json(path: str, payload: dict) -> None:
-    """Atomically write `payload` with an injected server timestamp.
+@dataclass
+class BlackboardEntry:
+    """A single blackboard entry with timestamp."""
+    data: dict = field(default_factory=dict)
+    written_at: float = 0.0
 
-    os.replace can transiently fail with WinError 5 (Access denied) when a
-    reader holds the destination open at that exact moment on Windows - retry
-    briefly before giving up.
-    """
-    payload = dict(payload)
-    payload["written_at"] = time.time()
-    p = Path(path)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(dir=str(p.parent), suffix=".tmp")
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(payload, f)
-        last_err = None
-        for _ in range(4):
-            try:
-                os.replace(tmp, str(p))
-                return
-            except OSError as e:
-                last_err = e
-                time.sleep(0.05)
-        raise last_err
-    except OSError:
-        try:
-            os.remove(tmp)
-        except OSError:
-            pass
-        raise
+    def is_fresh(self, max_age: float) -> bool:
+        return self.written_at > 0 and (time.time() - self.written_at) <= max_age
 
-
-def read_json(path: str, max_age: float | None = None) -> dict | None:
-    """Read a blackboard file. Returns None if missing/corrupt/too stale."""
-    try:
-        with open(path, "r") as f:
-            data = json.load(f)
-    except (OSError, ValueError):
-        return None
-    if max_age is not None:
-        written = data.get("written_at", 0.0)
-        if time.time() - written > max_age:
+    def get(self, max_age: Optional[float] = None) -> Optional[dict]:
+        if max_age is not None and not self.is_fresh(max_age):
             return None
-    return data
+        return self.data if self.written_at > 0 else None
+
+
+class Blackboard:
+    """Thread-safe in-memory blackboard with dynamic channels."""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._entries = {}
+
+    def _get_entry(self, key: str) -> BlackboardEntry:
+        if key not in self._entries:
+            self._entries[key] = BlackboardEntry()
+        return self._entries[key]
+
+    def write(self, key: str, payload: dict) -> None:
+        """Write payload to a channel with current timestamp."""
+        with self._lock:
+            entry = self._get_entry(key)
+            entry.data = dict(payload)
+            entry.written_at = time.time()
+
+    def read(self, key: str, max_age: Optional[float] = None) -> Optional[dict]:
+        """Read payload from a channel, returning None if stale or empty."""
+        with self._lock:
+            entry = self._get_entry(key)
+            return entry.get(max_age)
+
+    def clear(self, key: str) -> None:
+        """Clear a channel."""
+        with self._lock:
+            if key in self._entries:
+                self._entries[key] = BlackboardEntry()
+
+
+# Global blackboard instance
+blackboard = Blackboard()

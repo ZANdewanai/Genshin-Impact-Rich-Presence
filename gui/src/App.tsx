@@ -1,48 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-
-type Element = "pyro" | "hydro" | "anemo" | "electro" | "cryo" | "geo" | "dendro" | "empty";
-type Tab = "presence" | "settings" | "logs" | "about";
-
-interface Character {
-  id?: number; name: string; element: Element;
-  level?: number; imageUrl: string; rarity?: number;
-}
-
-interface Settings {
-  username: string;
-  mcAether: boolean;
-  wandererName: string;
-  manekinName: string;
-  manekinaName: string;
-}
-
-const EL_COLOR: Record<Element, string> = {
-  pyro: "#ff6432", hydro: "#3298ff", anemo: "#5adcb4",
-  electro: "#b464ff", cryo: "#8cc8ff", geo: "#c8a032",
-  dendro: "#64d250", empty: "#4a4a5a",
-};
-const EL_LABEL: Record<Element, string> = {
-  pyro: "Pyro", hydro: "Hydro", anemo: "Anemo", electro: "Electro",
-  cryo: "Cryo", geo: "Geo", dendro: "Dendro", empty: "—",
-};
-
-/* Accurate Genshin rarity colors: 5★ gold, 4★ purple. */
-const RARITY_5 = "#FFD780";
-const RARITY_4 = "#B48AE6";
-const rarityColor = (rarity?: number) => (rarity === 5 ? RARITY_5 : rarity === 4 ? RARITY_4 : RARITY_5);
-
-const LOCATIONS = [
-  "Mondstadt — City of Freedom", "Liyue Harbor — Port of Commerce",
-  "Inazuma — Electro Archon's Domain", "Sumeru — City of Wisdom",
-  "Fontaine — Nation of Justice", "Natlan — Nation of War",
-  "Domain of Forsaken Ruins", "Golden Apple Archipelago",
-];
-const ACTIVITIES = [
-  "Exploring the open world", "Clearing Spiral Abyss",
-  "Completing a Story Quest", "Grinding Resin in Domain",
-  "Fighting World Boss", "In Co-Op Session",
-  "Forging and Crafting", "Idle in Serenitea Pot",
-];
+import type { Character, Element, Settings, DebugConfig, BackendState, Tab } from "./types";
+import { EL_COLOR, rarityColor, LOCATIONS, ACTIVITIES, STATIC_PARTICLES, DEMO_STARTED_AT } from "./constants";
+import { hasBackend, fmtElapsed, fetchState } from "./utils";
+import { useSettings, useDebug, useBackendState, useLogs } from "./hooks";
+import {
+  ParticleField,
+  TabBar,
+  CharacterSlot,
+  PresenceTab,
+  SettingsTab,
+  LogsTab,
+  AboutTab,
+} from "./components";
 
 /* == Backend bridge (pywebview) ================================== */
 
@@ -62,851 +31,62 @@ declare global {
   }
 }
 
-interface BackendState {
-  running: boolean;
-  location: string;
-  activity: string;
-  timestamp: number | null;
-  party: (Character | null)[];
-  active_character_index: number;
-}
-
-const hasBackend = () => typeof window !== "undefined" && !!window.pywebview;
-
-function fmtElapsed(ts: number | null): string {
-  if (!ts) return "-";
-  const secs = Math.max(0, Math.floor(Date.now() / 1000 - ts));
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
-}
-
-/* Demo simulator so pnpm dev in a plain browser still renders. */
-const DEMO_STARTED_AT = Date.now() / 1000 - 83 * 60;
-
-function fetchState(demoConnected: boolean): Promise<BackendState> {
-  if (hasBackend()) return window.pywebview!.api.get_state();
-  return Promise.resolve({
-    running: demoConnected,
-    location: LOCATIONS[0],
-    activity: ACTIVITIES[0],
-    timestamp: DEMO_STARTED_AT,
-    party: [
-      { name: "ZANdewanai", element: "pyro", level: 90, rarity: 5, imageUrl: "https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/refs/heads/main/resources/assets/images/characters/char_kibble.png" },
-      { name: "Qiqi", element: "cryo", level: 80, rarity: 5, imageUrl: "https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/refs/heads/main/resources/assets/images/characters/char_qiqi.png" },
-      { name: "Keqing", element: "electro", level: 75, rarity: 5, imageUrl: "https://raw.githubusercontent.com/ZANdewanai/Genshin-Impact-Rich-Presence/refs/heads/main/resources/assets/images/characters/char_keqing.png" },
-    ],
-    active_character_index: 0,
-  });
-}
-
-/* ── Particles ─────────────────────────────────── */
-const STATIC_PARTICLES = Array.from({ length: 18 }, (_, i) => ({
-  id: i, left: `${8 + (i * 5.1) % 84}%`, top: `${10 + (i * 4.7) % 80}%`,
-  size: 1.5 + (i % 3) * 0.7,
-  dur: `${5 + (i % 7)}s`, delay: `${-(i * 0.9)}s`,
-  gold: i % 2 === 0,
-}));
-
-function ParticleField() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ borderRadius: 6 }}>
-      {STATIC_PARTICLES.map(p => (
-        <div key={p.id} className="particle" style={{
-          left: p.left, top: p.top, width: p.size, height: p.size, borderRadius: "50%", position: "absolute",
-          backgroundColor: p.gold ? `rgba(200,168,75,0.4)` : `rgba(140,160,220,0.25)`,
-          ["--dur" as string]: p.dur, ["--delay" as string]: p.delay,
-          boxShadow: p.gold ? `0 0 ${p.size * 3}px rgba(200,168,75,0.6)` : `0 0 ${p.size * 2}px rgba(140,160,220,0.4)`,
-        }} />
-      ))}
-    </div>
-  );
-}
-
-/* ── Ornament divider ──────────────────────────── */
-function OrnamentDivider({ label }: { label?: string }) {
-  return (
-    <div className="flex items-center gap-2.5 select-none">
-      <div className="flex-1 h-px gold-line" />
-      <svg width="10" height="10" viewBox="0 0 12 12" fill="#c8a84b" opacity={0.7}>
-        <path d="M6 0l1.5 4.5L12 6l-4.5 1.5L6 12 4.5 7.5 0 6l4.5-1.5z"/>
-      </svg>
-      {label && (
-        <span style={{ fontFamily: "var(--font-heading)", fontSize: "10.5px", color: "#c8a84b", letterSpacing: "0.18em", opacity: 0.85 }}>
-          {label}
-        </span>
-      )}
-      <svg width="10" height="10" viewBox="0 0 12 12" fill="#c8a84b" opacity={0.7}>
-        <path d="M6 0l1.5 4.5L12 6l-4.5 1.5L6 12 4.5 7.5 0 6l4.5-1.5z"/>
-      </svg>
-      <div className="flex-1 h-px gold-line" />
-    </div>
-  );
-}
-
-function Stars({ n, color }: { n: number; color: string }) {
-  return (
-    <div className="flex gap-0.5">
-      {Array.from({ length: n }).map((_, i) => (
-        <svg key={i} width="9" height="9" viewBox="0 0 10 10" fill={color}>
-          <polygon points="5,0.5 6.6,3.4 9.5,5 6.6,6.6 5,9.5 3.4,6.6 0.5,5 3.4,3.4"/>
-        </svg>
-      ))}
-    </div>
-  );
-}
-
-function ElBadge({ el }: { el: Element }) {
-  if (el === "empty") return null;
-  return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-px rounded-sm" style={{
-      background: `${EL_COLOR[el]}18`, border: `1px solid ${EL_COLOR[el]}50`,
-      color: EL_COLOR[el], fontFamily: "var(--font-heading)", fontSize: "10px", letterSpacing: "0.09em",
-    }}>
-      {EL_LABEL[el]}
-    </span>
-  );
-}
-
-/* ── Character slot ────────────────────────────── */
-function CharacterSlot({ character, index, isActive }: {
-  character: Character | null; index: number; isActive: boolean;
-}) {
-  const el = character?.element ?? "empty";
-  const clr = EL_COLOR[el];
-  const rclr = rarityColor(character?.rarity);
-  const animClass = ["slide-up-1","slide-up-2","slide-up-3","slide-up-4"][index];
-  return (
-    <button
-      className={`relative flex flex-col overflow-hidden group flex-1 ${animClass} slot-glow glow-${el} ${isActive ? "active" : ""}`}
-      style={{
-        background: character ? "linear-gradient(170deg,#0d1122 0%,#0a0d1a 100%)" : "rgba(10,13,26,0.5)",
-        border: character ? `1px solid ${rclr}55` : "1px solid rgba(200,168,75,0.18)",
-        boxShadow: isActive 
-          ? `0 8px 18px rgba(0,0,0,0.45), 0 0 12px ${rclr}50, inset 0 0 16px rgba(var(--el-clr), 0.06)`
-          : character ? `0 0 10px rgba(var(--el-clr), 0.0)` : undefined,
-        borderRadius: 4, aspectRatio: "3 / 4", maxWidth: "150px", outline: "none",
-        transform: isActive ? "translateY(-3px)" : "translateY(0)",
-        transition: "transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, border-color 0.3s ease",
-      }}
-    >
-      <span className="corner tl" style={{ opacity: isActive ? 0.9 : 0.5 }} />
-      <span className="corner tr" style={{ opacity: isActive ? 0.9 : 0.5 }} />
-      <span className="corner bl" style={{ opacity: isActive ? 0.9 : 0.5 }} />
-      <span className="corner br" style={{ opacity: isActive ? 0.9 : 0.5 }} />
-      
-{isActive && character && (
-  <div className="absolute top-1 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-    <svg
-      width="20"
-      height="12"
-      viewBox="0 0 20 12"
-      fill="none"
-      className="animate-triangle-appear"
-    >
-      <polygon points="10,12 20,0 0,0" fill="#FFD780" />
-    </svg>
-  </div>
-)}
-      
-      {character ? (
-        <>
-          <div className="relative flex-1 overflow-hidden">
-            <img src={character.imageUrl} alt={character.name}
-              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform"
-              style={{ filter: "saturate(0.8) contrast(1.08) brightness(0.95)", transitionDuration: "500ms" }}
-            />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg,transparent 36%,rgba(8,9,26,0.96) 100%)" }} />
-            <div className="absolute top-0 left-0 right-0 h-0.5" style={{ backgroundColor: clr, boxShadow: `0 0 5px ${clr}` }} />
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400"
-              style={{ background: `linear-gradient(120deg,transparent 30%,${clr}10 50%,transparent 70%)` }} />
-            <div className="absolute top-2 left-2">
-              <Stars n={character.rarity ?? 5} color={rarityColor(character.rarity)} />
-            </div>
-          </div>
-          <div className="px-2 pt-1 pb-2 flex flex-col gap-1">
-            <span style={{ fontFamily: "var(--font-heading)", fontSize: "12px",
-              color: isActive ? "#f0d47a" : "#ede3c4", fontWeight: 600, letterSpacing: "0.04em",
-              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", transition: "color 0.3s" }}>
-              {character.name}
-            </span>
-            <div className="flex items-center justify-between">
-              
-              <span style={{ fontFamily: "var(--font-heading)", fontSize: "9.5px", color: isActive ? "#f0d47a" : "#6a5820", letterSpacing: "0.06em", fontWeight: 500 }}>
-                {character.level != null ? `Lv.${character.level}` : ""}
-              </span>
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="flex-1 flex flex-col items-center justify-center gap-2">
-          <div className="absolute top-1.5 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-            <Stars n={5} color="#FFD780" />
-          </div>
-          <div style={{ width: 28, height: 28, borderRadius: "50%", border: "1px solid rgba(200,168,75,0.2)",
-            display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,168,75,0.35)" strokeWidth="1.2">
-              <circle cx="12" cy="8" r="4"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
-            </svg>
-          </div>
-          <span style={{ fontFamily: "var(--font-heading)", fontSize: "9px", color: "rgba(200,168,75,0.3)", letterSpacing: "0.14em" }}>
-            EMPTY
-          </span>
-        </div>
-      )}
-    </button>
-  );
-}
-
-function InfoRow({ icon, label, value, onClick }: {
-  icon: React.ReactNode; label: string; value: string; onClick?: () => void;
-}) {
-  return (
-    <div onClick={onClick}
-      className={`flex items-start gap-3 px-4 py-3 group ${onClick ? "cursor-pointer hover:bg-white/[0.02]" : ""} transition-colors`}
-      style={{ borderBottom: "1px solid rgba(200,168,75,0.07)" }}>
-      <div className="mt-0.5 flex-shrink-0" style={{ color: "#c8a84b", opacity: 0.65 }}>{icon}</div>
-      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-        <span style={{ fontFamily: "var(--font-heading)", fontSize: "10px", color: "#6a5820", letterSpacing: "0.16em" }}>
-          {label}
-        </span>
-        <span style={{ fontFamily: "var(--font-body)", fontSize: "15px", color: "#ede3c4", lineHeight: 1.3 }}>
-          {value}
-        </span>
-      </div>
-      {onClick && (
-        <svg className="mt-1 flex-shrink-0 opacity-0 group-hover:opacity-40 transition-opacity"
-          width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="#c8a84b" strokeWidth="1.5">
-          <path d="M9 1l4 6-4 6M1 7h12"/>
-        </svg>
-      )}
-    </div>
-  );
-}
-
-/* ── Toggle switch ────────────────────────────── */
-function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onChange}
-      className="relative inline-flex items-center rounded-full cursor-pointer transition-colors duration-200 flex-shrink-0"
-      style={{
-        width: 34, height: 18, outline: "none",
-        background: checked ? "rgba(200,168,75,0.85)" : "rgba(200,168,75,0.12)",
-        border: `1px solid ${checked ? "rgba(200,168,75,0.6)" : "rgba(200,168,75,0.25)"}`,
-      }}
-      aria-pressed={checked}
-    >
-      <span
-        className="absolute rounded-full transition-transform duration-200"
-        style={{
-          width: 12, height: 12, top: 2, left: 2,
-          background: checked ? "#08091a" : "#c8a84b",
-          transform: checked ? "translateX(16px)" : "translateX(0)",
-        }}
-      />
-    </button>
-  );
-}
-function ApplyButton({ dirty, saved, onApply }: {
-  dirty: boolean; saved: boolean; onApply: () => void;
-}) {
-  if (!dirty) return null;
-  return (
-    <button onClick={onApply} className="px-2.5 py-1 rounded cursor-pointer transition-all duration-200 flex-shrink-0"
-      style={{
-        fontFamily: "var(--font-heading)", fontSize: "9.5px", letterSpacing: "0.1em",
-        background: saved ? "rgba(100,210,80,0.15)" : "rgba(200,168,75,0.1)",
-        border: saved ? "1px solid rgba(100,210,80,0.4)" : "1px solid rgba(200,168,75,0.35)",
-        color: saved ? "#64d250" : "#c8a84b", outline: "none",
-      }}>
-      {saved ? "SAVED" : "APPLY"}
-    </button>
-  );
-}
-
-function TextField({ label, hint, value, dirty, saved, onChange, onApply }: {
-  label: string; hint?: string; value: string;
-  dirty: boolean; saved: boolean;
-  onChange: (v: string) => void; onApply: () => void;
-}) {
-  return (
-    <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(200,168,75,0.07)" }}>
-      <div style={{ fontFamily: "var(--font-heading)", fontSize: "10px", color: "#6a5820", letterSpacing: "0.16em", marginBottom: 6 }}>
-        {label}
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          onKeyDown={e => { if (e.key === "Enter" && dirty) onApply(); }}
-          className="flex-1 bg-transparent outline-none min-w-0"
-          style={{
-            fontFamily: "var(--font-heading)", fontSize: "12px", color: "#ede3c4",
-            border: `1px solid ${dirty ? "rgba(200,168,75,0.5)" : "rgba(200,168,75,0.2)"}`,
-            borderRadius: 3,
-            padding: "6px 10px", letterSpacing: "0.06em",
-            background: "rgba(200,168,75,0.04)",
-          }}
-        />
-        <ApplyButton dirty={dirty} saved={saved} onApply={onApply} />
-      </div>
-      {hint && (
-        <p style={{ fontFamily: "var(--font-body)", fontSize: "12px", color: "#6a5820", marginTop: 6, lineHeight: 1.4 }}>
-          {hint}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function SettingsPanel({ settings, onSave }: {
-  settings: Settings; onSave: (s: Partial<Settings>) => void;
-}) {
-  const [form, setForm] = useState<Settings>(settings);
-  const [savedKey, setSavedKey] = useState<string | null>(null);
-
-  /* Re-sync the form when the backend loads persisted values */
-  useEffect(() => { setForm(settings); }, [settings]);
-
-  const set = (patch: Partial<Settings>) => setForm(prev => ({ ...prev, ...patch }));
-
-  const apply = (key: keyof Settings) => {
-    onSave({ [key]: form[key] } as Partial<Settings>);
-    setSavedKey(key);
-    setTimeout(() => setSavedKey(prev => (prev === key ? null : prev)), 2000);
-  };
-
-  const isDirty = (key: keyof Settings) => form[key] !== settings[key];
-  const isSaved = (key: keyof Settings) => savedKey === key && !isDirty(key);
-
-  return (
-    <div className="flex flex-col gap-5">
-      {/* Identity */}
-      <div>
-        <OrnamentDivider label="IDENTITY" />
-        <div className="mt-3 rounded overflow-hidden" style={{ background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)" }}>
-          <TextField label="TRAVELER NAME" value={form.username}
-            dirty={isDirty("username")} saved={isSaved("username")}
-            onChange={v => set({ username: v })} onApply={() => apply("username")}
-            hint="✓ Applied live. Your player name, shown in party-related presence text." />
-
-          <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(200,168,75,0.07)" }}>
-            <div style={{ fontFamily: "var(--font-heading)", fontSize: "10px", color: "#6a5820", letterSpacing: "0.16em", marginBottom: 6 }}>
-              MAIN CHARACTER
-            </div>
-            <div className="flex items-center gap-2">
-              <select
-                value={form.mcAether ? "aether" : "lumine"}
-                onChange={e => set({ mcAether: e.target.value === "aether" })}
-                className="cursor-pointer bg-transparent outline-none flex-1 min-w-0"
-                style={{
-                  fontFamily: "var(--font-heading)", fontSize: "12px", color: "#ede3c4",
-                  border: `1px solid ${form.mcAether !== settings.mcAether ? "rgba(200,168,75,0.5)" : "rgba(200,168,75,0.2)"}`,
-                  borderRadius: 3,
-                  padding: "6px 10px", letterSpacing: "0.06em",
-                  background: "rgba(200,168,75,0.04)",
-                }}
-              >
-                <option value="aether" style={{ background: "#0b0f22" }}>Aether</option>
-                <option value="lumine" style={{ background: "#0b0f22" }}>Lumine</option>
-              </select>
-              <ApplyButton
-                dirty={form.mcAether !== settings.mcAether}
-                saved={isSaved("mcAether")}
-                onApply={() => apply("mcAether")}
-              />
-            </div>
-            <p style={{ fontFamily: "var(--font-body)", fontSize: "12px", color: "#6a5820", marginTop: 6, lineHeight: 1.4 }}>
-              ✓ Applied live. Which twin you play as — used to detect your character in the party screen.
-            </p>
-          </div>
-
-          <TextField label="WANDERER NAME" value={form.wandererName}
-            dirty={isDirty("wandererName")} saved={isSaved("wandererName")}
-            onChange={v => set({ wandererName: v })} onApply={() => apply("wandererName")}
-            hint="✓ Applied live. Custom name shown when Wanderer is detected — only needed if you changed it in-game." />
-          <TextField label="MANEKIN NAME" value={form.manekinName}
-            dirty={isDirty("manekinName")} saved={isSaved("manekinName")}
-            onChange={v => set({ manekinName: v })} onApply={() => apply("manekinName")}
-            hint="✓ Applied live. Custom name shown when Wonderland Manekin (male) is detected." />
-          <TextField label="MANEKINA NAME" value={form.manekinaName}
-            dirty={isDirty("manekinaName")} saved={isSaved("manekinaName")}
-            onChange={v => set({ manekinaName: v })} onApply={() => apply("manekinaName")}
-            hint="✓ Applied live. Custom name shown when Wonderland Manekina (female) is detected." />
-
-          
-        </div>
-      </div>
-
-    </div>
-  );
-}
-
-/* ── Logs panel ───────────────────────────────── */
-function LogsPanel({ logs }: { logs: string[] }) {
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [copied, setCopied] = useState(false);
-  const [autoScroll, setAutoScroll] = useState(true);
-
-  // Follow new lines only while the user is at/near the bottom
-  useEffect(() => {
-    if (!autoScroll) return;
-    bottomRef.current?.scrollIntoView({ behavior: "auto" });
-  }, [logs.length, autoScroll]);
-
-  const handleScroll = () => {
-    const el = containerRef.current;
-    if (!el) return;
-    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
-    setAutoScroll(atBottom);
-  };
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(logs.join("\n"));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard unavailable - fall back to selection-based copying
-      const selection = window.getSelection();
-      if (containerRef.current && selection) {
-        const range = document.createRange();
-        range.selectNodeContents(containerRef.current);
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
-    }
-  };
-
-  return (
-    <div>
-      <OrnamentDivider label="ENGINE LOG" />
-      <div className="mt-3 rounded overflow-hidden"
-        style={{ background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)" }}>
-        {/* Toolbar */}
-        <div className="flex items-center justify-between px-3 py-1.5"
-          style={{ borderBottom: "1px solid rgba(200,168,75,0.14)" }}>
-          <span style={{ fontSize: "12px", color: "#6a7089" }}>
-            {logs.length} {logs.length === 1 ? "line" : "lines"}
-            {!autoScroll && logs.length > 0 && (
-              <span style={{ color: "#6a5820", fontStyle: "italic" }}> · scrolled up</span>
-            )}
-          </span>
-          <button
-            onClick={handleCopy}
-            disabled={logs.length === 0}
-            className="rounded px-2.5 py-0.5 transition-colors"
-            style={{
-              fontSize: "12px",
-              fontFamily: "var(--font-body)",
-              color: copied ? "#ede3c4" : "#c8a84b",
-              border: "1px solid rgba(200,168,75,0.35)",
-              background: copied ? "rgba(200,168,75,0.15)" : "transparent",
-              cursor: logs.length === 0 ? "not-allowed" : "pointer",
-              opacity: logs.length === 0 ? 0.4 : 1,
-            }}
-          >
-            {copied ? "✓ Copied" : "Copy"}
-          </button>
-        </div>
-        <div
-          ref={containerRef}
-          onScroll={handleScroll}
-          style={{
-            maxHeight: 480, overflowY: "auto", padding: "12px 14px",
-            fontFamily: "var(--font-body)", fontSize: "12px", lineHeight: 1.6,
-            color: "#9aa0b8", userSelect: "text", cursor: "text",
-          }}>
-          {logs.length === 0 ? (
-            <span style={{ color: "#6a5820", fontStyle: "italic" }}>
-              No engine output yet. Press CONNECT to start the detection + RPC engine.
-            </span>
-          ) : (
-            logs.map((line, i) => (
-              <div key={i} style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-                {line}
-              </div>
-            ))
-          )}
-          <div ref={bottomRef} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── About panel ───────────────────────────────── */
-function AboutPanel() {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className="flex flex-col gap-5">
-      {/* Hero */}
-      <div className="relative flex flex-col items-center py-6 rounded overflow-hidden"
-        style={{
-          background: "radial-gradient(ellipse 80% 60% at 50% 40%, rgba(200,168,75,0.08) 0%, rgba(8,9,26,0.8) 100%)",
-          border: "1px solid rgba(200,168,75,0.18)",
-        }}
-      >
-        <span className="corner tl" /><span className="corner tr" />
-        <span className="corner bl" /><span className="corner br" />
-
-        <div className="logo-glow flex items-center justify-center mb-4"
-          style={{
-            width: 56, height: 56, borderRadius: "50%",
-            background: "radial-gradient(circle,rgba(200,168,75,0.18) 0%,transparent 70%)",
-            border: "1px solid rgba(200,168,75,0.4)",
-          }}
-        >
-          <svg width="28" height="28" viewBox="0 0 24 24">
-            <polygon points="12,1 16,8 23,12 16,16 12,23 8,16 1,12 8,8" fill="#c8a84b"/>
-          </svg>
-        </div>
-
-        <div style={{
-          fontFamily: "var(--font-display)", fontSize: "15px", letterSpacing: "0.08em",
-          background: "linear-gradient(90deg,#c8a84b,#f0d47a 50%,#c8a84b)",
-          backgroundSize: "200%", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-          animation: "shimmer 4s linear infinite",
-        }}>
-          Genshin Presence
-        </div>
-
-          <div style={{ fontFamily: "var(--font-heading)", fontSize: "10.5px", color: "#6a5820", letterSpacing: "0.2em", marginTop: 4 }}>
-            VERSION 3.0
-          </div>
-      </div>
-
-      {/* Info cards */}
-      <div>
-        <OrnamentDivider label="DETAILS" />
-        <div className="mt-3 rounded overflow-hidden grid grid-cols-2 gap-px" style={{ background: "rgba(200,168,75,0.1)", border: "1px solid rgba(200,168,75,0.14)" }}>
-          {[
-            { label: "VERSION", value: "3.0" },
-            { label: "BUILT WITH", value: "Python · React · pywebview · RapidOCR" },
-            { label: "GAME SUPPORT", value: "Genshin Impact (EN text)" },
-            { label: "PLATFORM", value: "Windows only" },
-            { label: "LICENSE", value: "MIT License" },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex flex-col gap-1 px-4 py-2.5"
-              style={{ background: "rgba(8,9,26,0.65)" }}>
-              <span style={{ fontFamily: "var(--font-heading)", fontSize: "10px", color: "#6a5820", letterSpacing: "0.14em" }}>
-                {label}
-              </span>
-              <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "#ede3c4", lineHeight: 1.3 }}>
-                {value}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Links */}
-      <div>
-        <OrnamentDivider label="LINKS" />
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          {[
-            { label: "GitHub Repo", icon: "⧉", sub: "github.com/ZANdewanai/…", href: "https://github.com/ZANdewanai/Genshin-Impact-Rich-Presence" },
-            { label: "Report Issue", icon: "⚑", sub: "Bugs & feedback", href: "https://github.com/ZANdewanai/Genshin-Impact-Rich-Presence/issues" },
-            { label: "Releases", icon: "≡", sub: "Changelog & downloads", href: "https://github.com/ZANdewanai/Genshin-Impact-Rich-Presence/releases" },
-          ].map(({ label, icon, sub, href }) => (
-            <a key={label} href={href} target="_blank" rel="noopener noreferrer"
-              className="flex flex-col gap-1 px-3 py-3 rounded text-left cursor-pointer group transition-all duration-200 no-underline"
-              style={{
-                background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)",
-                outline: "none",
-              }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(200,168,75,0.38)")}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(200,168,75,0.14)")}
-            >
-              <div className="flex items-center gap-2">
-                <span style={{ color: "#c8a84b", fontSize: "13px", opacity: 0.8 }}>{icon}</span>
-                <span style={{ fontFamily: "var(--font-heading)", fontSize: "11.5px", color: "#ede3c4", letterSpacing: "0.05em" }}>
-                  {label}
-                </span>
-              </div>
-               <span style={{ fontFamily: "var(--font-body)", fontSize: "12px", color: "#6a5820", paddingLeft: 20 }}>
-                 {sub}
-               </span>
-             </a>
-           ))}
-        </div>
-      </div>
-
-      {/* Credits */}
-      <div>
-        <OrnamentDivider label="ACKNOWLEDGEMENTS" />
-        <div className="mt-3 px-4 py-3 rounded" style={{
-          background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)",
-        }}>
-          <p style={{ fontFamily: "var(--font-body)", fontSize: "13.5px", color: "#8a7a5a", lineHeight: 1.7 }}>
-            Genshin Impact and all related assets are property of{" "}
-            <span style={{ color: "#ede3c4" }}>HoYoverse</span>. This tool is a{" "}
-            <span style={{ color: "#ede3c4" }}>fan-made, unofficial</span> project and is not affiliated with or endorsed by HoYoverse in any way.
-          </p>
-          <div className="mt-3 flex items-center gap-2">
-            <div className="h-px flex-1" style={{ background: "rgba(200,168,75,0.1)" }} />
-            <button onClick={handleCopy}
-              className="flex items-center gap-1.5 px-3 py-1 rounded cursor-pointer transition-all duration-200"
-              style={{
-                fontFamily: "var(--font-heading)", fontSize: "9.5px", letterSpacing: "0.12em",
-                color: copied ? "#64d250" : "#6a5820",
-                border: copied ? "1px solid rgba(100,210,80,0.3)" : "1px solid rgba(200,168,75,0.15)",
-                background: "transparent", outline: "none",
-              }}>
-              {copied ? "COPIED ✓" : "COPY DISCLAIMER"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Tab bar ───────────────────────────────────── */
-function TabBar({ active, onChange, needsSetup }: { active: Tab; onChange: (t: Tab) => void; needsSetup?: boolean }) {
-  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    {
-      id: "presence", label: "Presence",
-      icon: (
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-        </svg>
-      ),
-    },
-    {
-      id: "settings", label: "Settings",
-      icon: (
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-        </svg>
-      ),
-    },
-    {
-      id: "logs", label: "Logs",
-      icon: (
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M4 6h16M4 12h16M4 18h10"/>
-        </svg>
-      ),
-    },
-    {
-      id: "about", label: "About",
-      icon: (
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="8" strokeWidth="2" strokeLinecap="round"/>
-          <line x1="12" y1="12" x2="12" y2="16"/>
-        </svg>
-      ),
-    },
-  ];
-
-  return (
-    <div className="flex" style={{ borderBottom: "1px solid rgba(200,168,75,0.14)" }}>
-      {tabs.map(tab => {
-        const isActive = active === tab.id;
-        // While required settings are unconfigured, the Settings tab presents
-        // itself as "Setup" with a notification dot the user can't miss.
-        const showDot = tab.id === "settings" && !!needsSetup;
-        const label = showDot ? "Setup" : tab.label;
-        return (
-          <button key={tab.id} onClick={() => onChange(tab.id)}
-            className="relative flex items-center gap-1.5 px-4 py-3 cursor-pointer transition-all duration-200 flex-1 justify-center"
-            style={{
-              outline: "none", background: "transparent", border: "none",
-              color: isActive ? "#c8a84b" : "#6a5820",
-            }}
-            onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = "#a08840"; }}
-            onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "#6a5820"; }}
-          >
-            {isActive && (
-              <>
-                {/* Active tab background */}
-                <div className="absolute inset-0" style={{ background: "rgba(200,168,75,0.04)" }} />
-                {/* Active indicator line */}
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 animate-shimmer"
-                  style={{ background: "linear-gradient(90deg,transparent,#c8a84b,transparent)" }}
-                />
-              </>
-            )}
-            <span style={{ position: "relative" }}>{tab.icon}</span>
-            <span style={{
-              fontFamily: "var(--font-heading)", fontSize: "11px",
-              letterSpacing: "0.14em", position: "relative",
-            }}>
-              {label.toUpperCase()}
-            </span>
-            {showDot && (
-              <span title="Configure your username so your character can be detected"
-                className="absolute top-2 right-[calc(50%-34px)] w-2 h-2 rounded-full animate-pulse"
-                style={{
-                  background: "#e8564b",
-                  boxShadow: "0 0 6px 1px rgba(232,86,75,0.7)",
-                }}
-              />
-            )}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
+const hasBackendGlobal = () => typeof window !== "undefined" && !!window.pywebview;
 
 /* ── Main ──────────────────────────────────────── */
 export default function App() {
   const [tab, setTab] = useState<Tab>("presence");
   const [connected, setConnected] = useState(false);
-  const [location, setLocation] = useState("Waiting for game data...");
-  const [activity, setActivity] = useState("-");
-  const [elapsed, setElapsed] = useState("-");
-  const [party, setParty] = useState<(Character | null)[]>([]);
-  const [activeCharacterIndex, setActiveCharacterIndex] = useState<number | null>(0);
-  const [settings, setSettings] = useState<Settings>({
+
+  const { settings, setSettings: updateSettings } = useSettings({
     username: "",
     mcAether: true,
     wandererName: "Wanderer",
     manekinName: "Manekin",
     manekinaName: "Manekina",
   });
-  const [debugEnabled, setDebugEnabled] = useState(false);
-  const [debugCharacterEnabled, setDebugCharacterEnabled] = useState(false);
-  const [debugStaticImageEnabled, setDebugStaticImageEnabled] = useState(false);
-  const [debugStaticImagePath, setDebugStaticImagePath] = useState("");
 
-  /* Load persisted settings once the backend bridge is available.
-     pywebview injects window.pywebview asynchronously (in a thread after
-     page load), so the bridge may not exist on the first mount — keep
-     retrying until it's exposed. */
-  useEffect(() => {
-    let cancelled = false;
-    let attempts = 0;
-    const load = () => {
-      if (cancelled) return;
-      if (!window.pywebview?.api?.get_settings) {
-        attempts++;
-        if (attempts < 100) setTimeout(load, 200); // retry for up to ~20s
-        return;
-      }
-      window.pywebview!.api.get_settings!()
-        .then(s => {
-          if (!cancelled && s && Object.keys(s).length) {
-            setSettings(prev => ({ ...prev, ...s }));
-          }
-        })
-        .catch(() => {});
-      window.pywebview!.api.get_debug?.()
-        .then(d => {
-          if (!cancelled && d && typeof d.debugMode === "boolean") {
-            setDebugEnabled(d.debugMode);
-            setDebugCharacterEnabled(d.debugCharacterMode);
-            setDebugStaticImageEnabled(d.debugStaticImage);
-            setDebugStaticImagePath(d.debugStaticImagePath || "");
-          }
-        })
-        .catch(() => {});
-    };
-    load();
-    return () => { cancelled = true; };
-  }, []);
+  const { debug, setDebug: updateDebug } = useDebug();
 
-  /* Persist a settings patch; engine-facing keys reach shared_config.json */
-  const updateSettings = (patch: Partial<Settings>) => {
-    setSettings(prev => ({ ...prev, ...patch }));
-    if (hasBackend()) {
-      window.pywebview!.api.save_settings?.(patch)?.catch(() => {});
-    }
+  const onDebugChange = (patch: Partial<DebugConfig>) => {
+    const next = { ...debug, ...patch };
+    updateDebug(next.debugMode, next.debugCharacterMode, next.debugStaticImage, next.debugStaticImagePath);
   };
 
-  /* Toggle engine debug logging (CONFIG DEBUG_MODE / DEBUG_CHARACTER_MODE / DEBUG_STATIC_IMAGE). */
-  const updateDebug = (mode: boolean, character: boolean, staticImage: boolean, staticImagePath?: string) => {
-    setDebugEnabled(mode);
-    setDebugCharacterEnabled(character);
-    setDebugStaticImageEnabled(staticImage);
-    if (typeof staticImagePath === "string") {
-      setDebugStaticImagePath(staticImagePath);
-    }
-    if (hasBackend()) {
-      window.pywebview!.api.set_debug?.(mode, character, staticImage, typeof staticImagePath === "string" ? staticImagePath : debugStaticImagePath)?.catch(() => {});
-    }
-  };
+  const { state, connected: backendConnected } = useBackendState(connected, (running) => {
+    setConnected(running);
+  });
 
-  /* Live engine log lines, shown in the Logs tab. Only polled while debug
-     logging is enabled, so the UI doesn't burn cycles when it's off. */
-  const [logs, setLogs] = useState<string[]>([]);
-  useEffect(() => {
-    if (!debugEnabled) {
-      setLogs([]);
-      return;
-    }
-    let alive = true;
-    const tick = () => {
-      if (!window.pywebview?.api?.get_logs) return;
-      window.pywebview!.api.get_logs!()
-        .then(lines => {
-          if (alive && Array.isArray(lines)) setLogs(lines);
-        })
-        .catch(() => {});
-    };
-    tick();
-    const t = setInterval(tick, 1000);
-    return () => { alive = false; clearInterval(t); };
-  }, [debugEnabled]);
+  const logs = useLogs(debug.debugMode);
 
-  /* Poll backend engine state (or demo simulator when running in a browser) */
-  const connectedRef = useRef(false);
-
-  useEffect(() => {
-    let alive = true;
-    const tick = () => {
-      fetchState(connectedRef.current)
-        .then(s => {
-          if (!alive) return;
-          connectedRef.current = s.running;
-          setConnected(s.running);
-          setLocation(s.location || "Unknown");
-          setActivity(s.activity || "None");
-          setElapsed(fmtElapsed(s.timestamp));
-          setParty(s.party.map(p => (p ? { ...p } : null)));
-          // Use backend's active_character_index directly
-          setActiveCharacterIndex(s.active_character_index >= 0 ? s.active_character_index : null);
-        })
-        .catch(() => {});
-    };
-    tick();
-    const t = setInterval(tick, 1000);
-    return () => { alive = false; clearInterval(t); };
-  }, []);
-
-  /* CONNECT / DISCONNECT starts or stops the detection + RPC engine */
-  const toggleConnection = () => {
-    if (hasBackend()) {
-      window.pywebview!.api.toggle_connection()
-        .then(r => { connectedRef.current = r.running; setConnected(r.running); })
-        .catch(() => {});
-    } else {
-      connectedRef.current = !connectedRef.current;
-      setConnected(connectedRef.current);
-    }
-  };
+  const location = state?.location ?? "Waiting for game data...";
+  const activity = state?.activity ?? "-";
+  const elapsed = state?.timestamp ? fmtElapsed(state.timestamp) : "-";
+  const party = state?.party ?? [];
+  const activeCharacterIndex = (state?.active_character_index ?? -1) >= 0 ? state?.active_character_index ?? null : null;
+  // Discord RPC exact params
+  const discordDetails = state?.discord_details ?? "";
+  const discordState = state?.discord_state ?? "";
+  const discordLargeImage = state?.discord_large_image ?? "";
+  const discordLargeText = state?.discord_large_text ?? "";
+  const discordSmallImage = state?.discord_small_image ?? "";
+  const discordSmallText = state?.discord_small_text ?? "";
 
   const activeChar = party[activeCharacterIndex ?? 0] ?? null;
-  const activeEl = activeChar?.element ?? "geo";
+  const activeEl: Element = activeChar?.element ?? "empty";
 
-  /* The Settings tab nags until the username is actually configured -
-     placeholder defaults ("", "PlayerName", "Player") mean the Traveler
-     slot can't be detected, so this is genuinely required setup. */
   const un = settings.username.trim().toLowerCase();
   const needsSetup = un === "" || un === "playername" || un === "player";
+
+  const toggleConnection = () => {
+    if (hasBackendGlobal()) {
+      window.pywebview!.api.toggle_connection()
+        .then(r => { setConnected(r.running); })
+        .catch(() => {});
+    } else {
+      setConnected(c => !c);
+    }
+  };
 
   return (
     <div className="size-full flex items-center justify-center p-3"
@@ -924,7 +104,6 @@ export default function App() {
           transition: "box-shadow 0.6s ease",
         }}
       >
-        {/* Ambient glow */}
         <div className="absolute inset-0 pointer-events-none animate-breathe"
           style={{
             background: `radial-gradient(ellipse 70% 50% at 50% 50%,${EL_COLOR[activeEl]}16,transparent 70%)`,
@@ -932,14 +111,22 @@ export default function App() {
           }}
         />
 
-        <ParticleField />
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ borderRadius: 6 }}>
+          {STATIC_PARTICLES.map(p => (
+            <div key={p.id} className="particle" style={{
+              left: p.left, top: p.top, width: p.size, height: p.size, borderRadius: "50%", position: "absolute",
+              backgroundColor: p.gold ? `rgba(200,168,75,0.4)` : `rgba(140,160,220,0.25)`,
+              ["--dur" as string]: p.dur, ["--delay" as string]: p.delay,
+              boxShadow: p.gold ? `0 0 ${p.size * 3}px rgba(200,168,75,0.6)` : `0 0 ${p.size * 2}px rgba(140,160,220,0.4)`,
+            }} />
+          ))}
+        </div>
 
         <span className="corner tl corner-lg" style={{ opacity: 0.7 }} />
         <span className="corner tr corner-lg" style={{ opacity: 0.7 }} />
         <span className="corner bl corner-lg" style={{ opacity: 0.7 }} />
         <span className="corner br corner-lg" style={{ opacity: 0.7 }} />
 
-        {/* ── Header ── */}
         <div className="relative px-5 pt-4 pb-3.5 flex items-center justify-between"
           style={{ borderBottom: "1px solid rgba(200,168,75,0.14)" }}
         >
@@ -995,239 +182,46 @@ export default function App() {
           </button>
         </div>
 
-        {/* ── Tab bar ── */}
         <div className="relative">
           <TabBar active={tab} onChange={setTab} needsSetup={needsSetup} />
         </div>
 
-        {/* ── Tab content ── */}
-        <div className="relative px-4 pb-4 pt-3 flex flex-1 min-h-0 flex-col gap-4 overflow-y-auto"
-        >
+        <div className="relative px-4 pb-4 pt-3 flex flex-1 min-h-0 flex-col gap-4 overflow-y-auto">
           {tab === "presence" && (
-            <>
-              <div className="flex flex-col gap-4">
-              {/* Party */}
-              <div>
-                <OrnamentDivider label="ACTIVE PARTY" />
-                <div className="flex flex-wrap justify-center gap-3 mt-3">
-                  {party.map((char, i) => char ? (
-                    <CharacterSlot key={i} character={char} index={i}
-                      isActive={activeCharacterIndex === i}
-                    />
-                  ) : null)}
-                </div>
-
-                {activeChar && (
-                  <div className="mt-2.5 flex items-center gap-2.5 px-2.5 py-2 rounded"
-                    style={{
-                      background: `linear-gradient(90deg,${EL_COLOR[activeEl]}10,transparent 80%)`,
-                      border: `1px solid ${EL_COLOR[activeEl]}28`,
-                    }}
-                  >
-                    <div style={{
-                      width: 4, height: 22, borderRadius: 2, flexShrink: 0,
-                      background: EL_COLOR[activeEl],
-                      boxShadow: `0 0 5px ${EL_COLOR[activeEl]}`,
-                    }} />
-                    <div className="flex flex-col gap-0.5">
-                      <span style={{ fontFamily: "var(--font-heading)", fontSize: "11.5px", color: EL_COLOR[activeEl], letterSpacing: "0.06em" }}>
-                        {activeChar.name}
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <ElBadge el={activeEl} />
-                        <Stars n={activeChar.rarity ?? 5} color={rarityColor(activeChar.rarity)} />
-                        <span style={{ fontFamily: "var(--font-heading)", fontSize: "9.5px", color: "#6a5820" }}>
-                          {activeChar.level != null ? `Lv.${activeChar.level}` : ""}
-                        </span>
-                      </div>
-                    </div>
-                    <span style={{ fontFamily: "var(--font-body)", fontStyle: "italic", fontSize: "12px", color: "rgba(200,168,75,0.35)", marginLeft: "auto" }}>
-                      Selected
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 items-start">
-              {/* Status */}
-              <div>
-                <OrnamentDivider label="STATUS" />
-                <div className="mt-3 rounded overflow-hidden"
-                  style={{ background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)" }}
-                >
-                  <InfoRow
-                    icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>}
-                    label="LOCATION" value={location}
-                  />
-
-                  <InfoRow
-                    icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>}
-                    label="ACTIVITY" value={activity}
-                  />
-
-                  <InfoRow
-                    icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}
-                    label="SESSION TIME" value={elapsed}
-                  />
-                </div>
-              </div>
-
-              {/* Discord preview */}
-              <div className="rounded overflow-hidden"
-                style={{ background: "rgba(88,101,242,0.07)", border: "1px solid rgba(88,101,242,0.2)" }}
-              >
-                <div className="px-4 py-3 flex items-center gap-3">
-                  <div className="flex-shrink-0 flex items-center justify-center rounded-full"
-                    style={{ width: 34, height: 34, background: "rgba(88,101,242,0.18)", border: "1px solid rgba(88,101,242,0.32)" }}
-                  >
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="#7289da">
-                      <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.101 18.079.11 18.1.127 18.114a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
-                    </svg>
-                  </div>
-                  <div className="flex flex-col min-w-0 flex-1">
-                    <span style={{ fontFamily: "var(--font-heading)", fontSize: "10px", color: "#7289da", letterSpacing: "0.14em", marginBottom: 2 }}>
-                      DISCORD PREVIEW
-                    </span>
-                    <span style={{ fontFamily: "var(--font-body)", fontSize: "13.5px", color: "#b0b8d8", lineHeight: 1.4 }}>
-                      Playing <span style={{ color: "#ede3c4", fontStyle: "italic" }}>Genshin Impact</span>
-                      {" "}· {location.split("—")[0].trim()} · {elapsed}
-                    </span>
-                  </div>
-                  <div style={{
-                    width: 8, height: 8, borderRadius: "50%", flexShrink: 0,
-                    backgroundColor: connected ? "#64d250" : "#555568",
-                    boxShadow: connected ? "0 0 6px #64d250" : "none",
-                  }} />
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between pt-0.5 md:col-span-2">
-                <span style={{ fontFamily: "var(--font-heading)", fontSize: "9px", color: "#3a3020", letterSpacing: "0.14em" }}>
-                  v3.0 · GENSHIN PRESENCE
-                </span>
-                <button onClick={toggleConnection}
-                  className="px-4 py-1.5 rounded cursor-pointer transition-all duration-300"
-                  style={{
-                    fontFamily: "var(--font-heading)", fontSize: "10.5px", letterSpacing: "0.12em",
-                    color: connected ? "#08091a" : "#c8a84b",
-                    background: connected ? "linear-gradient(135deg,#d4b055 0%,#a88c3c 100%)" : "rgba(200,168,75,0.08)",
-                    border: connected ? "1px solid #c8a84b" : "1px solid rgba(200,168,75,0.28)",
-                    outline: "none",
-                    boxShadow: connected ? "0 0 14px rgba(200,168,75,0.3)" : "none",
-                  }}
-                >
-                  {connected ? "DISCONNECT" : "CONNECT"}
-                </button>
-              </div>
-              </div>
-              </div>
-            </>
+            <PresenceTab
+              party={party}
+              activeCharacterIndex={activeCharacterIndex}
+              location={location}
+              activity={activity}
+              elapsed={elapsed}
+              connected={connected}
+              onToggle={toggleConnection}
+              discordDetails={discordDetails}
+              discordState={discordState}
+              discordLargeImage={discordLargeImage}
+              discordLargeText={discordLargeText}
+              discordSmallImage={discordSmallImage}
+              discordSmallText={discordSmallText}
+            />
           )}
 
           {tab === "settings" && (
-                        <>
-              <SettingsPanel settings={settings} onSave={updateSettings} />
-            </>
+            <SettingsTab
+              settings={settings}
+              onSave={updateSettings}
+              debug={debug}
+              onDebugChange={onDebugChange}
+            />
           )}
 
           {tab === "logs" && (
-            <div>
-              {/* Debug toggles are always visible so they can be switched off even
-                  when debug logging is already enabled — otherwise the Logs tab
-                  only shows the engine output panel with no way to change the
-                  setting (see CONFIG.py defaults). */}
-              <div className="rounded overflow-hidden mb-4"
-                style={{ background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)" }}
-              >
-                <div className="px-4 py-3">
-                  <span style={{ fontFamily: "var(--font-heading)", fontSize: "12px", color: "#ede3c4", letterSpacing: "0.05em" }}>
-                    ENGINE DEBUG SETTINGS
-                  </span>
-                  <span style={{ fontFamily: "var(--font-body)", fontSize: "12.5px", color: "#6a5820", lineHeight: 1.4, display: "block", marginTop: 4 }}>
-                    Toggle verbose engine output and character-detection logging. Maps to CONFIG DEBUG_MODE, DEBUG_CHARACTER_MODE, and DEBUG_STATIC_IMAGE.
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between gap-4 py-3 px-4"
-                  style={{ borderTop: "1px solid rgba(200,168,75,0.08)" }}
-                >
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <span style={{ fontFamily: "var(--font-body)", fontSize: "12.5px", color: "#c8a84b" }}>
-                      Engine Debug Logs
-                    </span>
-                    <span style={{ fontFamily: "var(--font-body)", fontSize: "11px", color: "#6a5820", lineHeight: 1.3 }}>
-                      General verbose engine output (DEBUG_MODE)
-                    </span>
-                  </div>
-                  <ToggleSwitch checked={debugEnabled} onChange={() => updateDebug(!debugEnabled, debugCharacterEnabled, debugStaticImageEnabled)} />
-                </div>
-
-                <div className="flex items-center justify-between gap-4 py-3 px-4"
-                  style={{ borderTop: "1px solid rgba(200,168,75,0.08)" }}
-                >
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <span style={{ fontFamily: "var(--font-body)", fontSize: "12.5px", color: "#c8a84b" }}>
-                      Character Detection Debug
-                    </span>
-                    <span style={{ fontFamily: "var(--font-body)", fontSize: "11px", color: "#6a5820", lineHeight: 1.3 }}>
-                      Extra OCR debug output for character name detection (DEBUG_CHARACTER_MODE)
-                    </span>
-                  </div>
-                  <ToggleSwitch checked={debugCharacterEnabled} onChange={() => updateDebug(debugEnabled, !debugCharacterEnabled, debugStaticImageEnabled)} />
-                </div>
-
-                <div className="flex items-center justify-between gap-4 py-3 px-4"
-                  style={{ borderTop: "1px solid rgba(200,168,75,0.08)" }}
-                >
-                  <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                    <span style={{ fontFamily: "var(--font-body)", fontSize: "12.5px", color: "#c8a84b" }}>
-                      Static Image Debug
-                    </span>
-                    <span style={{ fontFamily: "var(--font-body)", fontSize: "11px", color: "#6a5820", lineHeight: 1.3 }}>
-                      Read character name regions from a static screenshot instead of the live screen (DEBUG_STATIC_IMAGE)
-                    </span>
-                    <input
-                      type="text"
-                      value={debugStaticImagePath}
-                      onChange={e => {
-                        setDebugStaticImagePath(e.target.value);
-                        updateDebug(debugEnabled, debugCharacterEnabled, debugStaticImageEnabled, e.target.value);
-                      }}
-                      placeholder="debug_images\debug_image.jpg"
-                      className="mt-1 px-2 py-1 rounded text-xs"
-                      style={{
-                        background: "rgba(8,9,26,0.5)",
-                        border: "1px solid rgba(200,168,75,0.2)",
-                        color: "#ede3c4",
-                        fontFamily: "var(--font-body)",
-                        outline: "none",
-                        width: "100%",
-                        maxWidth: 320,
-                      }}
-                    />
-                  </div>
-                  <ToggleSwitch checked={debugStaticImageEnabled} onChange={() => updateDebug(debugEnabled, debugCharacterEnabled, !debugStaticImageEnabled, debugStaticImagePath)} />
-                </div>
-              </div>
-
-              {debugEnabled ? (
-                <LogsPanel logs={logs} />
-              ) : (
-                <div className="rounded overflow-hidden"
-                  style={{ background: "rgba(8,9,26,0.65)", border: "1px solid rgba(200,168,75,0.14)" }}
-                >
-                  <div className="px-4 py-6 text-center">
-                    <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "#6a5820", lineHeight: 1.5 }}>
-                      Debug logging is disabled. Enable Engine Debug Logs above to view live engine output.
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
+            <LogsTab
+              logs={logs}
+              debug={debug}
+            />
           )}
 
-          {tab === "about" && <AboutPanel />}
+          {tab === "about" && <AboutTab />}
         </div>
       </div>
     </div>

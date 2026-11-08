@@ -14,6 +14,10 @@ import sys
 import os
 import time
 
+# Suppress ONNX Runtime verbose logging (CUDA/DirectML provider warnings)
+# Must be set before onnxruntime DLL loads (level 3 = ERROR)
+os.environ["ORT_LOGGING_LEVEL"] = "3"
+
 # DPI awareness MUST be declared before any window enumeration or screen
 # capture. The PyInstaller bootloader manifest (unlike python.exe's) does not
 # declare it, so without this Windows reports DPI-virtualized (scaled down)

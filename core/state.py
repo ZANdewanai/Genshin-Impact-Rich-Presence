@@ -60,15 +60,11 @@ current_coordinates = None
 _last_coordinate_log = None
 _last_resolution_check = 0
 
-# Anti-spam tracking for logs
-_last_location_log = None
-_last_activity_log = None
-_last_detection_log = None
-
 
 # =============================================================================
 # GUI Integration
 # =============================================================================
+
 
 # =============================================================================
 gui_callback: Optional[Callable] = None
@@ -177,6 +173,13 @@ def write_gui_shared_data():
             "activity": "None",
             "active_character_index": 0,  # 0-indexed, -1 if none
             "timestamp": None,
+            # Discord RPC exact params
+            "discord_details": "",
+            "discord_state": "",
+            "discord_large_image": "",
+            "discord_large_text": "",
+            "discord_small_image": "",
+            "discord_small_text": "",
         }
 
         with state_lock:
@@ -206,10 +209,22 @@ def write_gui_shared_data():
             elif prev_location:
                 data["location"] = prev_location.location_name
             
-            # Get activity description
+            # Get activity description (use actual Discord RPC params)
             if current_activity:
                 # Use activity type name
                 data["activity"] = current_activity.activity_type.name.replace("_", " ").title()
+                
+                # Get exact Discord RPC params
+                try:
+                    params = current_activity.to_update_params_dict()
+                    data["discord_details"] = params.get("details", "")
+                    data["discord_state"] = params.get("state", "")
+                    data["discord_large_image"] = params.get("large_image", "")
+                    data["discord_large_text"] = params.get("large_text", "")
+                    data["discord_small_image"] = params.get("small_image", "")
+                    data["discord_small_text"] = params.get("small_text", "")
+                except Exception:
+                    pass
             else:
                 data["activity"] = "Unknown"
             

@@ -2,29 +2,29 @@
 
 Each sensor runs its own loop, grabs only its own screen regions, skips OCR
 when a region is pixel-identical to the previous scan, and publishes its
-findings to its own JSON file on the blackboard. Sensors never block each
-other; the coordinator (main) consumes the JSON files.
-
-Threading note: ONNX inference releases the GIL, so threads genuinely run in
-parallel for OCR work while staying far simpler than multiprocessing.
+findings to the in-memory blackboard. Sensors never block each other; the
+coordinator (main) consumes the blackboard entries.
 """
 
 import difflib
 import time
 
-from core.blackboard import write_json, read_json
+from core.blackboard import blackboard
 from core.log_utils import log
+from core.search_index import SearchIndex
 
 
 from .base import BaseSensor
 
-class MenuSensor(BaseSensor):
-    """Gamemenu / party-setup / domain labels -> menus.json"""
 
-    def __init__(self, reader, data, coords_provider, output_path, interval=1.5):
-        super().__init__("MenuSensor", output_path, interval)
+class MenuSensor(BaseSensor):
+    """Gamemenu / party-setup / domain labels -> menus blackboard"""
+
+    def __init__(self, reader, data, search_index, coords_provider, output_key, interval=1.5):
+        super().__init__("MenuSensor", output_key, interval)
         self.reader = reader
         self.data = data
+        self.search_index = search_index
         self.coords_provider = coords_provider  # callable -> {"gamemenu","domain"}
         self._cache = {}
         self._last_reported: dict | None = None  # only log on change
@@ -34,8 +34,8 @@ class MenuSensor(BaseSensor):
         menu_text = self._ocr_text("gamemenu", boxes["gamemenu"]).strip().lower()
         domain_text = self._ocr_text("domain", boxes["domain"]).strip().lower()
 
-        gm = self.data.search_gamemenu(menu_text) if menu_text else None
-        dom = self.data.search_domain(domain_text) if domain_text else None
+        gm = self.search_index.search_gamemenu(menu_text) if menu_text else None
+        dom = self.search_index.search_domain(domain_text) if domain_text else None
         is_party = bool(
             menu_text
             and (
@@ -77,4 +77,4 @@ class MenuSensor(BaseSensor):
                 log(f"[MenuSensor] {time.time():.0f} → Gamemenu detection: No match found")
             self._last_reported = result
 
-        write_json(self.output_path, result)
+        blackboard.write(self.output_path, result)
