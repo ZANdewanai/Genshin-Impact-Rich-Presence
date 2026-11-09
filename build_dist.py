@@ -79,14 +79,18 @@ def assemble() -> None:
             print(f"  Copied: {f}")
 
     gui_dist = PROJECT_ROOT / "gui" / "dist"
-    if gui_dist.exists():
-        # Clean first: hashed asset names change every build, so merging
-        # would otherwise accumulate stale bundles forever.
-        target = RELEASE / "gui" / "dist"
-        if target.exists():
-            shutil.rmtree(target)
-        shutil.copytree(gui_dist, target)
-        print("  Copied: gui/dist/")
+    if not (gui_dist / "index.html").exists():
+        sys.exit(
+            "gui/dist/index.html not found - the packaged GUI would be broken.\n"
+            "Build the frontend first:  cd gui && pnpm install && pnpm build"
+        )
+    # Clean first: hashed asset names change every build, so merging
+    # would otherwise accumulate stale bundles forever.
+    target = RELEASE / "gui" / "dist"
+    if target.exists():
+        shutil.rmtree(target)
+    shutil.copytree(gui_dist, target)
+    print("  Copied: gui/dist/")
 
 
 def report() -> None:

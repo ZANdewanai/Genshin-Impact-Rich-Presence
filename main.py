@@ -35,7 +35,10 @@ if sys.platform == "win32":
 from PIL import ImageGrab
 
 # Windowed exe (pythonw / PyInstaller console=False) has no console and
-# sys.stdout/sys.stderr are None - guard before touching them.
+# sys.stdout/sys.stderr are None - guard before touching them. Remember when
+# stdout was missing so the packaged engine can fall back to engine.log
+# (otherwise all detection logs are silently dropped to devnull).
+_stdout_was_missing = sys.stdout is None
 if sys.stdout is not None:
     sys.stdout.reconfigure(line_buffering=True)
 else:
@@ -68,6 +71,17 @@ else:
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 
+# Packaged (windowed) engine: no console and no piped stdout, so send the
+# log stream to engine.log next to the exe instead of devnull.
+if _stdout_was_missing and getattr(sys, "frozen", False):
+    try:
+        sys.stdout = open(
+            os.path.join(script_dir, "engine.log"), "a",
+            encoding="utf-8", buffering=1,
+        )
+    except OSError:
+        pass
+
 # VERIFY: Must run with embedded Python only (skip when frozen - the exe
 # carries its own interpreter).
 if not getattr(sys, "frozen", False):
@@ -94,6 +108,7 @@ from core import (
     get_current_characters,
     get_game_start_time,
     get_current_timer_type,
+    get_menu_start_time,
     get_last_active_character,
     reset_game_start_time,
     write_gui_shared_data,
@@ -165,6 +180,7 @@ start_rpc_thread(
     get_game_start_time,
     get_current_timer_type,
     get_last_active_character,
+    get_menu_start_time,
 )
 
 

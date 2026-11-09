@@ -59,6 +59,14 @@ export default function App() {
 
   const logs = useLogs(debug.debugMode);
 
+  // Backend state is diffed before setState, so re-render periodically to
+  // keep the derived session-time display fresh.
+  const [, setNowTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setNowTick(n => n + 1), 30000);
+    return () => clearInterval(t);
+  }, []);
+
   const location = state?.location ?? "Waiting for game data...";
   const activity = state?.activity ?? "-";
   const elapsed = state?.timestamp ? fmtElapsed(state.timestamp) : "-";

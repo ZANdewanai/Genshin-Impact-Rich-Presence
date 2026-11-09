@@ -17,7 +17,70 @@ from CONFIG import MAX_PARTY_SLOTS
 
 shutdown_event = threading.Event()
 state_lock = threading.RLock()
-ocr_lock = threading.Lock()
+
+
+class _PriorityLock:
+    """Mutex where priority acquirers queue ahead of normal waiters.
+
+    OCR inference is serialized through this lock. CharSensor's full-party
+    sweep can hold it for hundreds of ms; LocationSensor (0.5s cadence) and
+    MenuSensor pass ``priority=True`` so they only wait for the *current*
+    holder and jump ahead of queued normal waiters instead of starving
+    behind back-to-back CharSensor scans.
+    """
+
+    def __init__(self):
+        self._cond = threading.Condition()
+        self._held = False
+        self._prio_waiters = 0
+
+    def acquire(self, timeout=None, priority=False):
+        deadline = None if timeout is None else time.monotonic() + timeout
+        with self._cond:
+            if priority:
+                self._prio_waiters += 1
+                try:
+                    while self._held:
+                        remaining = (
+                            None if deadline is None
+                            else deadline - time.monotonic()
+                        )
+                        if remaining is not None and remaining <= 0:
+                            return False
+                        self._cond.wait(remaining)
+                    self._held = True
+                    return True
+                finally:
+                    self._prio_waiters -= 1
+            else:
+                while self._held or self._prio_waiters > 0:
+                    remaining = (
+                        None if deadline is None
+                        else deadline - time.monotonic()
+                    )
+                    if remaining is not None and remaining <= 0:
+                        return False
+                    self._cond.wait(remaining)
+                self._held = True
+                return True
+
+    def release(self):
+        with self._cond:
+            if not self._held:
+                raise RuntimeError("release unlocked _PriorityLock")
+            self._held = False
+            self._cond.notify_all()
+
+    def __enter__(self):
+        self.acquire()
+        return self
+
+    def __exit__(self, *exc):
+        self.release()
+        return False
+
+
+ocr_lock = _PriorityLock()
 
 
 # =============================================================================
@@ -103,6 +166,12 @@ def get_current_timer_type():
         return current_timer_type
 
 
+def get_menu_start_time():
+    """Get menu timer start (for RPC thread)."""
+    with state_lock:
+        return menu_start_time
+
+
 # =============================================================================
 # State Updaters
 # =============================================================================
@@ -110,9 +179,11 @@ def get_current_timer_type():
 
 def update_activity(activity: Activity):
     """Update current activity thread-safely."""
-    global current_activity
+    global current_activity, prev_non_idle_activity
     with state_lock:
         current_activity = activity
+        if not activity.is_idle():
+            prev_non_idle_activity = activity
 
 
 def set_active_character(idx: int):
@@ -183,15 +254,20 @@ def write_gui_shared_data():
         }
 
         with state_lock:
-            # Get active characters with image keys
+            # Get active characters with image keys. Keep fixed-length,
+            # slot-aligned arrays ("None"/"" placeholders) so
+            # active_character_index stays correct for sparse parties.
             chars = []
             char_image_keys = []
             for char in current_characters:
                 if char is not None:
                     chars.append(char.character_display_name)
                     char_image_keys.append(char.image_key)
-            data["active_characters"] = chars if chars else ["None"]
-            data["active_character_image_keys"] = char_image_keys if char_image_keys else [""]
+                else:
+                    chars.append("None")
+                    char_image_keys.append("")
+            data["active_characters"] = chars
+            data["active_character_image_keys"] = char_image_keys
 
             if DEBUG_MODE and log_should_log("gui_data", 30.0):
                 log_ts(f"DEBUG write_gui_shared_data: current_characters = {[c.character_display_name if c else 'None' for c in current_characters]}")

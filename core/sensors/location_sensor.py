@@ -58,7 +58,7 @@ class LocationSensor(BaseSensor):
                    K.COMMISSION: False, K.MAP_LOCATION: None}
 
         # Commission check rides on the location region ("mission accept")
-        loc_text = self._ocr_text("location", loc_bbox)
+        loc_text = self._ocr_text("location", loc_bbox, priority=True)
         if loc_text:
             if "mission accept" in loc_text.lower():
                 payload[K.COMMISSION] = True
@@ -71,7 +71,7 @@ class LocationSensor(BaseSensor):
                     }
 
         if self._tick % self.boss_every == 0:
-            boss_text = self._ocr_text("boss", boss_bbox)
+            boss_text = self._ocr_text("boss", boss_bbox, priority=True)
             self._last_boss_raw = boss_text
             self._last_boss_raw_ts = time.time()
             if boss_text:
@@ -98,7 +98,7 @@ class LocationSensor(BaseSensor):
             and maploc_bbox
             and self._tick % 3 == 0
         ):
-            map_text = self._ocr_text("maploc", maploc_bbox)
+            map_text = self._ocr_text("maploc", maploc_bbox, priority=True)
             if map_text:
                 from core.ocr_utils import process_map_text
                 cleaned = process_map_text(map_text, self.search_index)

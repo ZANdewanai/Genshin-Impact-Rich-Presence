@@ -61,7 +61,10 @@ class Blackboard:
         """Read payload from a channel, returning None if stale or empty."""
         with self._lock:
             entry = self._get_entry(key)
-            return entry.get(max_age)
+            data = entry.get(max_age)
+            if data is None:
+                return None
+            return {**data, "written_at": entry.written_at}
 
     def clear(self, key: str) -> None:
         """Clear a channel."""

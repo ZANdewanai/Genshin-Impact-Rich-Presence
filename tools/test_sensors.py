@@ -1,4 +1,4 @@
-"""Standalone sensor test: runs all sensors for N seconds and dumps JSONs.
+"""Standalone sensor test: runs all sensors for N seconds and dumps reads.
 
 Usage:
     python tools/test_sensors.py [duration_seconds]
@@ -17,16 +17,15 @@ from core.datatypes import Data
 # no programmatic override needed since flags read the shared config live.
 
 from core.sensors import CharSensor, LocationSensor, MenuSensor
-from core.blackboard import read_json
+from core.search_index import SearchIndex
+from core.blackboard import blackboard
 from core.log_utils import log
-
-OUT = Path(__file__).resolve().parent.parent / "sensor_data"
-OUT.mkdir(exist_ok=True)
 
 
 def main():
     duration = int(sys.argv[1]) if len(sys.argv) > 1 else 30
     data = Data()
+    search_index = SearchIndex(data)
 
     # Minimal reader stub: reuse project OCR engine
     from core.ocr_engine import Reader
@@ -34,22 +33,31 @@ def main():
     log("Initializing OCR...")
     reader = Reader(["en"], gpu=USE_GPU)
 
-    def char_coords():
-        from CONFIG import NAMES_5P_COORD, NUMBER_5P_COORD
-        return NAMES_5P_COORD, NUMBER_5P_COORD
-
+    # Coordinate providers read CONFIG globals lazily so resolution /
+    # window-position updates apply without restarting the sensors.
     def loc_coords():
-        from CONFIG import LOCATION_COORD, BOSS_COORD, MAP_LOC_COORD
-        return LOCATION_COORD, BOSS_COORD, MAP_LOC_COORD
+        import CONFIG as app_config
+        return (
+            app_config.LOCATION_COORD,
+            app_config.BOSS_COORD,
+            app_config.MAP_LOC_COORD,
+        )
 
     def menu_coords():
-        from CONFIG import PARTY_SETUP_COORD, DOMAIN_COORD
-        return {"gamemenu": PARTY_SETUP_COORD, "domain": DOMAIN_COORD}
+        import CONFIG as app_config
+        return {
+            "gamemenu": app_config.PARTY_SETUP_COORD,
+            "domain": app_config.DOMAIN_COORD,
+        }
 
     sensors = [
-        CharSensor(reader, data, str(OUT / "characters.json"), interval=2.0),
-        LocationSensor(reader, data, loc_coords, str(OUT / "location.json"), interval=1.0),
-        MenuSensor(reader, data, menu_coords, str(OUT / "menus.json"), interval=1.5),
+        CharSensor(reader, data, search_index, "characters", interval=2.0),
+        LocationSensor(
+            reader, data, search_index, loc_coords, "location",
+            interval=0.5, boss_every=6,
+            characters_key="characters", menus_key="menus",
+        ),
+        MenuSensor(reader, data, search_index, menu_coords, "menus", interval=2.0),
     ]
     for s in sensors:
         s.start()
@@ -59,12 +67,12 @@ def main():
     try:
         while time.time() - start < duration:
             time.sleep(2)
-            for name, path in [
-                ("chars", OUT / "characters.json"),
-                ("loc", OUT / "location.json"),
-                ("menus", OUT / "menus.json"),
+            for name, key in [
+                ("chars", "characters"),
+                ("loc", "location"),
+                ("menus", "menus"),
             ]:
-                d = read_json(str(path), max_age=10)
+                d = blackboard.read(key, max_age=10)
                 if d is not None:
                     d.pop("written_at", None)
                     log(f"{name}: {d}")

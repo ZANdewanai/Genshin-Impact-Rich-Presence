@@ -31,8 +31,8 @@ class MenuSensor(BaseSensor):
 
     def scan(self):
         boxes = self.coords_provider()
-        menu_text = self._ocr_text("gamemenu", boxes["gamemenu"]).strip().lower()
-        domain_text = self._ocr_text("domain", boxes["domain"]).strip().lower()
+        menu_text = self._ocr_text("gamemenu", boxes["gamemenu"], priority=True).strip().lower()
+        domain_text = self._ocr_text("domain", boxes["domain"], priority=True).strip().lower()
 
         gm = self.search_index.search_gamemenu(menu_text) if menu_text else None
         dom = self.search_index.search_domain(domain_text) if domain_text else None

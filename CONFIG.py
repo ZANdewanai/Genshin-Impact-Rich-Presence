@@ -49,8 +49,9 @@ ASSET_BASE_URL = os.environ.get("GENSHIN_ASSET_BASE_URL",
 GENSHIN_WINDOW_NAME = "Genshin Impact"  # Window caption for GenshinImpact.exe
 GENSHIN_WINDOW_CLASS = "UnityWndClass"  # Window class for GenshinImpact.exe
 
-DEBUG_MODE = True  # Print debug messages
-DEBUG_CHARACTER_MODE = True  # Print character detection debug messages
+DEBUG_MODE = False  # Print debug messages
+DEBUG_CHARACTER_MODE = False  # Print character detection debug messages
+DEBUG_SAVE_IMAGES = False  # Save debug screenshots to debug_cache/
 DEBUG_STATIC_IMAGE = False  # Use static image for debugging
 DEBUG_STATIC_IMAGE_PATH = r"debug_images\debug_image.jpg"  # Static screenshot path
 
@@ -124,15 +125,33 @@ DOMAIN_COORD = BASE_DOMAIN_COORD
 PARTY_SETUP_COORD = BASE_PARTY_SETUP_COORD
 
 DETECTED_RESOLUTION = (BASE_RESOLUTION_WIDTH, BASE_RESOLUTION_HEIGHT)
+# Screen-space origin (left, top) of the Genshin client area. Base coords are
+# window-relative; OCR capture (ImageGrab) uses absolute screen coords, so
+# every published coordinate below already has this offset baked in.
+WINDOW_ORIGIN = (0, 0)
+
+
+def _base_coords_dict():
+    return {
+        "PARTY_AREA_COORD": BASE_PARTY_AREA,
+        "BOSS_COORD": BASE_BOSS_COORD,
+        "LOCATION_COORD": BASE_LOCATION_COORD,
+        "MAP_LOC_COORD": BASE_MAP_LOC_COORD,
+        "ACTIVITY_COORD": BASE_ACTIVITY_COORD,
+        "DOMAIN_COORD": BASE_DOMAIN_COORD,
+        "PARTY_SETUP_COORD": BASE_PARTY_SETUP_COORD,
+    }
 
 
 def get_dynamic_coordinates():
     """
-    Detects the actual Genshin Impact window size and returns scaled coordinates.
-    Updates module-level coordinate variables.
+    Detects the actual Genshin Impact client area and returns scaled,
+    screen-absolute coordinates (base coords scaled to the client size and
+    offset by the client origin). Updates module-level coordinate variables.
     """
     global PARTY_AREA_COORD, BOSS_COORD, LOCATION_COORD, MAP_LOC_COORD
     global ACTIVITY_COORD, DOMAIN_COORD, PARTY_SETUP_COORD, DETECTED_RESOLUTION
+    global WINDOW_ORIGIN
 
     # Minimum reasonable window size for Genshin (width, height)
     MIN_WINDOW_SIZE = (800, 600)
@@ -141,39 +160,34 @@ def get_dynamic_coordinates():
     from core import ps_helper
 
     try:
-        # Get the actual Genshin window dimensions
-        window_rect = ps_helper.get_genshin_window_rect()
-        if window_rect:
-            actual_width = window_rect[2] - window_rect[0]
-            actual_height = window_rect[3] - window_rect[1]
+        # Get the actual Genshin client-area dimensions + screen origin
+        client = ps_helper.get_genshin_client_rect()
+        if client:
+            origin_x, origin_y, actual_width, actual_height = client
 
             if actual_width < MIN_WINDOW_SIZE[0] or actual_height < MIN_WINDOW_SIZE[1]:
                 if DEBUG_MODE:
                     print(
                         f"Detected window too small ({actual_width}x{actual_height}), using base coordinates"
                     )
-                return {
-                    "PARTY_AREA_COORD": BASE_PARTY_AREA,
-                    "BOSS_COORD": BASE_BOSS_COORD,
-                    "LOCATION_COORD": BASE_LOCATION_COORD,
-                    "MAP_LOC_COORD": BASE_MAP_LOC_COORD,
-                    "ACTIVITY_COORD": BASE_ACTIVITY_COORD,
-                    "DOMAIN_COORD": BASE_DOMAIN_COORD,
-                    "PARTY_SETUP_COORD": BASE_PARTY_SETUP_COORD,
-                }, (BASE_RESOLUTION_WIDTH, BASE_RESOLUTION_HEIGHT)
+                WINDOW_ORIGIN = (0, 0)
+                return _base_coords_dict(), (BASE_RESOLUTION_WIDTH, BASE_RESOLUTION_HEIGHT)
 
             if DEBUG_MODE:
-                print(f"Detected Genshin window size: {actual_width}x{actual_height}")
+                print(
+                    f"Detected Genshin client area: {actual_width}x{actual_height} "
+                    f"at ({origin_x},{origin_y})"
+                )
 
             scale_x = actual_width / BASE_RESOLUTION_WIDTH
             scale_y = actual_height / BASE_RESOLUTION_HEIGHT
 
             def scaled(coord):
                 return (
-                    round(coord[0] * scale_x),
-                    round(coord[1] * scale_y),
-                    round(coord[2] * scale_x),
-                    round(coord[3] * scale_y),
+                    round(coord[0] * scale_x) + origin_x,
+                    round(coord[1] * scale_y) + origin_y,
+                    round(coord[2] * scale_x) + origin_x,
+                    round(coord[3] * scale_y) + origin_y,
                 )
 
             PARTY_AREA_COORD = scaled(BASE_PARTY_AREA)
@@ -184,8 +198,9 @@ def get_dynamic_coordinates():
             DOMAIN_COORD = scaled(BASE_DOMAIN_COORD)
             PARTY_SETUP_COORD = scaled(BASE_PARTY_SETUP_COORD)
             DETECTED_RESOLUTION = (actual_width, actual_height)
+            WINDOW_ORIGIN = (origin_x, origin_y)
 
-            scaled_coords = {
+            return {
                 "PARTY_AREA_COORD": PARTY_AREA_COORD,
                 "BOSS_COORD": BOSS_COORD,
                 "LOCATION_COORD": LOCATION_COORD,
@@ -193,9 +208,7 @@ def get_dynamic_coordinates():
                 "ACTIVITY_COORD": ACTIVITY_COORD,
                 "DOMAIN_COORD": DOMAIN_COORD,
                 "PARTY_SETUP_COORD": PARTY_SETUP_COORD,
-            }
-
-            return scaled_coords, (actual_width, actual_height)
+            }, (actual_width, actual_height)
         else:
             if DEBUG_MODE:
                 print("Could not detect Genshin window, using base coordinates")
@@ -204,24 +217,41 @@ def get_dynamic_coordinates():
             print(f"Error detecting window size: {e}")
 
     # Fallback to base coordinates if detection fails
-    PARTY_AREA_COORD = BASE_PARTY_AREA
-    BOSS_COORD = BASE_BOSS_COORD
-    LOCATION_COORD = BASE_LOCATION_COORD
-    MAP_LOC_COORD = BASE_MAP_LOC_COORD
-    ACTIVITY_COORD = BASE_ACTIVITY_COORD
-    DOMAIN_COORD = BASE_DOMAIN_COORD
-    PARTY_SETUP_COORD = BASE_PARTY_SETUP_COORD
+    WINDOW_ORIGIN = (0, 0)
+    coords = _base_coords_dict()
+    PARTY_AREA_COORD = coords["PARTY_AREA_COORD"]
+    BOSS_COORD = coords["BOSS_COORD"]
+    LOCATION_COORD = coords["LOCATION_COORD"]
+    MAP_LOC_COORD = coords["MAP_LOC_COORD"]
+    ACTIVITY_COORD = coords["ACTIVITY_COORD"]
+    DOMAIN_COORD = coords["DOMAIN_COORD"]
+    PARTY_SETUP_COORD = coords["PARTY_SETUP_COORD"]
     DETECTED_RESOLUTION = (BASE_RESOLUTION_WIDTH, BASE_RESOLUTION_HEIGHT)
 
-    return {
-        "PARTY_AREA_COORD": PARTY_AREA_COORD,
-        "BOSS_COORD": BOSS_COORD,
-        "LOCATION_COORD": LOCATION_COORD,
-        "MAP_LOC_COORD": MAP_LOC_COORD,
-        "ACTIVITY_COORD": ACTIVITY_COORD,
-        "DOMAIN_COORD": DOMAIN_COORD,
-        "PARTY_SETUP_COORD": PARTY_SETUP_COORD,
-    }, DETECTED_RESOLUTION
+    return coords, DETECTED_RESOLUTION
+
+
+def reload_coordinate_data():
+    """Re-read party_layouts.csv / region_coords.csv and recompute coords.
+
+    Called by the coordinator when the CSVs' mtimes change (hot reload).
+    """
+    global BASE_PARTY_AREA, BASE_PARTY_AREA_COORD, BASE_REGION_COORDS
+    global BASE_ACTIVITY_COORD, BASE_BOSS_COORD, BASE_DOMAIN_COORD
+    global BASE_PARTY_SETUP_COORD, BASE_LOCATION_COORD, BASE_MAP_LOC_COORD
+
+    BASE_PARTY_AREA = _load_party_layouts()
+    BASE_PARTY_AREA_COORD = BASE_PARTY_AREA
+    BASE_REGION_COORDS = _load_region_coords()
+    BASE_ACTIVITY_COORD = BASE_REGION_COORDS.get("ACTIVITY_COORD", BASE_ACTIVITY_COORD)
+    BASE_BOSS_COORD = BASE_REGION_COORDS.get("BOSS_COORD", BASE_BOSS_COORD)
+    BASE_DOMAIN_COORD = BASE_REGION_COORDS.get("DOMAIN_COORD", BASE_DOMAIN_COORD)
+    BASE_PARTY_SETUP_COORD = BASE_REGION_COORDS.get("PARTY_SETUP_COORD", BASE_PARTY_SETUP_COORD)
+    BASE_LOCATION_COORD = BASE_REGION_COORDS.get("LOCATION_COORD", BASE_LOCATION_COORD)
+    BASE_MAP_LOC_COORD = BASE_REGION_COORDS.get("MAP_LOC_COORD", BASE_MAP_LOC_COORD)
+    if DEBUG_MODE:
+        print("Reloaded coordinate CSVs")
+    get_dynamic_coordinates()
 
 
 # Initialize coordinates on import

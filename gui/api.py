@@ -12,6 +12,7 @@ import os
 import subprocess
 import sys
 import threading
+import time
 from collections import deque
 
 # Frozen (PyInstaller exe): __file__ points inside the bundle, so derive the
@@ -52,6 +53,7 @@ def _drain_stream(stream):
 class Api:
     def __init__(self):
         self.engine_process = None
+        self._engine_boot_time = 0.0
         self._lock = threading.Lock()
         self.character_meta = {}
         self._load_character_meta()
@@ -100,6 +102,14 @@ class Api:
             print(f"[OK] Created default config: {SHARED_CONFIG_FILE}")
         except OSError as e:
             print(f"Warning: could not create {SHARED_CONFIG_FILE}: {e}")
+
+    @staticmethod
+    def _write_json_atomic(path, data):
+        """Write JSON via temp file + rename so readers never see partial data."""
+        temp = path + ".tmp"
+        with open(temp, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4)
+        os.replace(temp, path)
 
     def _load_character_meta(self):
         """Load rarity/element metadata keyed by lowercase character name."""
@@ -192,6 +202,7 @@ class Api:
                 # (pythonw), the engine subprocess would otherwise allocate a
                 # new visible console. Its output is piped to the UI anyway.
                 creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+                self._engine_boot_time = time.time()
                 self.engine_process = subprocess.Popen(
                     cmd,
                     stdout=subprocess.PIPE,
@@ -235,10 +246,24 @@ class Api:
             "timestamp": None,
             "party": [None, None, None, None, None],
             "active_character_index": -1,
+            # Discord RPC exact params (forwarded for the GUI preview)
+            "discord_details": "",
+            "discord_state": "",
+            "discord_large_image": "",
+            "discord_large_text": "",
+            "discord_small_image": "",
+            "discord_small_text": "",
         }
+        # Only trust gui_shared_data.json while the engine we spawned is
+        # alive AND the file was written after it booted - otherwise a stale
+        # file from a previous run would show a ghost party.
+        if not state["running"]:
+            return state
         data = {}
         try:
             if os.path.exists(SHARED_DATA_FILE):
+                if os.path.getmtime(SHARED_DATA_FILE) < self._engine_boot_time - 1.0:
+                    return state
                 with open(SHARED_DATA_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
         except (OSError, ValueError):
@@ -267,6 +292,12 @@ class Api:
         state["timestamp"] = ts if isinstance(ts, (int, float)) else None
         idx = data.get("active_character_index", -1)
         state["active_character_index"] = idx if isinstance(idx, int) else -1
+        for key in (
+            "discord_details", "discord_state", "discord_large_image",
+            "discord_large_text", "discord_small_image", "discord_small_text",
+        ):
+            val = data.get(key)
+            state[key] = val if isinstance(val, str) else ""
         return state
 
     def toggle_connection(self):
@@ -277,7 +308,8 @@ class Api:
         return {"running": self._start_engine()}
 
     # Identity settings keys exposed to the frontend. All of them live in
-    # shared_config.json and are hot-swapped by detection.py every cycle.
+    # shared_config.json; the engine's data hot-reload (Data.check_reload)
+    # re-applies them to characters.csv within a few seconds.
     IDENTITY_KEYS = (
         ("username", "USERNAME"),
         ("mcAether", "MC_AETHER"),
@@ -301,9 +333,9 @@ class Api:
     def save_settings(self, settings):
         """Persist an identity settings patch into shared_config.json.
 
-        detection.py re-reads these every detection cycle, so changes apply
-        live while the engine is running (no restart needed). Blank strings
-        are ignored so they never wipe out CONFIG.py defaults.
+        The engine's CSV hot-reload re-reads these within a few seconds, so
+        changes apply live while it is running (no restart needed). Blank
+        strings are ignored so they never wipe out CONFIG.py defaults.
         """
         if not isinstance(settings, dict):
             return {"ok": False}
@@ -316,8 +348,7 @@ class Api:
                 continue
             shared[cfg_key] = val
         try:
-            with open(SHARED_CONFIG_FILE, "w", encoding="utf-8") as f:
-                json.dump(shared, f, indent=4)
+            self._write_json_atomic(SHARED_CONFIG_FILE, shared)
         except OSError as e:
             print(f"Warning: could not save shared_config.json: {e}")
         return {"ok": True}
@@ -370,8 +401,7 @@ class Api:
         shared["DEBUG_STATIC_IMAGE"] = debug_static_image
         shared["DEBUG_STATIC_IMAGE_PATH"] = debug_static_image_path
         try:
-            with open(SHARED_CONFIG_FILE, "w", encoding="utf-8") as f:
-                json.dump(shared, f, indent=4)
+            self._write_json_atomic(SHARED_CONFIG_FILE, shared)
         except OSError as e:
             print(f"Warning: could not save shared_config.json: {e}")
         # Debug flags are live _ConfigFlag views onto shared_config.json

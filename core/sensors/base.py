@@ -78,8 +78,12 @@ class BaseSensor(threading.Thread):
         )
         return np.array(small)
 
-    def _ocr_text(self, key, bbox, allowlist=None, conf=0.5):
-        """OCR a region with unchanged-pixel skip. Returns text ('' if none)."""
+    def _ocr_text(self, key, bbox, allowlist=None, conf=0.5, priority=False):
+        """OCR a region with unchanged-pixel skip. Returns text ('' if none).
+
+        ``priority=True`` queues ahead of normal OCR waiters so fast sensors
+        (location/menu) are not starved behind CharSensor's party sweep.
+        """
         crop = ImageGrab.grab(bbox=bbox)
         cur = self._prep(crop)
         crop.close()
@@ -88,7 +92,9 @@ class BaseSensor(threading.Thread):
             return cache.get("text", "")
         t0 = time.perf_counter()
         try:
-            results = self.reader.readtext(cur, allowlist=allowlist)
+            results = self.reader.readtext(
+                cur, allowlist=allowlist, priority=priority
+            )
         except Exception:
             results = []
         record_ocr(key.upper(), (time.perf_counter() - t0) * 1000.0)

@@ -1,4 +1,4 @@
-import type { SVGProps } from "react";
+import type { HTMLAttributes, SVGProps } from "react";
 
 interface IconProps extends SVGProps<SVGSVGElement> {
   size?: number;
@@ -82,7 +82,13 @@ export function EmptySlotIcon({ size = 14, color = "rgba(200,168,75,0.35)", ...p
   );
 }
 
-export function GoldStars({ count = 5, color = "#FFD780", size = 9, ...props }: IconProps) {
+interface GoldStarsProps extends HTMLAttributes<HTMLSpanElement> {
+  count?: number;
+  color?: string;
+  size?: number;
+}
+
+export function GoldStars({ count = 5, color = "#FFD780", size = 9, ...props }: GoldStarsProps) {
   return (
     <span className="flex gap-0.5" {...props}>
       {Array.from({ length: count }).map((_, i) => (

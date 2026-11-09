@@ -96,6 +96,11 @@ export const useDebug = () => {
 export const useBackendState = (demoConnected: boolean, onConnectedChange?: (running: boolean) => void) => {
   const [state, setState] = useState<BackendState | null>(null);
   const connectedRef = useRef(false);
+  // Keep the latest callback in a ref so an inline lambda from the parent
+  // doesn't recreate the polling effect every render.
+  const onConnectedChangeRef = useRef(onConnectedChange);
+  onConnectedChangeRef.current = onConnectedChange;
+  const lastJsonRef = useRef("");
 
   useEffect(() => {
     let alive = true;
@@ -103,13 +108,19 @@ export const useBackendState = (demoConnected: boolean, onConnectedChange?: (run
       const s = await fetchState(demoConnected);
       if (!alive) return;
       connectedRef.current = s.running;
-      if (onConnectedChange) onConnectedChange(s.running);
-      setState(s);
+      onConnectedChangeRef.current?.(s.running);
+      // Skip re-render when nothing actually changed (fetchState builds a
+      // fresh object every poll).
+      const json = JSON.stringify(s);
+      if (json !== lastJsonRef.current) {
+        lastJsonRef.current = json;
+        setState(s);
+      }
     };
     tick();
     const t = setInterval(tick, 1000);
     return () => { alive = false; clearInterval(t); };
-  }, [demoConnected, onConnectedChange]);
+  }, [demoConnected]);
 
   return { state, connected: connectedRef.current };
 };

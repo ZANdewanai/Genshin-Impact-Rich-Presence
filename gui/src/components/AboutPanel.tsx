@@ -2,10 +2,29 @@ import { useState } from "react";
 import { OrnamentDivider } from "./SmallComponents";
 import { GenshinLogo, ExternalLinkIcon, CopyIcon } from "./Icons";
 
+const DISCLAIMER_TEXT =
+  "Genshin Impact and all related assets are property of HoYoverse. " +
+  "This tool is a fan-made, unofficial project and is not affiliated with " +
+  "or endorsed by HoYoverse in any way.";
+
 export function AboutPanel() {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(DISCLAIMER_TEXT);
+    } catch {
+      // Clipboard API unavailable (e.g. non-secure context) - fall back to
+      // a temporary textarea + execCommand.
+      const ta = document.createElement("textarea");
+      ta.value = DISCLAIMER_TEXT;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

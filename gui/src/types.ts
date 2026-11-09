@@ -25,6 +25,12 @@ export interface BackendState {
   timestamp: number | null;
   party: (Character | null)[];
   active_character_index: number;
+  discord_details?: string;
+  discord_state?: string;
+  discord_large_image?: string;
+  discord_large_text?: string;
+  discord_small_image?: string;
+  discord_small_text?: string;
 }
 
 export interface DebugConfig {

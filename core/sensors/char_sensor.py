@@ -9,6 +9,7 @@ Threading note: ONNX inference releases the GIL, so threads genuinely run in
 parallel for OCR work while staying far simpler than multiprocessing.
 """
 
+import re
 import time
 import csv
 from pathlib import Path
@@ -19,7 +20,7 @@ from PIL import Image, ImageGrab
 
 from core import keys as K
 from core.blackboard import blackboard, CHAR_MAX_AGE_HUD
-from core.datatypes import DEBUG_MODE, DEBUG_CHARACTER_MODE
+from core.datatypes import DEBUG_MODE, DEBUG_CHARACTER_MODE, DEBUG_SAVE_IMAGES
 from core.log_utils import log, record_ocr
 from core.search_index import SearchIndex
 import CONFIG as app_config
@@ -57,6 +58,13 @@ class CharSensor(BaseSensor):
         self._load_static_image()
         # Load the single party area bounding box
         self._party_area = self._load_party_area()
+        self._party_area_key = self._geometry_key()
+        # Frame-skip fingerprint: when the party-area pixels are unchanged
+        # the OCR result (and therefore the whole payload) is identical, so
+        # we can republish the last payload without re-running inference.
+        self._fp = None
+        self._fp_sample = None
+        self._last_payload = None
         # Load special UI text patterns
         self._special_ui = self._load_special_ui()
 
@@ -83,17 +91,49 @@ class CharSensor(BaseSensor):
         return special
 
     def _load_party_area(self):
-        """Load the single party area bounding box from CONFIG."""
+        """Load the single party area bounding box from CONFIG.
+
+        CONFIG.BASE_PARTY_AREA is window-relative at BASE_RESOLUTION; scale
+        to the detected client size and offset by the client origin so the
+        result is in absolute screen coordinates (ImageGrab space).
+        """
         base_coords = BASE_PARTY_AREA
         actual_w, actual_h = self._display_size()
         scale_x = actual_w / BASE_RESOLUTION_WIDTH
         scale_y = actual_h / BASE_RESOLUTION_HEIGHT
-        return (
-            round(base_coords[0] * scale_x),
-            round(base_coords[1] * scale_y),
-            round(base_coords[2] * scale_x),
-            round(base_coords[3] * scale_y),
+        # Static debug images are image-space (origin always 0,0).
+        ox, oy = (0, 0) if self._static_img is not None else getattr(
+            app_config, "WINDOW_ORIGIN", (0, 0)
         )
+        return (
+            round(base_coords[0] * scale_x) + ox,
+            round(base_coords[1] * scale_y) + oy,
+            round(base_coords[2] * scale_x) + ox,
+            round(base_coords[3] * scale_y) + oy,
+        )
+
+    @staticmethod
+    def _geometry_key():
+        """(resolution, origin) tuple - changes when window geometry moves."""
+        return (
+            getattr(app_config, "DETECTED_RESOLUTION", None),
+            getattr(app_config, "WINDOW_ORIGIN", (0, 0)),
+        )
+
+    def _refresh_party_area(self):
+        """Recompute the party-area bbox when window geometry changed."""
+        key = self._geometry_key()
+        if key != self._party_area_key:
+            self._party_area = self._load_party_area()
+            self._party_area_key = key
+            # Geometry moved - the old fingerprint no longer applies.
+            self._fp = None
+            self._fp_sample = None
+            self._last_payload = None
+
+    def reload_static_data(self):
+        """Reload CSV-backed static data after a hot-reload (special UI)."""
+        self._special_ui = self._load_special_ui()
 
     def _load_static_image(self):
         """Load (or clear) the static debug image per DEBUG_STATIC_IMAGE flag."""
@@ -187,10 +227,50 @@ class CharSensor(BaseSensor):
         if custom and text.strip().lower() == custom.strip().lower():
             traveler = "char_lumine" if cfg.get("MC_AETHER") is False else "char_aether"
             return {"name": custom.strip(), "image_key": traveler}
-        c = self.search_index.search_character(text)
-        if c is None:
+
+        # Normalize OCR noise: digits/punctuation become spaces so fragments
+        # like "Kamisato 0.9 Ayaka", "Vesna 1.0" or "Yae'Miko" still match.
+        spaced = re.sub(r"[^a-z]+", " ", text.lower())
+        spaced = " ".join(spaced.split())
+        compact = spaced.replace(" ", "")
+        variants = [v for v in (spaced, compact) if len(v) >= 3]
+        if not variants:
             return None
-        return {"name": c.character_display_name, "image_key": c.image_key}
+
+        best_score = 0
+        best_char = None
+        fuzzy_candidates = []
+        for c in self.search_index.data.characters:
+            name_variants = {
+                c.search_str.lower(),
+                c.search_str.lower().replace(" ", ""),
+            }
+            hit_len = 0
+            for nv in name_variants:
+                if not nv:
+                    continue
+                for v in variants:
+                    if nv in v:
+                        hit_len = max(hit_len, len(nv))
+            if hit_len:
+                if hit_len > best_score:
+                    best_score = hit_len
+                    best_char = c
+            elif len(compact) >= 4 and compact in c.search_str.lower().replace(" ", ""):
+                # Truncated OCR fragment (e.g. "esna" for "Vesna")
+                fuzzy_candidates.append(c)
+
+        char = best_char
+        if char is None and fuzzy_candidates:
+            fuzzy_candidates.sort(key=lambda c: len(c.search_str), reverse=True)
+            if (
+                len(fuzzy_candidates) == 1
+                or len(fuzzy_candidates[0].search_str) > len(fuzzy_candidates[1].search_str)
+            ):
+                char = fuzzy_candidates[0]
+        if char is None:
+            return None
+        return {"name": char.character_display_name, "image_key": char.image_key}
 
     def _prep(self, img):
         """Preprocess image for OCR - simple grayscale conversion."""
@@ -214,6 +294,18 @@ class CharSensor(BaseSensor):
         return getattr(
             app_config, "DETECTED_RESOLUTION", (BASE_RESOLUTION_WIDTH, BASE_RESOLUTION_HEIGHT)
         )
+
+    def _abs_bounds(self):
+        """Absolute screen-space (left, top, right, bottom) of the client area.
+
+        All OCR bboxes are screen-absolute; DETECTED_RESOLUTION is only the
+        client width/height, so the origin must be added back for clamping.
+        """
+        w, h = self._display_size()
+        if self._static_img is not None:
+            return 0, 0, w, h
+        ox, oy = getattr(app_config, "WINDOW_ORIGIN", (0, 0))
+        return ox, oy, ox + w, oy + h
 
     def _ui_scale(self):
         width, height = self._display_size()
@@ -241,9 +333,9 @@ class CharSensor(BaseSensor):
 
     def _marker_candidate(self, bbox, label=""):
         x1, y1, x2, y2 = (int(round(v)) for v in bbox)
-        screen_w, screen_h = self._display_size()
-        x1, y1 = max(0, x1), max(0, y1)
-        x2, y2 = min(screen_w, x2), min(screen_h, y2)
+        bx1, by1, bx2, by2 = self._abs_bounds()
+        x1, y1 = max(bx1, x1), max(by1, y1)
+        x2, y2 = min(bx2, x2), min(by2, y2)
         tpl = self._marker_template()
         th, tw = tpl.shape
         if x2 - x1 < tw or y2 - y1 < th:
@@ -251,7 +343,7 @@ class CharSensor(BaseSensor):
 
         crop = self._grab((x1, y1, x2, y2))
         try:
-            if DEBUG_CHARACTER_MODE and label:
+            if DEBUG_SAVE_IMAGES and label:
                 ts = int(time.time() * 1000)
                 crop.save(_DEBUG_CACHE_DIR / f"marker_scan_{ts}_{label}.png")
             arr = np.asarray(crop.convert("RGB"), dtype=np.float32)
@@ -285,7 +377,7 @@ class CharSensor(BaseSensor):
             x1, y1, x2, y2 = self._bbox_to_tuple(f["bbox"])
             boxes.append((x1 + px, y1 + py, x2 + px, y2 + py))
 
-        screen_w, screen_h = self._display_size()
+        bx1, by1, screen_w, screen_h = self._abs_bounds()
         sx, sy = self._ui_scale()
         marker_right = min(
             screen_w,
@@ -300,9 +392,9 @@ class CharSensor(BaseSensor):
             height = max(1, y2 - y1)
             center_y = (y1 + y2) // 2
             pad = max(int(16 * sy), int(height * 0.6))
-            scan_y1 = max(0, center_y - pad)
+            scan_y1 = max(by1, center_y - pad)
             scan_y2 = min(screen_h, center_y + pad + 1)
-            scan_x1 = max(0, int(x2 - gap))
+            scan_x1 = max(bx1, int(x2 - gap))
             scan_x2 = min(marker_right, int(x2 + zone_w))
             if scan_x2 - scan_x1 < zone_w * 0.5 or scan_y2 <= scan_y1:
                 continue
@@ -427,20 +519,31 @@ class CharSensor(BaseSensor):
                     "bbox": bbox,
                 })
 
+        # Dedupe: OCR can read the same name twice at slightly different y
+        # positions; fragments are y-sorted so the first hit is topmost.
+        deduped = []
+        seen_names = set()
+        for f in found:
+            if f["name"] in seen_names:
+                continue
+            seen_names.add(f["name"])
+            deduped.append(f)
+        found = deduped
+
         return fragments, found
 
     def _fallback_party_area(self):
         base = self._load_party_area()
         if not base:
             return None
-        screen_w, screen_h = self._display_size()
+        ax1, ay1, screen_w, screen_h = self._abs_bounds()
         sx, sy = self._ui_scale()
         bx1, by1, bx2, by2 = base
         bw, bh = bx2 - bx1, by2 - by1
         margin_x = max(int(bw * 0.9), int(120 * sx))
         margin_y = max(int(bh * 0.28), int(90 * sy))
-        x1 = max(0, bx1 - margin_x)
-        y1 = max(0, by1 - margin_y)
+        x1 = max(ax1, bx1 - margin_x)
+        y1 = max(ay1, by1 - margin_y)
         x2 = min(screen_w, bx2 + margin_x)
         y2 = min(screen_h, by2 + margin_y)
         if x2 - x1 < int(bw * 0.5) or y2 - y1 < int(bh * 0.5):
@@ -449,7 +552,7 @@ class CharSensor(BaseSensor):
 
     def _area_from_name_boxes(self, found, search_origin):
         base = self._load_party_area()
-        screen_w, screen_h = self._display_size()
+        ax1, ay1, screen_w, screen_h = self._abs_bounds()
         sx, sy = self._ui_scale()
         bx1, by1, bx2, by2 = base
         base_w, base_h = bx2 - bx1, by2 - by1
@@ -475,8 +578,8 @@ class CharSensor(BaseSensor):
         x1 = int(min_x - pad_x)
         y1 = int(center_y - height / 2)
 
-        x1 = max(0, min(x1, max(0, screen_w - width)))
-        y1 = max(0, min(y1, max(0, screen_h - height)))
+        x1 = max(ax1, min(x1, max(ax1, screen_w - width)))
+        y1 = max(ay1, min(y1, max(ay1, screen_h - height)))
         return (x1, y1, min(screen_w, x1 + width), min(screen_h, y1 + height))
 
     @staticmethod
@@ -508,7 +611,11 @@ class CharSensor(BaseSensor):
         return new_area, fragments, found
 
     def scan(self):
+        self._refresh_party_area()
         if self._in_known_menu():
+            self._last_payload = None
+            self._fp = None
+            self._fp_sample = None
             blackboard.write(
                 self._output_key,
                 {K.SLOTS: [], K.ACTIVE_SLOT_HINT: None, K.HUD_VISIBLE: False},
@@ -517,6 +624,9 @@ class CharSensor(BaseSensor):
 
         party_area = self._party_area
         if not party_area:
+            self._last_payload = None
+            self._fp = None
+            self._fp_sample = None
             blackboard.write(
                 self._output_key,
                 {K.SLOTS: [], K.ACTIVE_SLOT_HINT: None, K.HUD_VISIBLE: False},
@@ -525,8 +635,19 @@ class CharSensor(BaseSensor):
 
         crop = self._grab(self._party_area)
 
+        # Frame-skip: identical pixels => identical OCR result. Republish the
+        # previous payload (fresh blackboard timestamp) and skip inference.
+        cur = self._prep(crop)
+        if _looks_same(self._fp, self._fp_sample, cur):
+            crop.close()
+            if self._last_payload is not None:
+                blackboard.write(self._output_key, self._last_payload)
+            return
+        self._fp = cur
+        self._fp_sample = cur.ravel()[::4]
+
         # Save full party area for debugging
-        if DEBUG_CHARACTER_MODE:
+        if DEBUG_SAVE_IMAGES:
             ts = int(time.time() * 1000)
             crop.save(_DEBUG_CACHE_DIR / f"party_area_{ts}.png")
 
@@ -593,8 +714,11 @@ class CharSensor(BaseSensor):
             ordinal = f["ordinal"]
             output_slots[ordinal] = {"name": f["name"], "image_key": f["image_key"]}
 
-        blackboard.write(
-            self._output_key,
-            {K.SLOTS: output_slots, K.ACTIVE_SLOT_HINT: d["confirmed"], K.HUD_VISIBLE: bool(found),
-             "special_ui": special_match},
-        )
+        payload = {
+            K.SLOTS: output_slots,
+            K.ACTIVE_SLOT_HINT: d["confirmed"],
+            K.HUD_VISIBLE: bool(found),
+            "special_ui": special_match,
+        }
+        self._last_payload = payload
+        blackboard.write(self._output_key, payload)

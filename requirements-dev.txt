@@ -1,0 +1,10 @@
+# =============================================================================
+# Dev-only dependencies (tools/, tests) - NOT needed at runtime.
+# Install with: pip install -r requirements.txt -r requirements-dev.txt
+# =============================================================================
+
+# GUI coordinate calibrator (tools/interactive_coordinate_calibrator.py)
+PyQt5>=5.15.0
+
+# Asset download helpers (tools/assets/*.py)
+requests>=2.31.0

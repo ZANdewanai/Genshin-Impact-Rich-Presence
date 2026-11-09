@@ -6,7 +6,7 @@ from core.state import (
     gui_callback, shutdown_event, state_lock, ocr_lock,
     update_activity, set_active_character, update_character,
     get_current_activity, get_current_characters, get_game_start_time,
-    get_current_timer_type, get_last_active_character,
+    get_current_timer_type, get_menu_start_time, get_last_active_character,
     reset_game_start_time, write_gui_shared_data,
 )
 from core.ocr_utils import process_map_text
@@ -27,7 +27,7 @@ __all__ = [
     'gui_callback', 'shutdown_event', 'state_lock', 'ocr_lock',
     'update_activity', 'set_active_character', 'update_character',
     'get_current_activity', 'get_current_characters', 'get_game_start_time',
-    'get_current_timer_type', 'get_last_active_character',
+    'get_current_timer_type', 'get_menu_start_time', 'get_last_active_character',
     'reset_game_start_time', 'write_gui_shared_data',
     # Map text
     'process_map_text',

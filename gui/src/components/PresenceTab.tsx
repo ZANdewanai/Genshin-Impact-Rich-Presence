@@ -164,8 +164,8 @@ export function PresenceTab({
                   lineHeight: 1.4,
                 }}>
                   Playing <span style={{ color: "#ede3c4", fontStyle: "italic" }}>Genshin Impact</span>
-                  {discordDetails ? ` · ${discordDetails}` : ` · {location.split("—")[0].trim()}`}
-                  {discordState ? ` · ${discordState}` : ` · {elapsed}`}
+                  {discordDetails ? ` · ${discordDetails}` : location && location !== "Waiting for game data..." ? ` · ${location}` : ""}
+                  {discordState ? ` · ${discordState}` : activity && activity !== "-" ? ` · ${activity}` : ""}
                 </span>
               </div>
               <div style={{

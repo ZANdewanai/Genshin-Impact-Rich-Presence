@@ -73,7 +73,7 @@ class Reader:
             print(f"[CRITICAL] GPU session verification failed: {e}")
             raise
 
-    def readtext(self, image, allowlist=None, wait=True, **kwargs):
+    def readtext(self, image, allowlist=None, wait=True, priority=False, **kwargs):
         """
         Process image with RapidOCR.
 
@@ -82,17 +82,34 @@ class Reader:
 
         When ``wait`` is False the call does NOT queue behind other OCR users:
         it acquires the shared OCR lock with a short timeout and raises
-        TimeoutError instead of blocking. Low-priority/high-frequency consumers
-        (LocationSensor) use this so a long CharSensor fallback sweep can't
-        starve location updates - they simply retry on their next tick.
+        TimeoutError instead of blocking.
+
+        When ``priority`` is True (implies ``wait``) the call queues ahead of
+        normal waiters on the priority-aware ocr_lock, so high-frequency
+        sensors (location/menu) are not starved behind CharSensor's full-party
+        sweep. It still waits for the current holder to finish.
         """
         if self.reader is None:
             raise RuntimeError("RapidOCR reader not initialized")
 
         from core.state import ocr_lock
         if wait:
-            with ocr_lock:
-                result_tuple = self.reader(image)
+            if priority:
+                # Priority path: jump ahead of queued normal waiters. Falls
+                # back to a plain acquire if the lock doesn't support it.
+                try:
+                    acquired = ocr_lock.acquire(priority=True)
+                except TypeError:
+                    acquired = ocr_lock.acquire()
+                if not acquired:
+                    raise TimeoutError("OCR engine busy")
+                try:
+                    result_tuple = self.reader(image)
+                finally:
+                    ocr_lock.release()
+            else:
+                with ocr_lock:
+                    result_tuple = self.reader(image)
         else:
             # Non-blocking path: short-timeout acquire, ALWAYS paired with release
             if not ocr_lock.acquire(timeout=0.05):

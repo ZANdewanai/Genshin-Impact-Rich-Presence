@@ -10,21 +10,56 @@ from typing import Optional, Union
 import time
 
 
-# Debug flags - read from shared_config at startup
+# Debug flags - live views onto shared_config.json (CONFIG.py = defaults).
 from .shared_config import get_shared_config
-_shared = get_shared_config()
 try:
     import CONFIG as _cfg
 except Exception:
     _cfg = None
 
 def _get(key, default):
-    if key in _shared:
-        return _shared[key]
+    shared = get_shared_config()
+    if key in shared:
+        return shared[key]
     return getattr(_cfg, key, default) if _cfg is not None else default
 
-DEBUG_MODE = bool(_get("DEBUG_MODE", False))
-DEBUG_CHARACTER_MODE = bool(_get("DEBUG_CHARACTER_MODE", False))
+class _ConfigFlag:
+    """Live boolean view of one setting (shared_config > CONFIG > default).
+
+    Imported once via ``from core.datatypes import DEBUG_MODE`` but evaluated
+    on every ``bool()``/truthiness check, so it is NOT an import-time
+    snapshot. Only supports boolean contexts (``if FLAG:``, ``FLAG and x``).
+    """
+
+    __slots__ = ("_key", "_default")
+
+    def __init__(self, key: str, default: bool = False):
+        self._key = key
+        self._default = default
+
+    def _read(self) -> bool:
+        shared = get_shared_config()
+        if self._key in shared:
+            return bool(shared[self._key])
+        if _cfg is not None:
+            return bool(getattr(_cfg, self._key, self._default))
+        return self._default
+
+    def __bool__(self) -> bool:
+        return self._read()
+
+    def __eq__(self, other):
+        if isinstance(other, bool):
+            return self._read() == other
+        return NotImplemented
+
+    def __repr__(self) -> str:
+        return repr(self._read())
+
+
+DEBUG_MODE = _ConfigFlag("DEBUG_MODE", False)
+DEBUG_CHARACTER_MODE = _ConfigFlag("DEBUG_CHARACTER_MODE", False)
+DEBUG_SAVE_IMAGES = _ConfigFlag("DEBUG_SAVE_IMAGES", False)
 
 
 def _identity_settings() -> dict:

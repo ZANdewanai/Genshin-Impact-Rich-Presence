@@ -2,9 +2,9 @@ import os
 import sys
 import http.server
 import socketserver
-import socket
 import threading
 import time
+import functools
 
 # When launched with pythonw.exe (silent mode) there is no console and
 # sys.stdout/sys.stderr are None - every print() would crash. Route them
@@ -15,6 +15,31 @@ if sys.stdout is None or sys.stderr is None:
         sys.stdout = _devnull
     if sys.stderr is None:
         sys.stderr = _devnull
+
+
+def _single_instance_guard(name: str):
+    """Windows named mutex - returns a handle, or None if already running.
+
+    Two GUI instances would spawn competing engines writing the same
+    gui_shared_data.json / Discord presence, so refuse the second launch.
+    """
+    if sys.platform != "win32":
+        return True  # non-Windows: no guard
+    import ctypes
+    kernel32 = ctypes.windll.kernel32
+    handle = kernel32.CreateMutexW(None, False, name)
+    if not handle:
+        return None
+    if kernel32.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
+        kernel32.CloseHandle(handle)
+        return None
+    return handle  # keep referenced for process lifetime
+
+
+_INSTANCE_MUTEX = _single_instance_guard("GenshinImpactRichPresence_GUI")
+if _INSTANCE_MUTEX is None:
+    print("Another instance is already running - exiting.")
+    sys.exit(0)
 
 # Frozen (PyInstaller exe): __file__ points inside the bundle's temp
 # extraction dir - base everything on the exe's own folder instead.
@@ -42,16 +67,12 @@ if not os.path.exists(DIST_DIR):
     sys.exit(1)
 
 
-def _get_free_port() -> int:
-    """Ask the OS for an available TCP port to avoid hardcoding one."""
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]
-
-
-# Serve the built files over a local HTTP server on a free port
-PORT = _get_free_port()
-Handler = http.server.SimpleHTTPRequestHandler
+# Serve the built files over a local HTTP server. Binding port 0 lets the OS
+# pick a free port atomically (no check-then-bind race), and `directory=`
+# avoids os.chdir() inside the server thread.
+Handler = functools.partial(
+    http.server.SimpleHTTPRequestHandler, directory=DIST_DIR
+)
 
 
 class ReusableTCPServer(socketserver.TCPServer):
@@ -59,11 +80,13 @@ class ReusableTCPServer(socketserver.TCPServer):
     daemon_threads = True
 
 
+httpd = ReusableTCPServer(("127.0.0.1", 0), Handler)
+PORT = httpd.server_address[1]
+
+
 def start_http_server():
-    os.chdir(DIST_DIR)
-    with ReusableTCPServer(("127.0.0.1", PORT), Handler) as httpd:
-        print(f"Serving built UI at http://localhost:{PORT}")
-        httpd.serve_forever()
+    print(f"Serving built UI at http://localhost:{PORT}")
+    httpd.serve_forever()
 
 # Start the server in a separate thread
 server_thread = threading.Thread(target=start_http_server, daemon=True)

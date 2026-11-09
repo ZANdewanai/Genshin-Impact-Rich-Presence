@@ -3,7 +3,7 @@ Backward-compatible re-exports for core.datatypes.
 
 This module re-exports all public API from the split modules:
 - core.models: Data classes, enums, DEBUG flags, _identity_settings
-- core.data_loader: Data class (CSV loading + watchdog)
+- core.data_loader: Data class (CSV loading + hot-reload)
 - core.search_index: SearchIndex class (search caches + fuzzy matching)
 - core.activity_renderer: render_activity function (patched onto Activity)
 """
@@ -21,10 +21,11 @@ from core.models import (
     Activity,
     DEBUG_MODE,
     DEBUG_CHARACTER_MODE,
+    DEBUG_SAVE_IMAGES,
     _identity_settings,
 )
 
-# Data loader (CSV loading + watchdog)
+# Data loader (CSV loading + hot-reload)
 from core.data_loader import Data
 
 # Search index (search caches + fuzzy matching)
@@ -46,6 +47,7 @@ __all__ = [
     "Activity",
     "DEBUG_MODE",
     "DEBUG_CHARACTER_MODE",
+    "DEBUG_SAVE_IMAGES",
     "_identity_settings",
     "Data",
     "SearchIndex",

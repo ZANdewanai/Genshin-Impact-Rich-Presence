@@ -108,7 +108,8 @@ def get_party_info_string(current_characters, is_shadow_realm=False):
 
 
 def discord_rpc_loop(current_activity_ref, current_characters_ref, game_start_time_ref,
-                     current_timer_type_ref, last_active_character_ref):
+                     current_timer_type_ref, last_active_character_ref,
+                     menu_start_time_ref=None):
     """
     Main Discord RPC loop - runs in separate thread.
     
@@ -120,6 +121,7 @@ def discord_rpc_loop(current_activity_ref, current_characters_ref, game_start_ti
     """
     set_event_loop(new_event_loop())
     rpc: discord.Presence = None
+    last_params = None
 
     def init_discord_rpc():
         nonlocal rpc
@@ -157,6 +159,7 @@ def discord_rpc_loop(current_activity_ref, current_characters_ref, game_start_ti
             game_start_time = game_start_time_ref()
             current_timer_type = current_timer_type_ref()
             last_active_character = last_active_character_ref()
+            menu_start_time = menu_start_time_ref() if menu_start_time_ref else None
 
             params = current_activity.to_update_params_dict()
 
@@ -205,8 +208,8 @@ def discord_rpc_loop(current_activity_ref, current_characters_ref, game_start_ti
             elif current_timer_type == "activity":
                 params["start"] = current_activity.start_time
             elif current_timer_type == "menu":
-                # Menu timer is handled separately via menu_start_time
-                pass
+                if menu_start_time is not None:
+                    params["start"] = menu_start_time
             elif game_start_time is not None:
                 params["start"] = game_start_time  # fallback to global
 
@@ -226,9 +229,14 @@ def discord_rpc_loop(current_activity_ref, current_characters_ref, game_start_ti
                 if DEBUG_MODE:
                     print(f"DEBUG Discord RPC (URL mode): large_image={params.get('large_image')}, small_image={params.get('small_image')}")
 
-            # Always update Discord - remove caching to prevent stale data
+            # Skip the IPC round-trip when nothing changed since last update.
+            # (Rate limit is 5 updates / 20s; unchanged payloads waste it.)
+            if params == last_params:
+                _shutdown_event.wait(PRESENCE_UPDATE_INTERVAL)
+                continue
             try:
                 rpc.update(**params)
+                last_params = params
             except discord.exceptions.InvalidID:
                 # Discord closed mid game. Need to create a new Presence client connection instance.
                 rpc.close()
@@ -265,7 +273,8 @@ def discord_rpc_loop(current_activity_ref, current_characters_ref, game_start_ti
 
 
 def start_rpc_thread(current_activity_ref, current_characters_ref, game_start_time_ref,
-                     current_timer_type_ref, last_active_character_ref):
+                     current_timer_type_ref, last_active_character_ref,
+                     menu_start_time_ref=None):
     """Start the Discord RPC thread."""
     global _rpc_thread
 
@@ -276,7 +285,8 @@ def start_rpc_thread(current_activity_ref, current_characters_ref, game_start_ti
         daemon=True,
         target=discord_rpc_loop,
         args=(current_activity_ref, current_characters_ref, game_start_time_ref,
-              current_timer_type_ref, last_active_character_ref)
+              current_timer_type_ref, last_active_character_ref,
+              menu_start_time_ref)
     )
     _rpc_thread.start()
     return _rpc_thread

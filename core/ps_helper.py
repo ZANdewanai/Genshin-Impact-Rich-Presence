@@ -112,6 +112,18 @@ def check_genshin_is_foreground():
         return False
 
 
+def _find_genshin_hwnd():
+    """Return the main Genshin Impact window handle, or None."""
+    try:
+        genshin_pids = _getProcessIDByName("GenshinImpact.exe")
+        if not genshin_pids:
+            return None
+        hwnds = _get_hwnds_for_pid(genshin_pids[0])
+        return hwnds[0] if hwnds else None
+    except Exception:
+        return None
+
+
 def get_genshin_window_rect():
     """
     Gets the actual window rectangle (position and size) of the Genshin Impact window.
@@ -120,23 +132,33 @@ def get_genshin_window_rect():
         tuple or None: (left, top, right, bottom) window coordinates, or None if not found
     """
     try:
-        # Get Genshin process IDs
-        genshin_pids = _getProcessIDByName("GenshinImpact.exe")
-        if not genshin_pids:
+        hwnd = _find_genshin_hwnd()
+        if hwnd is None:
             return None
+        return win32gui.GetWindowRect(hwnd)  # (left, top, right, bottom)
+    except Exception:
+        return None
 
-        # Get window handles for the first Genshin process
-        hwnds = _get_hwnds_for_pid(genshin_pids[0])
-        if not hwnds:
+
+def get_genshin_client_rect():
+    """
+    Gets the Genshin Impact client-area rectangle in screen coordinates.
+
+    OCR capture uses absolute screen coordinates and the game's UI is laid
+    out relative to the client area, so scaling must use the client size and
+    offsets must include the client origin (window rect includes the title
+    bar/borders and misses non-zero window positions).
+
+    Returns:
+        tuple or None: (left, top, width, height) of the client area, or None
+    """
+    try:
+        hwnd = _find_genshin_hwnd()
+        if hwnd is None:
             return None
-
-        # Get the main window (usually the first one)
-        main_hwnd = hwnds[0]
-
-        # Get window rectangle
-        rect = win32gui.GetWindowRect(main_hwnd)
-        return rect  # (left, top, right, bottom)
-
+        rect = win32gui.GetClientRect(hwnd)  # (left, top, right, bottom), client-relative
+        pt = win32gui.ClientToScreen(hwnd, (rect[0], rect[1]))
+        return (pt[0], pt[1], rect[2] - rect[0], rect[3] - rect[1])
     except Exception:
         return None
 

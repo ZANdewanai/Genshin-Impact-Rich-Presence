@@ -34,17 +34,21 @@ def update_coordinates_if_needed():
         ):
             state_module._last_resolution_check = current_time
 
-            # Get current window size
-            window_rect = ps_helper.get_genshin_window_rect()
-            if window_rect:
-                current_window_size = (
-                    window_rect[2] - window_rect[0],
-                    window_rect[3] - window_rect[1],
-                )  # width, height
+            # Get current client-area size + screen origin. OCR coords are
+            # screen-absolute, so a moved window matters as much as a resized
+            # one - watch both.
+            client = ps_helper.get_genshin_client_rect()
+            if client:
+                current_window_size = (client[2], client[3])  # width, height
+                import CONFIG as _cfg_mod
+                origin_moved = (client[0], client[1]) != getattr(
+                    _cfg_mod, "WINDOW_ORIGIN", (0, 0)
+                )
 
-                # Check if resolution changed significantly
+                # Check if resolution or position changed significantly
                 if (
-                    abs(current_window_size[1] - state_module.current_resolution[1])
+                    origin_moved
+                    or abs(current_window_size[1] - state_module.current_resolution[1])
                     > RESOLUTION_CHANGE_THRESHOLD
                 ):
                     if state_module.DEBUG_MODE:

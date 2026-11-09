@@ -64,13 +64,23 @@ class SensorCoordinator:
         self.data = data
         self.search_index = SearchIndex(data)
 
-        from CONFIG import PARTY_SETUP_COORD, DOMAIN_COORD, MAP_LOC_COORD, LOCATION_COORD, BOSS_COORD
+        # Read CONFIG coordinate globals lazily on every scan so resolution /
+        # window-position updates from CONFIG.get_dynamic_coordinates() (and
+        # hot-reloaded coordinate CSVs) take effect without a restart.
+        import CONFIG as app_config
 
         def loc_coords():
-            return LOCATION_COORD, BOSS_COORD, MAP_LOC_COORD
+            return (
+                app_config.LOCATION_COORD,
+                app_config.BOSS_COORD,
+                app_config.MAP_LOC_COORD,
+            )
 
         def menu_coords():
-            return {"gamemenu": PARTY_SETUP_COORD, "domain": DOMAIN_COORD}
+            return {
+                "gamemenu": app_config.PARTY_SETUP_COORD,
+                "domain": app_config.DOMAIN_COORD,
+            }
 
         self.sensors = [
             CharSensor(reader, data, self.search_index, "characters", 2.0),
@@ -92,6 +102,8 @@ class SensorCoordinator:
         self._last_heartbeat = 0.0
         self._last_static_image_key = None
         self._last_special_ui = None
+        self._slot_pending = {}
+        self._last_data_check = 0.0
 
     def start(self):
         for s in self.sensors:
@@ -140,10 +152,50 @@ class SensorCoordinator:
         except Exception:
             pass
 
+    # How often to stat the data CSVs / shared_config for hot-reload.
+    DATA_CHECK_INTERVAL = 5.0
+
+    def _sync_data_files(self, now: float):
+        """Hot-reload data/*.csv (and identity settings) on mtime change."""
+        if now - self._last_data_check < self.DATA_CHECK_INTERVAL:
+            return
+        self._last_data_check = now
+        try:
+            changed = self.data.check_reload()
+        except Exception as e:
+            if DEBUG_MODE:
+                log(f"Data reload check failed: {e}")
+            return
+        if not changed:
+            return
+        if "csv" in changed:
+            try:
+                import CONFIG as app_config
+                app_config.reload_coordinate_data()
+            except Exception as e:
+                if DEBUG_MODE:
+                    log(f"Coordinate CSV reload failed: {e}")
+            try:
+                self.char_sensor.reload_static_data()
+            except Exception as e:
+                if DEBUG_MODE:
+                    log(f"CharSensor data reload failed: {e}")
+            log("Reloaded game data CSVs")
+        if "identity" in changed:
+            # Identity settings (username/traveler/renameables) feed
+            # characters.csv substitution - already reloaded by check_reload.
+            log("Identity settings changed - characters reloaded")
+
     # ---- Actions (side effects) ----
+    @staticmethod
+    def _set_timer_type(timer_type: str):
+        with state_lock:
+            state_module.current_timer_type = timer_type
+
     def _act_enter_party_setup(self, *_):
         new_activity = Activity(ActivityType.PARTY_SETUP, state_module.prev_non_idle_activity)
         update_activity(new_activity)
+        self._set_timer_type("global")
         _notify_gui(new_activity)
         log("Entered Party Setup")
 
@@ -154,10 +206,10 @@ class SensorCoordinator:
     def _act_enter_gamemenu(self, co, gm_obj, *_):
         new_activity = Activity(ActivityType.GAMEMENU, gm_obj)
         update_activity(new_activity)
-        _notify_gui(new_activity)
         with state_lock:
             state_module.menu_start_time = time.time()
             state_module.current_timer_type = "menu"
+        _notify_gui(new_activity)
         log(f"Detected gamemenu: {gm_obj.gamemenu_name}")
 
     def _act_exit_gamemenu(self, *_):
@@ -167,6 +219,7 @@ class SensorCoordinator:
         co.domain_handler.activate(found)
         new_activity = Activity(ActivityType.DOMAIN, found)
         update_activity(new_activity)
+        self._set_timer_type("activity")
         _notify_gui(new_activity)
         log(f"Domain: {found.domain_name}")
 
@@ -176,12 +229,14 @@ class SensorCoordinator:
     def _act_enter_commission(self, *_):
         new_activity = Activity(ActivityType.COMMISSION, state_module.prev_location)
         update_activity(new_activity)
+        self._set_timer_type("global")
         _notify_gui(new_activity)
         log("Detected doing commissions")
 
     def _act_enter_map_location(self, co, found, *_):
         new_activity = Activity(ActivityType.MAP_LOCATION, found)
         update_activity(new_activity)
+        self._set_timer_type("global")
         _notify_gui(new_activity)
         with state_lock:
             state_module.prev_location = found
@@ -190,6 +245,7 @@ class SensorCoordinator:
     def _act_enter_location(self, co, found, *_):
         new_activity = Activity(ActivityType.LOCATION, found)
         update_activity(new_activity)
+        self._set_timer_type("global")
         _notify_gui(new_activity)
         with state_lock:
             state_module.prev_location = found
@@ -198,18 +254,21 @@ class SensorCoordinator:
     def _act_enter_world_boss(self, co, found, *_):
         new_activity = Activity(ActivityType.WORLD_BOSS, found)
         update_activity(new_activity)
+        self._set_timer_type("activity")
         _notify_gui(new_activity)
         log(f"Boss: {found.boss_name}")
 
     def _act_promote_loading(self, *_):
         new_activity = Activity(ActivityType.LOCATION, None)
         update_activity(new_activity)
+        self._set_timer_type("global")
         _notify_gui(new_activity)
         log("Promoted LOADING to Exploring Teyvat (party visible)")
 
     def _act_enter_paused(self, *_):
         new_activity = Activity(ActivityType.PAUSED, state_module.prev_non_idle_activity)
         update_activity(new_activity)
+        self._set_timer_type("global")
         _notify_gui(new_activity)
         log("No activity detected for a while - marking game paused")
 
@@ -228,6 +287,7 @@ class SensorCoordinator:
     def _exit_to_overworld(self, msg: str):
         new_activity = Activity(ActivityType.LOCATION, state_module.prev_location)
         update_activity(new_activity)
+        self._set_timer_type("global")
         _notify_gui(new_activity)
         log(msg)
 
@@ -236,6 +296,7 @@ class SensorCoordinator:
         """One coordinator iteration. Returns sleep duration."""
         self._sync_shared_config()
         now = time.time()
+        self._sync_data_files(now)
 
         # Heartbeat with OCR perf stats
         if now - self._last_heartbeat >= 10.0:
@@ -268,6 +329,7 @@ class SensorCoordinator:
             )
             new_activity = Activity(ActivityType.LOCATION, shadow_loc)
             update_activity(new_activity)
+            self._set_timer_type("global")
             _notify_gui(new_activity)
             if self._last_special_ui != "shadow_realm":
                 log(f"Special UI detected: {special_ui['display_name']}")
@@ -437,6 +499,7 @@ class SensorCoordinator:
                 dh.last_domain or state_module.prev_location,
             )
             update_activity(new_activity)
+            self._set_timer_type("activity")
             _notify_gui(new_activity)
             log("Domain timer re-detected - back in domain")
 
@@ -452,6 +515,7 @@ class SensorCoordinator:
         if current == ActivityType.LOADING and (now - self._loading_start_time > LOADING_TIMEOUT):
             new_activity = Activity(ActivityType.LOCATION, None)
             update_activity(new_activity)
+            self._set_timer_type("global")
             _notify_gui(new_activity)
             log("LOADING timeout - assuming exploring Teyvat")
             self._loading_start_time = now
@@ -501,16 +565,32 @@ class SensorCoordinator:
         )
 
     def _update_party_slots(self, chars, hud_confirmed):
+        # Debounce: OCR scans are noisy, so a slot change or clear must be
+        # observed on two distinct scans before it is applied to state.
+        scan_id = chars.get("written_at", 0)
         for idx in range(1, len(chars["slots"])):
             slot = chars["slots"][idx]
-            if slot and slot.get("name"):
-                prev = get_current_characters()[idx - 1]
-                if prev is None or prev.character_display_name != slot["name"]:
-                    update_character(idx - 1, self._build_character(slot["name"]))
-                    log(f"Party slot {idx}: {slot['name']}")
-            elif slot is None and hud_confirmed and get_current_characters()[idx - 1] is not None:
-                update_character(idx - 1, None)
-                log(f"Party slot {idx}: cleared (slot empty)")
+            char_idx = idx - 1
+            observed = slot.get("name") if slot and slot.get("name") else None
+            if observed is None and not hud_confirmed:
+                self._slot_pending.pop(char_idx, None)
+                continue
+            cur = get_current_characters()[char_idx]
+            cur_name = cur.character_display_name if cur is not None else None
+            if observed == cur_name:
+                self._slot_pending.pop(char_idx, None)
+                continue
+            pending = self._slot_pending.get(char_idx)
+            if pending and pending["value"] == observed and pending["scan"] != scan_id:
+                if observed is None:
+                    update_character(char_idx, None)
+                    log(f"Party slot {idx}: cleared (slot empty)")
+                else:
+                    update_character(char_idx, self._build_character(observed))
+                    log(f"Party slot {idx}: {observed}")
+                self._slot_pending.pop(char_idx, None)
+            else:
+                self._slot_pending[char_idx] = {"value": observed, "scan": scan_id}
 
     def _eval_active_character(self, chars):
         if chars and chars.get("active_slot_hint") is not None:
