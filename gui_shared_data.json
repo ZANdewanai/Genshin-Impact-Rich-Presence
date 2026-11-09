@@ -1,14 +1,13 @@
 {
   "active_characters": [
-    "Qiqi",
+    "Kamisato Ayaka",
     "Odette",
-    "Yae Miko",
-    "Kamisato Ayaka"
+    "Vesna"
   ],
   "location": "Unknown",
   "activity": "Loading",
   "active_character_index": -1,
-  "timestamp": 1793664736.6819324,
+  "timestamp": 1794183223.6393282,
   "discord_details": "",
   "discord_state": "Loading",
   "discord_large_image": "menu_paimon",
@@ -16,9 +15,8 @@
   "discord_small_image": "",
   "discord_small_text": "",
   "active_character_image_keys": [
-    "char_qiqi",
+    "char_kamisato_ayaka",
     "char_odette",
-    "char_yae_miko",
-    "char_kamisato_ayaka"
+    "char_vesna"
   ]
 }
