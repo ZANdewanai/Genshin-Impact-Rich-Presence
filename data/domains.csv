@@ -68,10 +68,18 @@ lunar oblation ii,Lost Mooncourt | Lunar Olation II,forgery,domain_forgery_nod_k
 lunar oblation iii,Lost Mooncourt | Lunar Olation III,forgery,domain_forgery_nod_krai
 lunar oblation iv,Lost Mooncourt | Lunar Olation IV,forgery,domain_forgery_nod_krai
 ------,------,DOMAIN OF FORGERY - SNEZHNAYA,------
-scars of cursed obsession i,Scars of Cursed Obsession I,forgery,domain_forgery_snezhnaya
-scars of cursed obsession ii,Scars of Cursed Obsession II,forgery,domain_forgery_snezhnaya
-scars of cursed obsession iii,Scars of Cursed Obsession III,forgery,domain_forgery_snezhnaya
-scars of cursed obsession iv,Scars of Cursed Obsession IV,forgery,domain_forgery_snezhnaya
+cast iron i,Scars of Cursed Obsession | Cast Iron I,forgery,domain_forgery_snezhnaya
+cast iron ii,Scars of Cursed Obsession | Cast Iron II,forgery,domain_forgery_snezhnaya
+cast iron iii,Scars of Cursed Obsession | Cast Iron III,forgery,domain_forgery_snezhnaya
+cast iron iv,Scars of Cursed Obsession | Cast Iron IV,forgery,domain_forgery_snezhnaya
+chain track i,Scars of Cursed Obsession | Chain Track I,forgery,domain_forgery_snezhnaya
+chain track ii,Scars of Cursed Obsession | Chain Track II,forgery,domain_forgery_snezhnaya
+chain track iii,Scars of Cursed Obsession | Chain Track III,forgery,domain_forgery_snezhnaya
+chain track iv,Scars of Cursed Obsession | Chain Track IV,forgery,domain_forgery_snezhnaya
+severed steel i,Scars of Cursed Obsession | Severed Steel I,forgery,domain_forgery_snezhnaya
+severed steel ii,Scars of Cursed Obsession | Severed Steel II,forgery,domain_forgery_snezhnaya
+severed steel iii,Scars of Cursed Obsession | Severed Steel III,forgery,domain_forgery_snezhnaya
+severed steel iv,Scars of Cursed Obsession | Severed Steel IV,forgery,domain_forgery_snezhnaya
 ------,------,DOMAINS OF BLESSING,------
 ------,------,DOMAIN OF BLESSING - MONDSTADT,------
 fires of purification i,Midsummer Courtyard | Fires of Purification I,blessing,domain_blessing_mondstadt
@@ -179,10 +187,10 @@ moonchild treasures ii,Moonchild's Treasures | Glittering Melody II,blessing,dom
 moonchild treasures iii,Moonchild's Treasures | Glittering Melody III,blessing,domain_blessing_nod_krai
 moonchild treasures iv,Moonchild's Treasures | Glittering Melody IV,blessing,domain_blessing_nod_krai
 ------,------,DOMAIN OF BLESSING - SNEZHNAYA,------
-inverted glacier i,Inverted Glacier | Crimson Proof I,blessing,domain_blessing_snezhnaya
-inverted glacier ii,Inverted Glacier | Crimson Proof II,blessing,domain_blessing_snezhnaya
-inverted glacier iii,Inverted Glacier | Crimson Proof III,blessing,domain_blessing_snezhnaya
-inverted glacier iv,Inverted Glacier | Crimson Proof IV,blessing,domain_blessing_snezhnaya
+ice erosion i,Inverted Glacier | Ice Erosion I,blessing,domain_blessing_snezhnaya
+ice erosion ii,Inverted Glacier | Ice Erosion II,blessing,domain_blessing_snezhnaya
+ice erosion iii,Inverted Glacier | Ice Erosion III,blessing,domain_blessing_snezhnaya
+ice erosion iv,Inverted Glacier | Ice Erosion IV,blessing,domain_blessing_snezhnaya
 ------,------,DOMAIN OF MASTERY,------
 ------,------,DOMAIN OF MASTERY - MONDSTADT,------
 frosted altar i,Forsaken Rift | Frosted Altar I,mastery,domain_mastery_mondstadt
@@ -264,10 +272,18 @@ veil of twilight ii,Veil of Twilight | Umbral Refinement II,mastery,domain_maste
 veil of twilight iii,Veil of Twilight | Umbral Refinement III,mastery,domain_mastery_nod_krai
 veil of twilight iv,Veil of Twilight | Umbral Refinement IV,mastery,domain_mastery_nod_krai
 ------,------,DOMAIN OF MASTERY - SNEZHNAYA,------
-relics of fallen grace i,Relics of the Fallen Grace I,mastery,domain_mastery_snezhnaya
-relics of fallen grace ii,Relics of the Fallen Grace II,mastery,domain_mastery_snezhnaya
-relics of fallen grace iii,Relics of the Fallen Grace III,mastery,domain_mastery_snezhnaya
-relics of fallen grace iv,Relics of the Fallen Grace IV,mastery,domain_mastery_snezhnaya
+contemplation i,Relics of the Fallen Grace | Contemplation I,mastery,domain_mastery_snezhnaya
+contemplation ii,Relics of the Fallen Grace | Contemplation II,mastery,domain_mastery_snezhnaya
+contemplation iii,Relics of the Fallen Grace | Contemplation III,mastery,domain_mastery_snezhnaya
+contemplation iv,Relics of the Fallen Grace | Contemplation IV,mastery,domain_mastery_snezhnaya
+hermitage i,Relics of the Fallen Grace | Hermitage I,mastery,domain_mastery_snezhnaya
+hermitage ii,Relics of the Fallen Grace | Hermitage II,mastery,domain_mastery_snezhnaya
+hermitage iii,Relics of the Fallen Grace | Hermitage III,mastery,domain_mastery_snezhnaya
+hermitage iv,Relics of the Fallen Grace | Hermitage IV,mastery,domain_mastery_snezhnaya
+shared vision i,Relics of the Fallen Grace | Shared Vision I,mastery,domain_mastery_snezhnaya
+shared vision ii,Relics of the Fallen Grace | Shared Vision II,mastery,domain_mastery_snezhnaya
+shared vision iii,Relics of the Fallen Grace | Shared Vision III,mastery,domain_mastery_snezhnaya
+shared vision iv,Relics of the Fallen Grace | Shared Vision IV,mastery,domain_mastery_snezhnaya
 ------,------,TROUNCE DOMAINS,------
 ------,------,TROUNCE DOMAIN - MONDSTADT,------
 scattered ruins,Scattered Ruins,trounce,trounce_boss_andrius

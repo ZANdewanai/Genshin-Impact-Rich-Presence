@@ -54,7 +54,11 @@ data = types.SimpleNamespace(
         _obj(search_str="ayaka", character_display_name="Ayaka Alt", image_key="c2"),
     ],
     domains=[_obj(search_str="domain of forgery", domain_name="Domain of Forgery", image_key="d1")],
-    locations=[_obj(search_str="mondstadt", location_name="Mondstadt", subarea="", country="", image_key="l1")],
+    locations=[
+        _obj(search_str="mondstadt", location_name="Mondstadt", subarea="", country="", image_key="l1"),
+        _obj(search_str="palais mermonia", location_name="Palais Mermonia", subarea="", country="", image_key="l2"),
+        _obj(search_str="court of fontaine region", location_name="Court of Fontaine Region", subarea="", country="", image_key="l3"),
+    ],
     gamemenus=[_obj(search_str="party setup", gamemenu_name="Party Setup", image_key="g1")],
 )
 si = SearchIndex(data)
@@ -62,6 +66,31 @@ check("search longest match wins",
       si.search_character("kamisato ayaka").character_display_name == "Kamisato Ayaka")
 check("search substring match", si.search_boss("the anemo hypostasis world boss") is not None)
 check("search no match", si.search_location("atoc sharp") is None)
+check("location compact OCR match",
+      si.search_location("Court of Fontaine:PalaisMermonia").location_name == "Palais Mermonia")
+for ocr in (
+    "Court of Fontaine:Palais Mermoni",
+    "f Fontaine: Palais Mermoni Court of",
+    "PalaisMermoni",
+):
+    check(f"location truncated OCR match: {ocr}",
+          si.search_location(ocr).location_name == "Palais Mermonia")
+check("location region prefix OCR match",
+      si.search_location("Court of Fontaine").location_name == "Court of Fontaine Region")
+check("location region reordered OCR match",
+      si.search_location("Fontaine Court of").location_name == "Court of Fontaine Region")
+
+import core.search_index as search_index_mod
+_old_debug = search_index_mod.DEBUG_MODE
+search_index_mod.DEBUG_MODE = False
+try:
+    check("location truncated OCR non-debug",
+          si.search_location("Court of Fontaine:Palais Mermoni").location_name == "Palais Mermonia")
+    check("location region reordered OCR non-debug",
+          si.search_location("Fontaine Court of").location_name == "Court of Fontaine Region")
+finally:
+    search_index_mod.DEBUG_MODE = _old_debug
+
 check("search gamemenu", si.search_gamemenu("open party setup menu") is not None)
 
 # refresh_after_reload rebuilds precomputed match lists
@@ -174,8 +203,9 @@ with tempfile.TemporaryDirectory() as td:
         os.chdir(old_cwd)
 
 # ------------------------------------------------------- char sensor skip
-from core.sensors.base import _looks_same
+from core.sensors.base import BaseSensor, _looks_same
 import numpy as np
+from PIL import Image
 
 a = np.zeros((10, 10), dtype=np.uint8)
 b = np.zeros((10, 10), dtype=np.uint8)
@@ -184,6 +214,50 @@ c = np.zeros((10, 10), dtype=np.uint8); c[::2, ::2] = 255
 check("looks_same different", bool(_looks_same(a, a.ravel()[::4], c)) is False)
 check("looks_same no prev", bool(_looks_same(None, None, b)) is False)
 check("looks_same shape mismatch", bool(_looks_same(a, a.ravel()[::4], np.zeros((5, 5), np.uint8))) is False)
+
+# ------------------------------------------------------- same-frame OCR retry
+class _ScaleAwareReader:
+    def __init__(self):
+        self.calls = []
+
+    def readtext(self, image, allowlist=None, priority=False):
+        self.calls.append(image.shape)
+        text = "good" if image.shape == (50, 100) else "bad"
+        return [([[0, 0], [1, 0], [1, 1], [0, 1]], text, 0.9)]
+
+
+sensor = BaseSensor("TestSensor", "test", 0.0)
+sensor._cache = {}
+reader = _ScaleAwareReader()
+sensor.reader = reader
+grabs = []
+sensor._grab_region = lambda bbox: grabs.append(bbox) or Image.new("RGB", (100, 50), "white")
+text = sensor._ocr_text(
+    "location", (0, 0, 100, 50), match=lambda value: value == "good",
+    retry_scales=(1.0,),
+)
+check("same-frame OCR scale retry", text == "good", text)
+check("same-frame OCR retry shapes", reader.calls == [(25, 50), (50, 100)], str(reader.calls))
+check("same-frame OCR retry single capture", len(grabs) == 1, str(len(grabs)))
+check("same-frame OCR retry cached", sensor._cache["location"]["text"] == "good")
+
+
+class _OrderAwareReader:
+    def readtext(self, image, allowlist=None, priority=False):
+        return [
+            ([[50, 0], [90, 0], [90, 10], [50, 10]], "Mermonia", 0.9),
+            ([[0, 0], [40, 0], [40, 10], [0, 10]], "Palais", 0.9),
+        ]
+
+
+sensor2 = BaseSensor("TestSensor2", "test", 0.0)
+sensor2._cache = {}
+sensor2.reader = _OrderAwareReader()
+sensor2._grab_region = lambda bbox: Image.new("RGB", (100, 50), "white")
+text = sensor2._ocr_text(
+    "location", (0, 0, 100, 50), match=lambda value: value == "Palais Mermonia",
+)
+check("same-frame OCR spatial retry", text == "Palais Mermonia", text)
 
 # ------------------------------------------------------- gui shared data
 import core.state as st

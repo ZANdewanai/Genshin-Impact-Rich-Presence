@@ -268,7 +268,7 @@ class CharSensor(BaseSensor):
             return None
         return {"name": char.character_display_name, "image_key": char.image_key}
 
-    def _prep(self, img):
+    def _prep(self, img, scale=0.5):
         """Preprocess image for OCR - simple grayscale conversion."""
         return np.array(img.convert("L"))
 
@@ -314,31 +314,44 @@ class CharSensor(BaseSensor):
             height / BASE_RESOLUTION_HEIGHT,
         )
 
-    def _marker_template(self):
-        """Ideal left-pointing triangle (🞀) template, scaled to the UI."""
-        tpl = getattr(self, "_marker_tpl", None)
-        if tpl is not None:
-            return tpl
+    # Controller mode renders the same UI ~30% smaller at the same window
+    # resolution, so the marker template must be tried at several UI scales.
+    _MARKER_SCALES = (0.55, 0.7, 0.85, 1.0, 1.15, 1.3)
+
+    def _marker_templates(self):
+        """Ideal left-pointing triangle (🞀) templates at several UI scales.
+
+        Cached per display size; the UI scale factor is unknown (controller
+        mode shrinks the HUD without changing window resolution), so the
+        detector tries each scale and keeps the best match.
+        """
+        key = self._display_size()
+        cache = getattr(self, "_marker_tpl_cache", None)
+        if cache is not None and cache[0] == key:
+            return cache[1]
         sx, sy = self._ui_scale()
-        wt = max(8, int(round(14 * sx)))
-        ht = max(12, int(round(26 * sy)))
-        t = np.zeros((ht, wt), np.float32)
-        for yy in range(ht):
-            for xx in range(wt):
-                if abs(yy - ht / 2) <= (ht / 2) * (xx / wt):
-                    t[yy, xx] = 1.0
-        tpl = cv2.GaussianBlur(t, (3, 3), 0)
-        self._marker_tpl = tpl
-        return tpl
+        templates = []
+        for f in self._MARKER_SCALES:
+            wt = max(6, int(round(14 * sx * f)))
+            ht = max(8, int(round(26 * sy * f)))
+            t = np.zeros((ht, wt), np.float32)
+            for yy in range(ht):
+                for xx in range(wt):
+                    if abs(yy - ht / 2) <= (ht / 2) * (xx / wt):
+                        t[yy, xx] = 1.0
+            templates.append(cv2.GaussianBlur(t, (3, 3), 0))
+        self._marker_tpl_cache = (key, templates)
+        return templates
 
     def _marker_candidate(self, bbox, label=""):
         x1, y1, x2, y2 = (int(round(v)) for v in bbox)
         bx1, by1, bx2, by2 = self._abs_bounds()
         x1, y1 = max(bx1, x1), max(by1, y1)
         x2, y2 = min(bx2, x2), min(by2, y2)
-        tpl = self._marker_template()
-        th, tw = tpl.shape
-        if x2 - x1 < tw or y2 - y1 < th:
+        templates = self._marker_templates()
+        if x2 - x1 < min(t.shape[1] for t in templates) or y2 - y1 < min(
+            t.shape[0] for t in templates
+        ):
             return 0.0, None
 
         crop = self._grab((x1, y1, x2, y2))
@@ -361,9 +374,17 @@ class CharSensor(BaseSensor):
         if not roi.any():
             return 0.0, None
 
-        res = cv2.matchTemplate(roi, tpl, cv2.TM_CCOEFF_NORMED)
-        _, max_val, _, max_loc = cv2.minMaxLoc(res)
-        return float(max_val), (x1 + max_loc[0], y1 + max_loc[1], tw, th)
+        best_score, best_box = 0.0, None
+        for tpl in templates:
+            th, tw = tpl.shape
+            if roi.shape[0] < th or roi.shape[1] < tw:
+                continue
+            res = cv2.matchTemplate(roi, tpl, cv2.TM_CCOEFF_NORMED)
+            _, max_val, _, max_loc = cv2.minMaxLoc(res)
+            if max_val > best_score:
+                best_score = float(max_val)
+                best_box = (x1 + max_loc[0], y1 + max_loc[1], tw, th)
+        return best_score, best_box
 
     def _detect_active_marker(self, placed, party_area):
         if not placed:
@@ -379,12 +400,18 @@ class CharSensor(BaseSensor):
 
         bx1, by1, screen_w, screen_h = self._abs_bounds()
         sx, sy = self._ui_scale()
-        marker_right = min(
-            screen_w,
-            int(party_area[2] - max(4, int(6 * sx))),
-        )
         gap = max(1, int(3 * sx))
         zone_w = max(30, int(48 * sx))
+        # The HUD can sit right of the anchored party_area (controller mode
+        # shifts it toward center), so never clamp left of the name boxes.
+        rightmost_name = max(b[2] for b in boxes)
+        marker_right = min(
+            screen_w,
+            max(
+                int(party_area[2] - max(4, int(6 * sx))),
+                int(rightmost_name + zone_w),
+            ),
+        )
         scored = []
 
         for f, box in zip(placed, boxes):

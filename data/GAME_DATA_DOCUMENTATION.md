@@ -26,7 +26,7 @@ lumine,                  char_lumine,          Lumine
 - **Display name**: Human-readable name shown in Discord Rich Presence
 - **Tip**: For travelers, use separate entries for Aether (`traveler`) and Lumine (`lumine`)
 
-**Current Coverage:** 123 characters (v2.6: 80) — expanded from Fontaine update through Snezhnaya and Nod-Krai
+**Current Coverage:** 127 characters (v2.6: 80) — expanded through Snezhnaya 7.2, including Nod-Krai
 
 ### [Domains](domains.csv)
 
@@ -49,7 +49,7 @@ obsession,               Tower of Abject Pride | Obsession,  forgery,     domain
   - `limited` - Limited-time event domains
 - **Image assets**: Located in `../resources/assets/domains/`
 
-**Current Coverage:** 258 domains across all regions (v2.6: 53) — reorganized into I-IV difficulty tiers with full coverage through Snezhnaya and Nod-Krai
+**Current Coverage:** 274 domains across all regions (v2.6: 53) — reorganized into I-IV difficulty tiers with full coverage through Snezhnaya 7.2 and Nod-Krai
 
 **Notes:**
 - Weekly bosses in Trounce Domains are included here
@@ -72,7 +72,7 @@ wuwang hill,             Wuwang Hill,   Bishui Plain, Liyue,        emblem_liyue
 - **Image assets**: Located in `../resources/assets/emblems/`
 - **Coverage**: Cities, landmarks, special areas, teapot, taverns, etc.
 
-**Current Coverage:** 495 locations including all regions and special areas up to Snezhnaya and Nod-Krai (v2.6: 255)
+**Current Coverage:** 563 locations including all regions and special areas up to Snezhnaya 7.2 and Nod-Krai (v2.6: 255)
 
 **Tips:**
 - Use shortest unique phrase possible for long names
@@ -93,7 +93,7 @@ anemo hypostasis,        Anemo Hypostasis, boss_anemo_hypostasis
 - **Image assets**: Located in `../resources/assets/bosses/`
 - **Note**: Trounce Domain bosses are in `domains.csv`, not here
 
-**Current Coverage:** 50 world bosses (v2.6: 28) including latest additions through Snezhnaya and Nod-Krai
+**Current Coverage:** 52 world bosses (v2.6: 28) including latest additions through Snezhnaya 7.2 and Nod-Krai
 
 **Examples:**
 - `anemo hypostasis` (not `beth`)

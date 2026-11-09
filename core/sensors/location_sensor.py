@@ -10,6 +10,8 @@ import time
 
 from core import keys as K
 from core.blackboard import blackboard, CHAR_MAX_AGE_HUD, MENU_MAX_AGE
+from core.datatypes import DEBUG_MODE
+from core.log_utils import log, should_log
 from core.search_index import SearchIndex
 
 
@@ -31,6 +33,32 @@ class LocationSensor(BaseSensor):
         self._menus_key = menus_key
         self._tick = 0
         self._cache = {}
+        # Last CSV-matched location, republished while OCR keeps missing so a
+        # transient bad read doesn't drop the activity. Held indefinitely
+        # until a fresh match replaces it.
+        self._last_location = None
+
+    def _debug_ocr(self, key, text):
+        if not DEBUG_MODE:
+            return
+        attr = f"_last_{key}_debug"
+        if text != getattr(self, attr, None):
+            log(f"[{self.name}] {key} OCR: '{text}'")
+            setattr(self, attr, text)
+        elif not text and should_log(f"{key}_ocr_empty", 10.0):
+            log(f"[{self.name}] {key} OCR: ''")
+
+    def _hold_location(self, payload):
+        """Republish the last CSV-matched location during OCR miss streaks."""
+        if self._last_location:
+            payload[K.LOCATION] = self._last_location
+
+    def _location_text_matches(self, text):
+        if not text:
+            return False
+        if "mission accept" in text.lower():
+            return True
+        return self.search_index.search_location(text) is not None
 
     def _hud_visible(self) -> bool:
         """Party HUD on screen? Read from the characters blackboard."""
@@ -57,8 +85,15 @@ class LocationSensor(BaseSensor):
         payload = {K.LOCATION: None, K.BOSS: None,
                    K.COMMISSION: False, K.MAP_LOCATION: None}
 
-        # Commission check rides on the location region ("mission accept")
-        loc_text = self._ocr_text("location", loc_bbox, priority=True)
+        # Commission check rides on the location region ("mission accept").
+        # Retry alternate preprocessing on the same captured crop before the
+        # frame is discarded, so fast-disappearing labels get every chance.
+        loc_text = self._ocr_text(
+            "location", loc_bbox, priority=True, empty_retry=2.0,
+            match=self._location_text_matches, retry_scales=(1.0,),
+            retry_conf=0.25, white_only=True,
+        )
+        self._debug_ocr("location", loc_text)
         if loc_text:
             if "mission accept" in loc_text.lower():
                 payload[K.COMMISSION] = True
@@ -69,6 +104,13 @@ class LocationSensor(BaseSensor):
                         "name": found.location_name,
                         "search_str": found.search_str,
                     }
+                    self._last_location = payload[K.LOCATION]
+                else:
+                    self._hold_location(payload)
+                    if DEBUG_MODE and should_log("location_nomatch", 10.0):
+                        log(f"[{self.name}] no location match for OCR: '{loc_text}'")
+        else:
+            self._hold_location(payload)
 
         if self._tick % self.boss_every == 0:
             boss_text = self._ocr_text("boss", boss_bbox, priority=True)
@@ -98,7 +140,10 @@ class LocationSensor(BaseSensor):
             and maploc_bbox
             and self._tick % 3 == 0
         ):
-            map_text = self._ocr_text("maploc", maploc_bbox, priority=True)
+            map_text = self._ocr_text(
+                "maploc", maploc_bbox, priority=True, empty_retry=2.0
+            )
+            self._debug_ocr("maploc", map_text)
             if map_text:
                 from core.ocr_utils import process_map_text
                 cleaned = process_map_text(map_text, self.search_index)

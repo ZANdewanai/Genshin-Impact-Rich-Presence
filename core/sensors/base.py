@@ -14,10 +14,32 @@ import threading
 import time
 
 import numpy as np
-from PIL import ImageGrab
+from PIL import Image, ImageGrab
 
 from core.datatypes import DEBUG_MODE
 from core.log_utils import log, record_ocr
+
+# Location labels are rendered in pure white; anything dimmer or tinted is
+# world/UI noise that OCR turns into garble. Keep only near-white pixels.
+WHITE_MIN_CHANNEL = 240
+
+
+def _white_mask(crop, scale):
+    """Return a grayscale array keeping only bright white pixels."""
+    rgb = crop.convert("RGB")
+    if scale != 1.0:
+        rgb = rgb.resize(
+            (max(1, int(rgb.width * scale)), max(1, int(rgb.height * scale))),
+            Image.LANCZOS,
+        )
+    arr = np.asarray(rgb)
+    rgb.close()
+    keep = (
+        (arr[:, :, 0] >= WHITE_MIN_CHANNEL)
+        & (arr[:, :, 1] >= WHITE_MIN_CHANNEL)
+        & (arr[:, :, 2] >= WHITE_MIN_CHANNEL)
+    )
+    return (keep * 255).astype(np.uint8)
 
 
 class ScreenFrame:
@@ -116,12 +138,45 @@ class BaseSensor(threading.Thread):
             elapsed = time.perf_counter() - start
             self.stop_event.wait(max(0.05, self.interval - elapsed))
 
-    def _prep(self, crop):
+    def _prep(self, crop, scale=0.5, white_only=False):
+        if white_only:
+            return _white_mask(crop, scale)
         gray = crop.convert("L")
+        if scale == 1.0:
+            arr = np.array(gray)
+            gray.close()
+            return arr
         small = gray.resize(
-            (max(1, int(gray.width * 0.5)), max(1, int(gray.height * 0.5)))
+            (max(1, int(gray.width * scale)), max(1, int(gray.height * scale))),
+            Image.LANCZOS,
         )
-        return np.array(small)
+        arr = np.array(small)
+        gray.close()
+        small.close()
+        return arr
+
+    @staticmethod
+    def _results_text(results, conf, spatial=False):
+        items = [r for r in results if r[2] > conf]
+        if spatial:
+            items = sorted(
+                items,
+                key=lambda r: (
+                    min(p[1] for p in r[0]), min(p[0] for p in r[0])
+                ),
+            )
+        return " ".join(r[1].strip() for r in items).strip()
+
+    def _read_ocr(self, key, image, allowlist=None, priority=False):
+        t0 = time.perf_counter()
+        try:
+            results = self.reader.readtext(
+                image, allowlist=allowlist, priority=priority
+            )
+        except Exception:
+            results = []
+        record_ocr(key.upper(), (time.perf_counter() - t0) * 1000.0)
+        return results
 
     def _grab_frame(self):
         """Frame source for this scan; override to opt out (e.g. static images)."""
@@ -134,29 +189,73 @@ class BaseSensor(threading.Thread):
             return frame.crop(bbox)
         return ImageGrab.grab(bbox=bbox)
 
-    def _ocr_text(self, key, bbox, allowlist=None, conf=0.5, priority=False):
+    def _ocr_text(self, key, bbox, allowlist=None, conf=0.5, priority=False,
+                  empty_retry=0.0, match=None, retry_scales=(),
+                  retry_conf=None, white_only=False):
         """OCR a region with unchanged-pixel skip. Returns text ('' if none).
 
         ``priority=True`` queues ahead of normal OCR waiters so fast sensors
         (location/menu) are not starved behind CharSensor's party sweep.
+        ``empty_retry`` re-runs OCR after that many seconds when the cached
+        result is empty, so a transient miss on a static region self-heals.
+        ``match`` is an optional predicate used to retry the SAME captured
+        crop with ``retry_conf`` and/or alternate ``retry_scales`` before the
+        frame is discarded - important for fast-disappearing text.
         """
         crop = self._grab_region(bbox)
-        cur = self._prep(crop)
-        crop.close()
-        cache = getattr(self, "_cache", {}).get(key, {})
-        if _looks_same(cache.get("fp"), cache.get("sample"), cur):
-            return cache.get("text", "")
-        t0 = time.perf_counter()
         try:
-            results = self.reader.readtext(
-                cur, allowlist=allowlist, priority=priority
+            if not hasattr(self, "_cache"):
+                self._cache = {}
+            cur = self._prep(crop, white_only=white_only)
+            cache = self._cache.get(key, {})
+            if _looks_same(cache.get("fp"), cache.get("sample"), cur):
+                cached_text = cache.get("text", "")
+                if (
+                    cached_text
+                    or not empty_retry
+                    or (time.time() - cache.get("ts", 0.0)) < empty_retry
+                ):
+                    return cached_text
+
+            results = self._read_ocr(
+                key, cur, allowlist=allowlist, priority=priority
             )
-        except Exception:
-            results = []
-        record_ocr(key.upper(), (time.perf_counter() - t0) * 1000.0)
-        text = " ".join(r[1].strip() for r in results if r[2] > conf).strip()
-        self._cache[key] = {
-            "fp": cur, "sample": cur.ravel()[::4], "text": text
-        }
-        return text
+            text = self._results_text(results, conf)
+            matched = match is None or bool(text and match(text))
+
+            if match is not None and not matched:
+                def _accept(candidate):
+                    nonlocal text, matched
+                    if not matched and candidate and match(candidate):
+                        text = candidate
+                        matched = True
+
+                _accept(self._results_text(results, conf, spatial=True))
+                if retry_conf is not None and retry_conf < conf:
+                    _accept(self._results_text(results, retry_conf))
+                    _accept(self._results_text(results, retry_conf, spatial=True))
+                for scale in retry_scales:
+                    if matched:
+                        break
+                    if scale == 0.5:
+                        continue
+                    alt = self._prep(crop, scale=scale, white_only=white_only)
+                    alt_results = self._read_ocr(
+                        key, alt, allowlist=allowlist, priority=priority
+                    )
+                    _accept(self._results_text(alt_results, conf))
+                    _accept(self._results_text(alt_results, conf, spatial=True))
+                    if retry_conf is not None and retry_conf < conf:
+                        _accept(self._results_text(alt_results, retry_conf))
+                        _accept(
+                            self._results_text(alt_results, retry_conf, spatial=True)
+                        )
+
+            self._cache[key] = {
+                "fp": cur, "sample": cur.ravel()[::4], "text": text,
+                "ts": time.time(),
+            }
+            return text
+        finally:
+            crop.close()
 

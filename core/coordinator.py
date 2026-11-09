@@ -206,7 +206,7 @@ class SensorCoordinator:
         self.char_sensor.reset_slot_cache()
         self._exit_to_overworld("Left party setup")
 
-    def _act_enter_gamemenu(self, co, gm_obj, *_):
+    def _act_enter_gamemenu(self, gm_obj, *_):
         new_activity = Activity(ActivityType.GAMEMENU, gm_obj)
         update_activity(new_activity)
         with state_lock:
@@ -218,8 +218,8 @@ class SensorCoordinator:
     def _act_exit_gamemenu(self, *_):
         self._exit_to_overworld("Left menu/cutscene")
 
-    def _act_enter_domain(self, co, found, *_):
-        co.domain_handler.activate(found)
+    def _act_enter_domain(self, found, *_):
+        self.domain_handler.activate(found)
         new_activity = Activity(ActivityType.DOMAIN, found)
         update_activity(new_activity)
         self._set_timer_type("activity")
@@ -236,7 +236,7 @@ class SensorCoordinator:
         _notify_gui(new_activity)
         log("Detected doing commissions")
 
-    def _act_enter_map_location(self, co, found, *_):
+    def _act_enter_map_location(self, found, *_):
         new_activity = Activity(ActivityType.MAP_LOCATION, found)
         update_activity(new_activity)
         self._set_timer_type("global")
@@ -245,7 +245,7 @@ class SensorCoordinator:
             state_module.prev_location = found
         log(f"Browsing map: {found.location_name}")
 
-    def _act_enter_location(self, co, found, *_):
+    def _act_enter_location(self, found, *_):
         new_activity = Activity(ActivityType.LOCATION, found)
         update_activity(new_activity)
         self._set_timer_type("global")
@@ -254,7 +254,7 @@ class SensorCoordinator:
             state_module.prev_location = found
         log(f"Location: {found.location_name}")
 
-    def _act_enter_world_boss(self, co, found, *_):
+    def _act_enter_world_boss(self, found, *_):
         new_activity = Activity(ActivityType.WORLD_BOSS, found)
         update_activity(new_activity)
         self._set_timer_type("activity")
@@ -436,9 +436,20 @@ class SensorCoordinator:
                 if found is not None:
                     with state_lock:
                         act = state_module.current_activity
+                        # Location matches are remembered even while a menu /
+                        # domain / map activity owns the display, so exiting
+                        # back to the open world restores the latest location.
+                        # Those contexts keep display priority; only LOADING
+                        # and LOCATION itself may switch to a location match.
+                        if act.activity_type in (
+                            ActivityType.GAMEMENU,
+                            ActivityType.PARTY_SETUP,
+                            ActivityType.MAP_LOCATION,
+                            ActivityType.PAUSED,
+                        ):
+                            state_module.prev_location = found
                         should_update = (
-                            act.activity_type == ActivityType.GAMEMENU
-                            or act.activity_type == ActivityType.LOADING
+                            act.activity_type == ActivityType.LOADING
                             or (act.activity_type == ActivityType.LOCATION
                                 and _search_str(act) != found.search_str)
                         )
