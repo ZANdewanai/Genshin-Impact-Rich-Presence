@@ -64,6 +64,16 @@ check("search substring match", si.search_boss("the anemo hypostasis world boss"
 check("search no match", si.search_location("atoc sharp") is None)
 check("search gamemenu", si.search_gamemenu("open party setup menu") is not None)
 
+# refresh_after_reload rebuilds precomputed match lists
+data.bosses.append(_obj(search_str="all-seeing wiki", boss_name="All-Seeing Wiki", image_key="b2"))
+check("pre-refresh misses new boss", si.search_boss("all-seeing wiki") is None)
+si.refresh_after_reload()
+check("post-refresh finds new boss",
+      si.search_boss("all-seeing wiki").boss_name == "All-Seeing Wiki")
+check("char variants precomputed",
+      any(c.character_display_name == "Kamisato Ayaka"
+          and "kamisatoayaka" in vs for c, vs in si.character_variants()))
+
 # ------------------------------------------------------------- priority lock
 from core.state import _PriorityLock
 

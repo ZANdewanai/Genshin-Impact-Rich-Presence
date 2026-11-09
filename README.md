@@ -103,14 +103,56 @@ Debug tools live in `tools/`: `test_sensors.py` (live sensor test),
 
 ### Building from source
 
-Double-click **`build.bat`** (or run it from a terminal). It uses the bundled
-Python + PyInstaller to produce a ready-to-distribute folder at
+The repo does **not** ship `python3.12.8_embedded/` (it is gitignored), so a
+fresh clone needs the embedded interpreter bootstrapped once before anything
+else works.
+
+#### 1. Bootstrap the embedded Python
+
+`python3.12.8_embedded/` is the CPython 3.12.8 Windows embeddable distro with
+packages installed into it. To recreate it:
+
+1. Download `cpython-3.12.8+*-x86_64-pc-windows-msvc-embed-amd64.zip` from the
+   [python-build-standalone releases](https://github.com/astral-sh/python-build-standalone/releases)
+   and extract it so `python.exe` sits at `python3.12.8_embedded\python.exe`.
+2. In `python3.12.8_embedded\python312._pth`, make sure the last line is an
+   uncommented `import site` (this is what enables `Lib\site-packages`).
+3. Install pip and dependencies with the embedded interpreter itself:
+
+   ```bat
+   python3.12.8_embedded\python.exe get-pip.py
+   python3.12.8_embedded\python.exe -m pip install -r requirements.txt -r requirements-dev.txt pyinstaller
+   ```
+
+   (`requirements.txt` = runtime, `requirements-dev.txt` = tools/tests,
+   `pyinstaller` = needed only for building the exes.)
+
+#### 2. Build the GUI frontend
+
+The packaged GUI serves `gui/dist/` — `build_dist.py` refuses to assemble a
+release without it:
+
+```bat
+cd gui
+pnpm install
+pnpm build
+cd ..
+```
+
+#### 3. Run the build
+
+Double-click **`build.bat`** (or `python start.py build`) — it uses the
+embedded Python + PyInstaller to produce a ready-to-distribute folder at
 `builds\GenshinRichPresence\` containing:
 
 - `GenshinRichPresence.exe` — the GUI
 - `RichPresenceEngine.exe` — the headless OCR/Discord engine the GUI spawns
 
 Close the app before building — running exes lock their DLLs.
+
+For development you can skip PyInstaller entirely: `start_embedded.bat` runs
+the engine and `start_gui.bat` runs the GUI straight from source (the GUI
+serves `gui/dist/` in production mode, or `pnpm dev` for hot reload).
 
 -----
 

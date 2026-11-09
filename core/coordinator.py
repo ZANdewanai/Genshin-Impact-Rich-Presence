@@ -185,6 +185,9 @@ class SensorCoordinator:
             # Identity settings (username/traveler/renameables) feed
             # characters.csv substitution - already reloaded by check_reload.
             log("Identity settings changed - characters reloaded")
+        # SearchIndex caches sorted match lists + character name variants;
+        # rebuild them whenever any data source changed.
+        self.search_index.refresh_after_reload()
 
     # ---- Actions (side effects) ----
     @staticmethod

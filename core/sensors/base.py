@@ -1,6 +1,7 @@
 """Independent detector workers ("sensors").
 
-Each sensor runs its own loop, grabs only its own screen regions, skips OCR
+Each sensor runs its own loop, grabs the client area once per scan and crops
+its own regions from that shared frame, skips OCR
 when a region is pixel-identical to the previous scan, and publishes its
 findings to its own JSON file on the blackboard. Sensors never block each
 other; the coordinator (main) consumes the JSON files.
@@ -18,6 +19,44 @@ from PIL import ImageGrab
 from core.datatypes import DEBUG_MODE
 from core.log_utils import log, record_ocr
 
+
+class ScreenFrame:
+    """One client-area grab shared by every region crop in a sensor scan.
+
+    ``image`` is the grabbed Genshin client area and ``origin`` its absolute
+    screen coordinate. ``crop(bbox)`` takes absolute screen coords; PIL pads
+    out-of-bounds edges with black, so the returned crop's top-left always
+    corresponds to ``bbox[:2]`` even when a region hangs off the client.
+    """
+
+    __slots__ = ("image", "origin")
+
+    def __init__(self, image, origin):
+        self.image = image
+        self.origin = origin
+
+    def crop(self, bbox):
+        ox, oy = self.origin
+        return self.image.crop(
+            (bbox[0] - ox, bbox[1] - oy, bbox[2] - ox, bbox[3] - oy)
+        )
+
+
+def grab_screen_frame():
+    """Grab the whole Genshin client area once for a sensor scan.
+
+    Returns a ScreenFrame, or None when the window/rect can't be resolved -
+    callers then fall back to per-region ImageGrab grabs.
+    """
+    from core import ps_helper
+    rect = ps_helper.get_genshin_client_rect()
+    if not rect:
+        return None
+    left, top, w, h = rect
+    if w <= 0 or h <= 0:
+        return None
+    image = ImageGrab.grab(bbox=(left, top, left + w, top + h))
+    return ScreenFrame(image, (left, top))
 
 
 def _looks_same(prev_fp, prev_sample, cur) -> bool:
@@ -64,10 +103,16 @@ class BaseSensor(threading.Thread):
                 log(f"[{self.name}] resumed")
                 was_paused = False
             try:
+                self._frame = self._grab_frame()
+            except Exception:
+                self._frame = None
+            try:
                 self.scan()
             except Exception as e:
                 if DEBUG_MODE:
                     log(f"[{self.name}] scan error: {e}")
+            finally:
+                self._frame = None
             elapsed = time.perf_counter() - start
             self.stop_event.wait(max(0.05, self.interval - elapsed))
 
@@ -78,13 +123,24 @@ class BaseSensor(threading.Thread):
         )
         return np.array(small)
 
+    def _grab_frame(self):
+        """Frame source for this scan; override to opt out (e.g. static images)."""
+        return grab_screen_frame()
+
+    def _grab_region(self, bbox):
+        """Crop a screen region, preferring the shared per-scan frame."""
+        frame = getattr(self, "_frame", None)
+        if frame is not None:
+            return frame.crop(bbox)
+        return ImageGrab.grab(bbox=bbox)
+
     def _ocr_text(self, key, bbox, allowlist=None, conf=0.5, priority=False):
         """OCR a region with unchanged-pixel skip. Returns text ('' if none).
 
         ``priority=True`` queues ahead of normal OCR waiters so fast sensors
         (location/menu) are not starved behind CharSensor's party sweep.
         """
-        crop = ImageGrab.grab(bbox=bbox)
+        crop = self._grab_region(bbox)
         cur = self._prep(crop)
         crop.close()
         cache = getattr(self, "_cache", {}).get(key, {})

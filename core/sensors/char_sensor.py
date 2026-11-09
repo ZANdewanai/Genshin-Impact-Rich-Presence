@@ -16,7 +16,7 @@ from pathlib import Path
 
 import numpy as np
 import cv2
-from PIL import Image, ImageGrab
+from PIL import Image
 
 from core import keys as K
 from core.blackboard import blackboard, CHAR_MAX_AGE_HUD
@@ -186,17 +186,17 @@ class CharSensor(BaseSensor):
         cfg = get_shared_config()
         custom = cfg.get("USERNAME")
         
-        search_strs = []
-        for char in self.search_index.data.characters:
-            search_strs.append(char.search_str.lower())
-            if " " in char.search_str:
-                search_strs.append(char.search_str.lower().replace(" ", ""))
-        if custom:
-            search_strs.append(custom.lower())
-            if " " in custom:
-                search_strs.append(custom.lower().replace(" ", ""))
+        # Base variant list is precomputed by SearchIndex (rebuilt on data
+        # reload); only the live USERNAME setting is appended per call.
+        search_strs = list(self.search_index.character_search_strings())
         
-        search_strs.sort(key=len, reverse=True)
+        custom = cfg.get("USERNAME")
+        if custom:
+            custom = custom.lower()
+            search_strs.append(custom)
+            if " " in custom:
+                search_strs.append(custom.replace(" ", ""))
+            search_strs.sort(key=len, reverse=True)
         
         text_lower = text.lower()
         matched = []
@@ -240,11 +240,7 @@ class CharSensor(BaseSensor):
         best_score = 0
         best_char = None
         fuzzy_candidates = []
-        for c in self.search_index.data.characters:
-            name_variants = {
-                c.search_str.lower(),
-                c.search_str.lower().replace(" ", ""),
-            }
+        for c, name_variants in self.search_index.character_variants():
             hit_len = 0
             for nv in name_variants:
                 if not nv:
@@ -276,11 +272,15 @@ class CharSensor(BaseSensor):
         """Preprocess image for OCR - simple grayscale conversion."""
         return np.array(img.convert("L"))
 
+    def _grab_frame(self):
+        # Static debug images bypass screen capture entirely.
+        return None if self._static_img is not None else super()._grab_frame()
+
     def _grab(self, bbox):
-        """Crop from the static debug image when set, else the live screen."""
+        """Crop from the static debug image when set, else the shared frame."""
         if self._static_img is not None:
             return self._static_img.crop(bbox)
-        return ImageGrab.grab(bbox=bbox)
+        return self._grab_region(bbox)
 
     def _bbox_to_tuple(self, bbox):
         """Convert OCR polygon bbox [[x1,y1],[x2,y1],[x2,y2],[x1,y2]] to (x1,y1,x2,y2)."""

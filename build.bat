@@ -20,6 +20,7 @@ set PYTHON=python3.12.8_embedded\python.exe
 if not exist "%PYTHON%" (
     echo ERROR: %PYTHON% not found.
     echo The embedded Python folder must be next to this script.
+    echo See "Building from source" in README.md for bootstrap steps.
     pause
     exit /b 1
 )
