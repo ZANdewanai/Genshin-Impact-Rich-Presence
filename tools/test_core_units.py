@@ -215,6 +215,34 @@ check("looks_same different", bool(_looks_same(a, a.ravel()[::4], c)) is False)
 check("looks_same no prev", bool(_looks_same(None, None, b)) is False)
 check("looks_same shape mismatch", bool(_looks_same(a, a.ravel()[::4], np.zeros((5, 5), np.uint8))) is False)
 
+# ------------------------------------------------- party fallback validation
+from core.sensors.char_sensor import CharSensor
+
+_fake_sensor = types.SimpleNamespace(_ui_scale=lambda: (1.0, 1.0))
+def _party_found(names_ys):
+    return [
+        {"name": name, "y_center": y}
+        for name, y in names_ys
+    ]
+
+check("party fallback rejects single name",
+      CharSensor._party_cluster_is_plausible(
+          _fake_sensor, _party_found([("Diona", 100)])
+      ) is False)
+check("party fallback rejects cramped pair",
+      CharSensor._party_cluster_is_plausible(
+          _fake_sensor, _party_found([("Diona", 100), ("Vesna", 110)])
+      ) is False)
+check("party fallback accepts spaced pair",
+      CharSensor._party_cluster_is_plausible(
+          _fake_sensor, _party_found([("Diona", 100), ("Vesna", 180)])
+      ) is True)
+check("party fallback rejects oversized party",
+      CharSensor._party_cluster_is_plausible(
+          _fake_sensor,
+          _party_found([(f"Char{i}", 100 + i * 80) for i in range(6)]),
+      ) is False)
+
 # ------------------------------------------------------- same-frame OCR retry
 class _ScaleAwareReader:
     def __init__(self):

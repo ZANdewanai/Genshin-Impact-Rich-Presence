@@ -24,7 +24,12 @@ from core.datatypes import DEBUG_MODE, DEBUG_CHARACTER_MODE, DEBUG_SAVE_IMAGES
 from core.log_utils import log, record_ocr
 from core.search_index import SearchIndex
 import CONFIG as app_config
-from CONFIG import BASE_RESOLUTION_WIDTH, BASE_RESOLUTION_HEIGHT, BASE_PARTY_AREA
+from CONFIG import (
+    BASE_RESOLUTION_WIDTH,
+    BASE_RESOLUTION_HEIGHT,
+    BASE_PARTY_AREA,
+    MAX_PARTY_SLOTS,
+)
 
 
 from .base import BaseSensor, _looks_same
@@ -65,6 +70,11 @@ class CharSensor(BaseSensor):
         self._fp = None
         self._fp_sample = None
         self._last_payload = None
+        # Minimum seconds between full OCR passes. The party changes rarely,
+        # but the region pixels can churn (animations, HUD noise), so cap
+        # inference at this cadence and republish the last payload between.
+        self._min_ocr_interval = 4.0
+        self._last_ocr_time = 0.0
         # Load special UI text patterns
         self._special_ui = self._load_special_ui()
 
@@ -616,6 +626,22 @@ class CharSensor(BaseSensor):
             for bbox, text, conf in fragments
         ]
 
+    def _party_cluster_is_plausible(self, found):
+        """Reject menu/cutscene text that happens to contain character names."""
+        unique = []
+        seen = set()
+        for f in sorted(found, key=lambda item: item["y_center"]):
+            if f["name"] in seen:
+                continue
+            seen.add(f["name"])
+            unique.append(f)
+
+        if not 2 <= len(unique) <= MAX_PARTY_SLOTS:
+            return False
+        span = unique[-1]["y_center"] - unique[0]["y_center"]
+        min_span = max(36, int(48 * self._ui_scale()[1]))
+        return span >= min_span
+
     def _find_party_area(self):
         search_area = self._fallback_party_area()
         if not search_area:
@@ -626,6 +652,8 @@ class CharSensor(BaseSensor):
         finally:
             crop.close()
         if not found:
+            return None
+        if self._in_known_menu() or not self._party_cluster_is_plausible(found):
             return None
 
         new_area = self._area_from_name_boxes(found, search_area[:2])
@@ -670,8 +698,20 @@ class CharSensor(BaseSensor):
             if self._last_payload is not None:
                 blackboard.write(self._output_key, self._last_payload)
             return
-        self._fp = cur
-        self._fp_sample = cur.ravel()[::4]
+
+        # Pixels differ from the last OCR'd frame, but throttle the
+        # expensive pass - republish the stale payload until the interval
+        # elapses. _fp stays on the last OCR'd frame so the diff keeps
+        # triggering once the throttle expires.
+        now = time.time()
+        if (
+            self._last_payload is not None
+            and now - self._last_ocr_time < self._min_ocr_interval
+        ):
+            crop.close()
+            blackboard.write(self._output_key, self._last_payload)
+            return
+        self._last_ocr_time = now
 
         # Save full party area for debugging
         if DEBUG_SAVE_IMAGES:
@@ -688,6 +728,8 @@ class CharSensor(BaseSensor):
                 if fallback is not None:
                     self._party_area, fragments, found = fallback
                     self._empty_scans = 0
+                    self._fp = None
+                    self._fp_sample = None
                     if DEBUG_MODE:
                         log(f"[CharSensor] Re-anchored party area to {self._party_area}")
         else:
@@ -748,4 +790,6 @@ class CharSensor(BaseSensor):
             "special_ui": special_match,
         }
         self._last_payload = payload
+        self._fp = cur
+        self._fp_sample = cur.ravel()[::4]
         blackboard.write(self._output_key, payload)
