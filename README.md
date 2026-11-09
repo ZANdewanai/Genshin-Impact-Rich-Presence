@@ -85,21 +85,21 @@ Advanced users can edit [CONFIG.py](CONFIG.py) directly:
 
 **Test if OCR works:**
 ```bash
-python3.12.8_embedded\python.exe tools\test_imagegrab.py
+python3.12.8_embedded\python.exe tools\test_sensors.py
 ```
 Alt+tab into Genshin, switch characters, travel around, and watch the console output.
 
 | Problem | Fix |
 |---|---|
-| OCR not detecting text | Ensure the game is in English; update GPU drivers; run `tools/test_imagegrab.py` |
+| OCR not detecting text | Ensure the game is in English; update GPU drivers; run `tools/test_sensors.py` |
 | App won't start | Allow the app through antivirus; ensure the release folder is unzipped intact with all files including `_internal/` |
 | Discord not updating | Confirm the Discord desktop app is running; restart Discord |
 | Poor performance | Close other GPU-intensive apps; update GPU drivers |
 
-Debug tools live in `tools/`: `test_imagegrab.py` (capture test),
+Debug tools live in `tools/`: `test_sensors.py` (live sensor test),
+`test_core_units.py` (offline unit tests),
 `capture_ocr_regions.py` (region inspection),
-`interactive_coordinate_calibrator.py` (manual coordinate calibration),
-`test_sensors.py` (sensor architecture test).
+`debug_static_image.py` (replay a screenshot through CharSensor offline).
 
 ### Building from source
 
