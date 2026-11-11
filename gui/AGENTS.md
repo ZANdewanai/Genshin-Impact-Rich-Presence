@@ -1,41 +1,25 @@
-# figma-make-app
+# genshin-presence-gui
 
-React + Vite + Tailwind CSS project running inside Figma Make.
+React + Vite + Tailwind CSS frontend for the Genshin Impact Rich Presence engine. It runs inside a pywebview window (see `../webview_launcher.py`) and talks to the Python backend through `window.pywebview.api` (`../gui/api.py`).
 
-## Development Server
+## Development
 
-A Vite development server is **already running** on `$PORT` (default 8443). You don't need to start it manually.
-
-- Preview URL: The user can access the running app through the preview panel
-- Hot reload: Changes to source files are reflected immediately
+- `pnpm dev` - Vite dev server on port 8443. Without pywebview the UI runs in demo mode (`src/api.ts` fabricates state).
+- `pnpm build` - typecheck (`tsc --noEmit`) + production build into `dist/`, which `webview_launcher.py` serves.
 
 ## Project Structure
 
-This is the canonical project structure. Start with task-relevant files below. Only follow imports or inspect other files when required, when a documented path is missing, or when the repository contradicts this guide.
+- `src/main.tsx` - entrypoint; imports `src/index.css`, mounts `src/App.tsx`
+- `src/App.tsx` - app shell: header, tab nav, routed tab content
+- `src/api.ts` - pywebview bridge types/helpers, `fetchState`, `fmtElapsed`, demo fallback
+- `src/hooks.ts` - `useSettings`, `useDebug`, `useBackendState` (1s poll), `useLogs`
+- `src/types.ts`, `src/constants.ts` - shared types and element/rarity colors
+- `src/components/` - `TabBar`, `PresenceTab` (Live), `SettingsTab`, `LogsTab`, `AboutTab`, `CharacterCard`, `ui.tsx` primitives, `Icons.tsx`
+- `src/index.css` - Tailwind v4 import, theme tokens, shared component classes
+- `../api.py` - Python side of the bridge: `get_state`, `toggle_connection`, settings/debug/log endpoints
 
-- `src/main.tsx` - React entrypoint; imports `src/index.css` and mounts `src/App.tsx` into the `#root` element
-- `src/App.tsx` - Primary application component and the usual starting point for UI work
-- `src/index.css` - Global CSS entrypoint and Tailwind CSS v4 import
-- `index.html` - Vite HTML shell containing the `#root` element and loading `src/main.tsx`
-- `package.json` - Project dependencies and the Vite build, development, preview, and formatting scripts
-- `vite.config.ts` - Vite configuration with React, Tailwind CSS v4, and Figma Make plugins plus the `@` alias for `src`
-- `.mise.toml` - Toolchain versions for Node.js and pnpm
+## Backend contract
 
-## Dependencies
-
-- Runtime: React 19 and React DOM 19
-- Styling: Tailwind CSS v4 with the `@tailwindcss/vite` plugin
-- Build tooling: Vite 8, TypeScript 5.7, and `@vitejs/plugin-react`
-- Formatting: oxfmt
-
-## Styling
-
-This project uses **Tailwind CSS v4** through the `@tailwindcss/vite` plugin configured in `vite.config.ts`. `src/index.css` imports Tailwind with `@import 'tailwindcss';`. Use Tailwind utility classes directly in JSX and put global CSS or Tailwind v4 theme customization in `src/index.css`. This scaffold does not need a Tailwind config file or PostCSS config.
-
-`src/main.tsx` imports `src/index.css`, so global font wiring belongs in `src/index.css`. Keep CSS `@import` statements first, then add any `@font-face` rules and font-family defaults there.
-
-## Code quality
-
-- Use double quotes for strings containing apostrophes (`"We're here to help"`), or escape them in single-quoted strings. An unescaped apostrophe in a single-quoted string breaks the build.
-- Ensure JSX tags are closed and braces are balanced.
-- Export components as default exports.
+- Engine state comes from `get_state()` (poll ~1s). `running=false` means the engine subprocess is stopped.
+- Settings persist to `shared_config.json` via `get_settings`/`save_settings`; identity keys hot-reload, `useGpu` applies on next engine start.
+- Debug flags and the log ring buffer are exposed via `get_debug`/`set_debug`/`get_logs`.

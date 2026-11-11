@@ -1,13 +1,15 @@
-export type Element = "pyro" | "hydro" | "anemo" | "electro" | "cryo" | "geo" | "dendro" | "empty";
+export type Element =
+  | "pyro" | "hydro" | "anemo" | "electro"
+  | "cryo" | "geo" | "dendro" | "empty";
+
 export type Tab = "presence" | "settings" | "logs" | "about";
 
 export interface Character {
-  id?: number;
   name: string;
   element: Element;
+  rarity?: number;
   level?: number;
   imageUrl: string;
-  rarity?: number;
 }
 
 export interface Settings {
@@ -16,6 +18,7 @@ export interface Settings {
   wandererName: string;
   manekinName: string;
   manekinaName: string;
+  useGpu: boolean;
 }
 
 export interface BackendState {

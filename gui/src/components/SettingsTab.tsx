@@ -1,103 +1,109 @@
-import { SettingsPanel } from "./SettingsPanel";
-import { OrnamentDivider } from "./SmallComponents";
-import { ToggleSwitch } from "./FormComponents";
-import type { Settings, DebugConfig } from "../types";
+import { useEffect, useState } from "react";
+import type { DebugConfig, Settings } from "../types";
+import { Card, TextField, Toggle } from "./ui";
 
 interface SettingsTabProps {
   settings: Settings;
-  onSave: (s: Partial<Settings>) => void;
+  onSave: (patch: Partial<Settings>) => void;
   debug: DebugConfig;
-  onDebugChange: (d: Partial<DebugConfig>) => void;
+  onDebugChange: (patch: Partial<DebugConfig>) => void;
 }
 
 export function SettingsTab({ settings, onSave, debug, onDebugChange }: SettingsTabProps) {
+  const [form, setForm] = useState<Settings>(settings);
+  const [savedKey, setSavedKey] = useState<string | null>(null);
+
+  useEffect(() => { setForm(settings); }, [settings]);
+
+  const set = (patch: Partial<Settings>) => setForm(prev => ({ ...prev, ...patch }));
+
+  const apply = (key: keyof Settings) => {
+    onSave({ [key]: form[key] } as Partial<Settings>);
+    setSavedKey(key);
+    setTimeout(() => setSavedKey(prev => (prev === key ? null : prev)), 2000);
+  };
+
+  const field = (key: keyof Settings) => ({
+    value: String(form[key]),
+    savedValue: String(settings[key]),
+    saved: savedKey === key,
+    onChange: (v: string) => set({ [key]: v } as Partial<Settings>),
+    onApply: () => apply(key),
+  });
+
+  const mcDirty = form.mcAether !== settings.mcAether;
+  const mcSaved = savedKey === "mcAether";
+
   return (
-    <>
-      <SettingsPanel settings={settings} onSave={onSave} />
+    <div className="flex flex-col gap-4">
+      <Card title="Identity">
+        <TextField
+          label="Traveler name"
+          hint="Your in-game username. Used to spot your character in the party and in presence text."
+          placeholder="PlayerName"
+          {...field("username")}
+        />
 
-      <div className="panel-card mb-4">
-        <div className="px-4 py-3">
-          <span style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: "12px",
-            color: "#ede3c4",
-            letterSpacing: "0.05em",
-          }}>
-            ENGINE DEBUG SETTINGS
-          </span>
-          <span style={{
-            fontFamily: "var(--font-body)",
-            fontSize: "12.5px",
-            color: "#6a5820",
-            lineHeight: 1.4,
-            display: "block",
-            marginTop: 4,
-          }}>
-            Toggle verbose engine output and character-detection logging. Maps to CONFIG DEBUG_MODE, DEBUG_CHARACTER_MODE, and DEBUG_STATIC_IMAGE.
-          </span>
-        </div>
-
-        <div className="status-row">
-          <div className="status-label">
-            <span className="status-title">Engine Debug Logs</span>
-            <span className="status-desc">General verbose engine output (DEBUG_MODE)</span>
+        <div className="px-4 py-3 border-b border-[var(--color-line)]">
+          <div className="field-label mb-1.5">Main character</div>
+          <div className="flex items-center gap-2">
+            <select
+              className="input flex-1"
+              value={form.mcAether ? "aether" : "lumine"}
+              onChange={e => set({ mcAether: e.target.value === "aether" })}
+            >
+              <option value="aether">Aether</option>
+              <option value="lumine">Lumine</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => apply("mcAether")}
+              disabled={!mcDirty}
+              className={`apply-btn ${mcSaved ? "saved" : ""}`}
+            >
+              {mcSaved ? "Saved" : "Apply"}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => onDebugChange({ debugMode: !debug.debugMode })}
-            className={`toggle-switch ${debug.debugMode ? "on" : "off"}`}
-            aria-pressed={debug.debugMode}
-          >
-            <span className={`toggle-thumb ${debug.debugMode ? "on" : "off"}`} />
-          </button>
+          <p className="mt-1.5 text-[12px] leading-snug text-[var(--color-faint)]">
+            Which twin you play as — needed to tell your character apart in co-op parties.
+          </p>
         </div>
 
-        <div className="status-row">
-          <div className="status-label">
-            <span className="status-title">Character Detection Debug</span>
-            <span className="status-desc">Extra OCR debug output for character name detection (DEBUG_CHARACTER_MODE)</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => onDebugChange({ debugCharacterMode: !debug.debugCharacterMode })}
-            className={`toggle-switch ${debug.debugCharacterMode ? "on" : "off"}`}
-            aria-pressed={debug.debugCharacterMode}
-          >
-            <span className={`toggle-thumb ${debug.debugCharacterMode ? "on" : "off"}`} />
-          </button>
-        </div>
+        <TextField
+          label="Wanderer name"
+          hint="Custom name shown when Wanderer is detected. Only change it if you renamed him in-game."
+          {...field("wandererName")}
+        />
+        <TextField
+          label="Manekin name"
+          hint="Custom name shown when Wonderland Manekin is detected."
+          {...field("manekinName")}
+        />
+        <TextField
+          label="Manekina name"
+          hint="Custom name shown when Wonderland Manekina is detected."
+          {...field("manekinaName")}
+        />
+      </Card>
 
-        <div className="status-row">
-          <div className="status-label flex-1">
-            <span className="status-title">Static Image Debug</span>
-            <span className="status-desc">Read character name regions from a static screenshot instead of the live screen (DEBUG_STATIC_IMAGE)</span>
-            <input
-              type="text"
-              value={debug.debugStaticImagePath}
-              onChange={e => onDebugChange({ debugStaticImagePath: e.target.value })}
-              placeholder="debug_images\debug_image.jpg"
-              className="mt-1 px-2 py-1 rounded text-xs"
-              style={{
-                background: "rgba(8,9,26,0.5)",
-                border: "1px solid rgba(200,168,75,0.2)",
-                color: "#ede3c4",
-                fontFamily: "var(--font-body)",
-                outline: "none",
-                width: "100%",
-                maxWidth: 320,
-              }}
-            />
+      <Card title="Engine">
+        <div className="flex items-center justify-between gap-4 px-4 py-3">
+          <div className="min-w-0">
+            <div className="text-[13.5px] text-[var(--color-text)]">GPU acceleration</div>
+            <p className="mt-0.5 text-[12px] leading-snug text-[var(--color-faint)]">
+              Uses the GPU for OCR detection. Applies the next time the engine starts.
+            </p>
           </div>
-          <button
-            type="button"
-            onClick={() => onDebugChange({ debugStaticImage: !debug.debugStaticImage })}
-            className={`toggle-switch ${debug.debugStaticImage ? "on" : "off"}`}
-            aria-pressed={debug.debugStaticImage}
-          >
-            <span className={`toggle-thumb ${debug.debugStaticImage ? "on" : "off"}`} />
-          </button>
+          <Toggle
+            label="GPU acceleration"
+            checked={form.useGpu}
+            onChange={v => {
+              set({ useGpu: v });
+              onSave({ useGpu: v });
+            }}
+          />
         </div>
-      </div>
-    </>
+      </Card>
+    </div>
   );
 }

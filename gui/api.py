@@ -58,12 +58,14 @@ class Api:
         self.character_meta = {}
         self._load_character_meta()
         try:
-            from CONFIG import ASSET_BASE_URL, USE_URL_ASSETS
+            from CONFIG import ASSET_BASE_URL, USE_URL_ASSETS, USE_GPU
             self.use_url_assets = bool(USE_URL_ASSETS)
             self.asset_base_url = ASSET_BASE_URL or ""
+            config_use_gpu = bool(USE_GPU)
         except ImportError:
             self.use_url_assets = False
             self.asset_base_url = ""
+            config_use_gpu = True
         # Identity defaults from shared_config (live) or core.datatypes._identity_settings()
         # (which itself falls back to CONFIG.py for legacy keys we kept for backward compat)
         try:
@@ -76,7 +78,11 @@ class Api:
                 "WANDERER_NAME": "Wanderer",
                 "MANEKIN_NAME": "Manekin",
                 "MANEKINA_NAME": "Manekina",
+                "USE_GPU": True,
             }
+        # USE_GPU isn't an identity setting, so _identity_settings() won't
+        # return it - merge the CONFIG.py default in explicitly.
+        self._config_defaults["USE_GPU"] = config_use_gpu
         self._ensure_shared_config()
 
     def _ensure_shared_config(self):
@@ -307,22 +313,23 @@ class Api:
             return {"running": False}
         return {"running": self._start_engine()}
 
-    # Identity settings keys exposed to the frontend. All of them live in
-    # shared_config.json; the engine's data hot-reload (Data.check_reload)
-    # re-applies them to characters.csv within a few seconds.
-    IDENTITY_KEYS = (
+    # Settings keys exposed to the frontend, mapped to shared_config.json.
+    # Identity keys hot-reload into characters.csv within seconds; USE_GPU is
+    # read once at engine startup, so it applies on the next CONNECT.
+    SETTINGS_KEYS = (
         ("username", "USERNAME"),
         ("mcAether", "MC_AETHER"),
         ("wandererName", "WANDERER_NAME"),
         ("manekinName", "MANEKIN_NAME"),
         ("manekinaName", "MANEKINA_NAME"),
+        ("useGpu", "USE_GPU"),
     )
 
     def get_settings(self):
-        """Return current identity settings for the frontend."""
+        """Return current settings for the frontend."""
         shared = self._read_json(SHARED_CONFIG_FILE)
         result = {}
-        for js_key, cfg_key in self.IDENTITY_KEYS:
+        for js_key, cfg_key in self.SETTINGS_KEYS:
             val = shared.get(cfg_key)
             if val is None or (isinstance(val, str) and not val.strip()):
                 # Fall back to the CONFIG.py default when unset/blank
@@ -340,7 +347,7 @@ class Api:
         if not isinstance(settings, dict):
             return {"ok": False}
         shared = self._read_json(SHARED_CONFIG_FILE)
-        for js_key, cfg_key in self.IDENTITY_KEYS:
+        for js_key, cfg_key in self.SETTINGS_KEYS:
             if js_key not in settings or settings[js_key] is None:
                 continue
             val = settings[js_key]

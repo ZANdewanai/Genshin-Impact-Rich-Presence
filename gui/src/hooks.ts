@@ -1,150 +1,134 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import type { Settings, DebugConfig, BackendState } from "./types";
-import { hasBackend, fetchState, fmtElapsed } from "./utils";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { BackendState, DebugConfig, Settings } from "./types";
+import { api, fetchState, hasBackend } from "./api";
 
-export const useSettings = (initial: Settings) => {
-  const [settings, setSettings] = useState<Settings>(initial);
+const DEFAULT_SETTINGS: Settings = {
+  username: "",
+  mcAether: true,
+  wandererName: "Wanderer",
+  manekinName: "Manekin",
+  manekinaName: "Manekina",
+  useGpu: true,
+};
 
-  const loadSettings = useCallback(async () => {
-    if (!hasBackend()) return;
-    let attempts = 0;
-    const load = async () => {
-      if (!window.pywebview?.api?.get_settings) {
-        attempts++;
-        if (attempts < 100) setTimeout(load, 200);
-        return;
-      }
+const DEFAULT_DEBUG: DebugConfig = {
+  debugMode: false,
+  debugCharacterMode: false,
+  debugStaticImage: false,
+  debugStaticImagePath: "",
+};
+
+/* Wait for the pywebview bridge to finish injecting, then call `fn` once.
+ * The API object can appear a few hundred ms after first paint. */
+function whenApiReady(fn: () => void) {
+  if (api()?.get_settings) return fn();
+  let attempts = 0;
+  const poll = () => {
+    if (api() || ++attempts >= 100) return fn();
+    setTimeout(poll, 200);
+  };
+  poll();
+}
+
+export function useSettings() {
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+
+  useEffect(() => {
+    whenApiReady(async () => {
       try {
-        const s = await window.pywebview!.api.get_settings!();
+        const s = await api()?.get_settings?.();
         if (s && Object.keys(s).length) {
           setSettings(prev => ({ ...prev, ...s }));
         }
-      } catch {}
-    };
-    load();
+      } catch { /* bridge not ready or engine offline */ }
+    });
   }, []);
-
-  useEffect(() => {
-    loadSettings();
-  }, [loadSettings]);
 
   const updateSettings = useCallback((patch: Partial<Settings>) => {
     setSettings(prev => ({ ...prev, ...patch }));
-    if (hasBackend()) {
-      window.pywebview!.api.save_settings?.(patch)?.catch(() => {});
-    }
+    api()?.save_settings?.(patch)?.catch(() => {});
   }, []);
 
-  return { settings, setSettings: updateSettings, reload: loadSettings };
-};
+  return { settings, updateSettings };
+}
 
-export const useDebug = () => {
-  const [debug, setDebug] = useState<DebugConfig>({
-    debugMode: false,
-    debugCharacterMode: false,
-    debugStaticImage: false,
-    debugStaticImagePath: "",
-  });
-
-  const loadDebug = useCallback(async () => {
-    if (!hasBackend()) return;
-    let attempts = 0;
-    const load = async () => {
-      if (!window.pywebview?.api?.get_debug) {
-        attempts++;
-        if (attempts < 100) setTimeout(load, 200);
-        return;
-      }
-      try {
-        const d = await window.pywebview!.api.get_debug!();
-        if (d && typeof d.debugMode === "boolean") {
-          setDebug({
-            debugMode: d.debugMode,
-            debugCharacterMode: d.debugCharacterMode,
-            debugStaticImage: d.debugStaticImage,
-            debugStaticImagePath: d.debugStaticImagePath || "",
-          });
-        }
-      } catch {}
-    };
-    load();
-  }, []);
+export function useDebug() {
+  const [debug, setDebug] = useState<DebugConfig>(DEFAULT_DEBUG);
+  const debugRef = useRef(debug);
+  debugRef.current = debug;
 
   useEffect(() => {
-    loadDebug();
-  }, [loadDebug]);
-
-  const updateDebug = useCallback((
-    debugMode: boolean,
-    debugCharacterMode: boolean,
-    debugStaticImage: boolean,
-    debugStaticImagePath?: string
-  ) => {
-    setDebug(prev => {
-      const next = { ...prev, debugMode, debugCharacterMode, debugStaticImage };
-      if (typeof debugStaticImagePath === "string") next.debugStaticImagePath = debugStaticImagePath;
-      return next;
+    whenApiReady(async () => {
+      try {
+        const d = await api()?.get_debug?.();
+        if (d) setDebug({ ...DEFAULT_DEBUG, ...d });
+      } catch { /* ignore */ }
     });
-    if (hasBackend()) {
-      window.pywebview!.api.set_debug?.(debugMode, debugCharacterMode, debugStaticImage, typeof debugStaticImagePath === "string" ? debugStaticImagePath : debug.debugStaticImagePath)?.catch(() => {});
-    }
   }, []);
 
-  return { debug, setDebug: updateDebug };
-};
+  const setDebugFlags = useCallback((patch: Partial<DebugConfig>) => {
+    const next = { ...debugRef.current, ...patch };
+    debugRef.current = next;
+    setDebug(next);
+    api()?.set_debug?.(
+      next.debugMode,
+      next.debugCharacterMode,
+      next.debugStaticImage,
+      next.debugStaticImagePath,
+    )?.catch(() => {});
+  }, []);
 
-export const useBackendState = (demoConnected: boolean, onConnectedChange?: (running: boolean) => void) => {
+  return { debug, setDebugFlags };
+}
+
+/* Polls get_state() once per second. `demoRunning` only matters outside
+ * pywebview, where fetchState fabricates a demo BackendState. */
+export function useBackendState(demoRunning: boolean) {
   const [state, setState] = useState<BackendState | null>(null);
-  const connectedRef = useRef(false);
-  // Keep the latest callback in a ref so an inline lambda from the parent
-  // doesn't recreate the polling effect every render.
-  const onConnectedChangeRef = useRef(onConnectedChange);
-  onConnectedChangeRef.current = onConnectedChange;
-  const lastJsonRef = useRef("");
+  const lastJson = useRef("");
 
   useEffect(() => {
     let alive = true;
     const tick = async () => {
-      const s = await fetchState(demoConnected);
-      if (!alive) return;
-      connectedRef.current = s.running;
-      onConnectedChangeRef.current?.(s.running);
-      // Skip re-render when nothing actually changed (fetchState builds a
-      // fresh object every poll).
-      const json = JSON.stringify(s);
-      if (json !== lastJsonRef.current) {
-        lastJsonRef.current = json;
-        setState(s);
-      }
+      try {
+        const s = await fetchState(demoRunning);
+        if (!alive) return;
+        // Skip the re-render when the payload is unchanged - the JSON
+        // stringify is cheaper than diffing the tree every second.
+        const json = JSON.stringify(s);
+        if (json !== lastJson.current) {
+          lastJson.current = json;
+          setState(s);
+        }
+      } catch { /* keep last known state */ }
     };
     tick();
-    const t = setInterval(tick, 1000);
-    return () => { alive = false; clearInterval(t); };
-  }, [demoConnected]);
+    const timer = setInterval(tick, 1000);
+    return () => { alive = false; clearInterval(timer); };
+  }, [demoRunning]);
 
-  return { state, connected: connectedRef.current };
-};
+  return state;
+}
 
-export const useLogs = (debugEnabled: boolean) => {
+export function useLogs(enabled: boolean) {
   const [logs, setLogs] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!debugEnabled || !hasBackend()) {
+    if (!enabled || !hasBackend()) {
       setLogs([]);
       return;
     }
     let alive = true;
     const tick = async () => {
-      if (!window.pywebview?.api?.get_logs) return;
       try {
-        const lines = await window.pywebview!.api.get_logs!();
+        const lines = await api()?.get_logs?.();
         if (alive && Array.isArray(lines)) setLogs(lines);
-      } catch {}
+      } catch { /* ignore */ }
     };
     tick();
-    const t = setInterval(tick, 1000);
-    return () => { alive = false; clearInterval(t); };
-  }, [debugEnabled]);
+    const timer = setInterval(tick, 1000);
+    return () => { alive = false; clearInterval(timer); };
+  }, [enabled]);
 
   return logs;
-};
+}
